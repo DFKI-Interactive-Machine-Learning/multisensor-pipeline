@@ -11,7 +11,8 @@ setup(
     packages=find_packages(
         include=('multisensor_pipeline.*', 'multisensor_pipeline')
     ),
-    url="",
+    url="https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline",
+    download_url="https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline/releases/download/v1.2.0/multisensor_pipeline-1.2.0-py3-none-any.whl",
     description="The core library of the DFKI multisensor pipeline framework.",
     python_requires='>=3.6.0',
     install_requires=[
@@ -25,8 +26,5 @@ setup(
     extras_require={
         'myo':  ['myo-python==0.2.2']
     },
-    keywords=['multimodality', 'streaming', 'multisensor', 'sensors', 'multimodal interaction', 'pipeline'],
-    classifiers=[
-        "Framework :: DFKI Multisensor Pipeline"
-    ]
+    keywords=['multimodality', 'streaming', 'multisensor', 'sensors', 'multimodal interaction', 'pipeline']
 )
