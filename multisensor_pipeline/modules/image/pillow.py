@@ -9,7 +9,7 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class CropByPointerProcessor(BaseProcessor):
 
-    def __init__(self, image_dtype, pointer_dtypes, crop_size=200, image_key="image", point_key=b"norm_pos"):
+    def __init__(self, image_dtype, pointer_dtypes, crop_size=200, image_key="image", point_key="gaze"):
         super().__init__()
         self.crop_size = crop_size
         self._image = None
@@ -26,7 +26,7 @@ class CropByPointerProcessor(BaseProcessor):
         if image is None:
             return None
         w, h = image.size
-        pos = scale_to_image_coordinate(norm_pos, w, h, flip_y=True)
+        pos = scale_to_image_coordinate(norm_pos, w, h, flip_y=False)
         rect = roi_rect(width=w, height=h, center_x=pos[0], center_y=pos[1], size=crop_size)
         if rect is None:
             return None
