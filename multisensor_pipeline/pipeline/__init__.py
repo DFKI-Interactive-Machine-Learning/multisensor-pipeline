@@ -69,18 +69,18 @@ class GraphPipeline(PipelineBase):
         sources = self.source_nodes
         assert len(sources) > 0, "a valid pipeline requires at least a source"
         for node in sources:
-            assert len(list(self._graph.successors(node))) > 0
-            assert len(list(self._graph.predecessors(node))) == 0
+            assert len(list(self._graph.successors(node))) > 0, node
+            assert len(list(self._graph.predecessors(node))) == 0, node
 
         for node in self.processor_nodes:  # this is a redundant check (never happens, if graph is weakly connected)
-            assert len(list(self._graph.successors(node))) > 0
-            assert len(list(self._graph.predecessors(node))) > 0
+            assert len(list(self._graph.successors(node))) > 0, node
+            assert len(list(self._graph.predecessors(node))) > 0, node
 
         sinks = self.sink_nodes
         assert len(sinks) > 0, "a valid pipeline requires at least a sink"
         for node in self.sink_nodes:
-            assert len(list(self._graph.successors(node))) == 0
-            assert len(list(self._graph.predecessors(node))) > 0
+            assert len(list(self._graph.successors(node))) == 0, node
+            assert len(list(self._graph.predecessors(node))) > 0, node
 
         # no unconnected nodes or subgraphs are allowed
         assert nx.is_weakly_connected(self._graph), "all nodes in the pipeline have to be connected, they are not"

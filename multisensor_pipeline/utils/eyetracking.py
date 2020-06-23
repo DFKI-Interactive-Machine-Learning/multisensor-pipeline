@@ -18,8 +18,8 @@ class MSPGazeFrame(MSPDataFrame):
         self._normalized = normalized
         self._origin = origin
         init_dict = kwargs["init_dict"] if "init_dict" in kwargs else None
-        self._set_attr_from_value_or_dict("max_width", max_width, init_dict)
-        self._set_attr_from_value_or_dict("max_height", max_height, init_dict)
+        self._set_attr_from_value_or_dict("max_width", float(max_width), init_dict)
+        self._set_attr_from_value_or_dict("max_height", float(max_height), init_dict)
         self._set_attr_from_value_or_dict("gaze", self._scale_gaze(gaze), init_dict)
         super(MSPGazeFrame, self).__init__(**kwargs)
 
