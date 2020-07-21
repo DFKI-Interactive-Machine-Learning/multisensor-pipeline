@@ -101,7 +101,7 @@ class TypeInfo:
         if source.offers is None or sink.consumes is None:
             offer_str = "generic" if source.offers is None else [str(t) for t in source.offers]
             consume_str = "generic" if sink.consumes is None else [str(t) for t in sink.consumes]
-            logger.warning(f"Typing is not complete: offers {offer_str}; consumes {consume_str}.")
+            logger.debug(f"Typing is not complete: offers {offer_str}; consumes {consume_str}.")
             return True
         return any([t.matches(sink.consumes) for t in source.offers])
 
