@@ -37,6 +37,11 @@ class CropByPointerProcessor(BaseProcessor):
             # blocking access to data in queue
             dtype, data = self.get()
 
+            if dtype.endswith(b".eof"):
+                # TODO: end of file workaround, shall be replaced by a proper EOF integration
+                self._notify_all(dtype, data)
+                continue
+
             # update internal temporary fields
             if dtype == self._image_dtype:
                 img = data[self._image_key]

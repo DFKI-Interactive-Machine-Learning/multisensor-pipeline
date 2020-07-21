@@ -51,5 +51,10 @@ class DownsamplingProcessor(BaseProcessor):
         while self._active:
             dtype, dataframe = self.get()
 
+            if dtype.endswith(b".eof"):
+                # TODO: end of file workaround, shall be replaced by a proper EOF integration
+                self._notify_all(dtype, dataframe)
+                continue
+
             if dtype == self._dtype_in or self._dtype_in is None:
                 self._handle_dataframe(dtype, dataframe)
