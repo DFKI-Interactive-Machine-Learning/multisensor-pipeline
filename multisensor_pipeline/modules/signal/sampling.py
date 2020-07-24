@@ -11,9 +11,11 @@ class DownsamplingProcessor(BaseProcessor):
 
     class SampleHistory:
 
-        def __init__(self, dtype, fps_out):
+        def __init__(self, dtype, fps_out, window_size=5, interpolation=None):
             self.dtype = dtype
             self.target_fps = fps_out
+            self.window_size = window_size  # TODO: expose window_size, mainly for interpolation
+            self.interpolation = interpolation  # TODO: utilize interpolation for, e.g., averaging the data
             self.target_period_time = 1. / self.target_fps
             self.last_sent = None
             self.samples = []
@@ -24,9 +26,9 @@ class DownsamplingProcessor(BaseProcessor):
 
         def _update_and_get_last_sample(self, sample_id):
             self.last_sent = self.samples[sample_id]
-            # keep the last 5 timestamps for estimating actual frame-rate
+            # keep the last n timestamps for estimating actual frame-rate
             self._timestamps_out.append(self.last_sent.timestamp)
-            if len(self._timestamps_out) > 10:
+            if len(self._timestamps_out) > self.window_size:
                 self._timestamps_out = self._timestamps_out[1:]
             # logger.info(f"{round(self.fps_out, 3)} fps (out)")
             # keep samples that arrived after the sent one
@@ -65,7 +67,7 @@ class DownsamplingProcessor(BaseProcessor):
 
         @property
         def period_time_out(self):
-            if len(self._timestamps_out) < 3:
+            if len(self._timestamps_out) < self.window_size:
                 return self.target_period_time
             else:
                 period_time_estimate = (self._timestamps_out[-1] - self._timestamps_out[0]) / \
