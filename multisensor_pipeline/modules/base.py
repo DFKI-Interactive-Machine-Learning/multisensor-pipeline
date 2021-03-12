@@ -27,7 +27,7 @@ class BaseModule(object):
         """
         Starts the module.
         """
-        logger.info("starting: {}".format(self.get_name()))
+        logger.debug("starting: {}".format(self.get_name()))
         self._active = True
         self._start()
         self._thread.start()
@@ -48,7 +48,7 @@ class BaseModule(object):
         """
         Stops the module.
         """
-        logger.info("stopping: {}".format(self.get_name()))
+        logger.debug("stopping: {}".format(self.get_name()))
         self._active = False
         self._thread.join()
         self._stop()
