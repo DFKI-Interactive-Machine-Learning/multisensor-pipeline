@@ -14,7 +14,7 @@ class BaseModule(object):
     """
 
     def __init__(self):
-        self._thread = Thread(target=self._update_loop)
+        self._thread = Thread(target=self._update)
         self._active = False
 
     def get_name(self):
@@ -38,7 +38,7 @@ class BaseModule(object):
         """
         pass
 
-    def _update_loop(self):
+    def _update(self):
         """
         Main worker function (async)
         """

@@ -17,7 +17,7 @@ class RandomArraySource(BaseSource):
         type_info = TypeInfo(dtype=dtype, name="random")
         self._offers = [type_info]
 
-    def _update_loop(self):
+    def _update(self):
         while self._active:
             self._notify_all(self._offers[0], np.random.randint(1, 255, size=self._shape))
             sleep(self._sleep_time)
@@ -29,7 +29,7 @@ class ArrayManipulationProcessor(BaseProcessor):
         super().__init__()
         self._op = numpy_operation
 
-    def _update_loop(self):
+    def _update(self):
         while self._active:
             dtype, data = self.get()
             payload = data["data"]

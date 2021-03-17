@@ -8,7 +8,7 @@ class TimestampExtractionProcessor(BaseProcessor):
         super(TimestampExtractionProcessor, self).__init__()
         self._target_dtype = target_dtype
 
-    def _update_loop(self):
+    def _update(self):
         while self._active:
             dtype, dataframe = self.get()
             if self._target_dtype is not None and dtype != self._target_dtype:

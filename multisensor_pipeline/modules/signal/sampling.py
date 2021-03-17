@@ -118,7 +118,7 @@ class DownsamplingProcessor(BaseProcessor):
         if send_sample is not None:
             self._notify_all(dtype, send_sample, suffix=f"{self._sampling_rate}Hz")
 
-    def _update_loop(self):
+    def _update(self):
         while self._active:
             dtype, dataframe = self.get()
 

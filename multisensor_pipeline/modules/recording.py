@@ -39,7 +39,7 @@ class RecordingSink(BaseSink, ABC):
             topic = topic.decode()
         return any([topic.startswith(t) for t in self._topics])
 
-    def _update_loop(self):
+    def _update(self):
         while self._active:
             dtype, dataframe = self.get()
             if self.check_topic(dtype):

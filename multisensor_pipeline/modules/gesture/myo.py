@@ -63,7 +63,7 @@ class MyoSensor(BaseSource, DeviceListener):
     #     except:
     #         self.hub.shutdown()
 
-    def _update_loop(self):
+    def _update(self):
         while self._active:
             sleep(0.5)
             # uncomment following for constrained 50Hz polling

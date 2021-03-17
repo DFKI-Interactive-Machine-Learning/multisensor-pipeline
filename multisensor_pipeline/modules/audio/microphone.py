@@ -23,7 +23,7 @@ class Microphone(BaseSource):
                                       input=True,
                                       frames_per_buffer=self.chunk_size)
 
-    def _update_loop(self):
+    def _update(self):
         while self._active:
             data = self._stream.read(self.chunk_size)
             self._notify_all('microphone', data)

@@ -31,7 +31,7 @@ class CropByPointProcessor(BaseProcessor):
         self._crop_signal_topics = point_topics
         self._crop_signal_key = point_key
 
-    def _update_loop(self):
+    def _update(self):
         while self._active:
             # blocking access to data in queue
             dtype, data = self.get()

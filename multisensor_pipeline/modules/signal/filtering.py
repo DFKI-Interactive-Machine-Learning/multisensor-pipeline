@@ -46,7 +46,7 @@ class OneEuroProcessor(BaseProcessor):
         self._last_timestamp = timestamp
         return sample
 
-    def _update_loop(self):
+    def _update(self):
         while self._active:
             topic, payload = self.get()
 

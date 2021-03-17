@@ -19,7 +19,7 @@ class ZmqPublisher(BaseSink):
         self.socket = self.context.socket(zmq.PUB)
         self.socket.bind("{}://{}:{}".format(self.protocol, self.url, self.port))
 
-    def _update_loop(self):
+    def _update(self):
         while self._active:
             dtype, data = self.get()
             payload = (dtype, msgpack.packb(data, use_bin_type=True))
@@ -45,7 +45,7 @@ class ZmqSubscriber(BaseSource):
         self.source_filter = source_filter
         self.socket.setsockopt_string(zmq.SUBSCRIBE, self.source_filter)
 
-    def _update_loop(self):
+    def _update(self):
         while self._active:
             packet = self.socket.recv_multipart()
             dtype = packet[0]
