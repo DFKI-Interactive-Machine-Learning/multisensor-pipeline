@@ -1,6 +1,6 @@
 from abc import ABC
 from typing import List
-from .modules.base import BaseSink
+from multisensor_pipeline.modules.base import BaseSink
 from pathlib import Path
 import json
 
