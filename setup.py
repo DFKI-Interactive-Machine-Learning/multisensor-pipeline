@@ -4,7 +4,7 @@ import setuptools
 
 setup(
     name='multisensor-pipeline',
-    version='1.3.0',
+    version='2.0.0',
     author='Michael Barz',
     author_email='michael.barz@dfki.de',
     license='CC BY-NC-SA 4.0',
