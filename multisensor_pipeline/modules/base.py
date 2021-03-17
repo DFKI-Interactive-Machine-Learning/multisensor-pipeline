@@ -61,9 +61,7 @@ class BaseModule(object):
 
 
 class BaseSink(BaseModule, ABC):
-    """
-    Base class for data sinks.
-    """
+    """ Base class for data sinks. """
 
     def __init__(self):
         """
@@ -71,7 +69,7 @@ class BaseSink(BaseModule, ABC):
         """
         super().__init__()
         self._source_queue = Queue()
-        self._consumes = None  # TODO: maybe set to None: the implementation should know what it consumes.
+        self._consumes = None
 
     def put(self, sample):
         self._source_queue.put(sample)
@@ -123,13 +121,11 @@ class BaseSource(BaseModule, ABC):
             dtype: string describing the data event
             data: the actual payload as an instance of MSPDataFrame
         """
-        # TODO: switch to TypeInfo, create TypeInfo with str, if it's not a TypeInfo instance
 
         if type(dtype) is not bytes:
             dtype = str(dtype).encode()
 
         if not isinstance(data, MSPDataFrame):
-            # TODO: update all tests and demos accordingly (it should be sufficient to insert payload=payload["data"])
             data = MSPDataFrame(init_dict={"data": data})
 
         for sink in self._sinks:
@@ -140,35 +136,8 @@ class BaseSource(BaseModule, ABC):
         return self._offers
 
 
-class BaseProcessor(BaseModule, ABC):
-    """
-    Base class for data sinks.
-    """
-
-    def __init__(self):
-        """
-        Initializes the worker thread and a queue that will receive new samples from sources.
-        """
-        super().__init__()
-        self._sink = BaseSink()
-        self._source = BaseSource()
-
-    def put(self, sample):
-        self._sink.put(sample)
-
-    def get(self):
-        return self._sink.get()
-
-    @property
-    def consumes(self):
-        return self._sink.consumes
-
-    @property
-    def offers(self):
-        return self._source.offers
-
-    def add_observer(self, sink):
-        self._source.add_observer(sink)
+class BaseProcessor(BaseSink, BaseSource, ABC):
+    """ Base class for data processors. """
 
     def _dtype_out(self, dtype_in, suffix):
         if suffix is None:
@@ -178,4 +147,4 @@ class BaseProcessor(BaseModule, ABC):
         return dtype_out if isinstance(dtype_in, str) else dtype_out.encode()
 
     def _notify_all(self, dtype, data, suffix=None):
-        self._source._notify_all(self._dtype_out(dtype, suffix), data)
+        super(BaseProcessor, self)._notify_all(self._dtype_out(dtype, suffix), data)
