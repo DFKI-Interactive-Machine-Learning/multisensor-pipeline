@@ -16,7 +16,7 @@ class WaveFile(BaseSink):
         self._wf.setsampwidth(pyaudio.get_sample_size(format))
         self._wf.setframerate(rate)
 
-    def _update(self):
+    def _update(self, frame=None):
         while self._active:
             _, data = self.get()
             self._wf.writeframes(data["data"])

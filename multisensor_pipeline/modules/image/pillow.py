@@ -32,7 +32,7 @@ class CropByPointerProcessor(BaseProcessor):
             return None
         return image.crop(rect)
 
-    def _update(self):
+    def _update(self, frame=None):
         while self._active:
             # blocking access to data in queue
             dtype, data = self.get()

@@ -3,6 +3,7 @@ from threading import Thread
 from queue import Queue
 from ..utils.dataframe import MSPDataFrame, TypeInfo, TypeMismatchException
 import logging
+import warnings
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ class BaseModule(object):
         """ Main worker function (async) """
         self._update()
 
-    def _update(self):
+    def _update(self, frame: MSPDataFrame = None):
         """ Custom update routine. """
         raise NotImplementedError()
 
@@ -57,6 +58,11 @@ class BaseSink(BaseModule, ABC):
         super().__init__()
         self._source_queue = Queue()
         self._consumes = None
+
+    def _worker(self):
+        while self._active:
+            frame = self.get()
+            self._update(frame)
 
     def put(self, sample):
         self._source_queue.put(sample)
@@ -98,25 +104,20 @@ class BaseSource(BaseModule, ABC):
 
         raise TypeMismatchException(self, sink)
 
-    def _notify_all(self, dtype, data: MSPDataFrame):
+    def _notify_all(self, frame: MSPDataFrame):
         """
-        Notifies all observers that there's new data
+        Notifies all observers that there's a new dataframe
 
         Args:
-            dtype: string describing the data event
-            data: the actual payload as an instance of MSPDataFrame
+            frame: the payload as an instance of MSPDataFrame
         """
-
-        # TODO: move dtype to MSPDataFrame
-        if type(dtype) is not bytes:
-            dtype = str(dtype).encode()
-
         # TODO: enforce using MSPDataFrame instances
-        if not isinstance(data, MSPDataFrame):
-            data = MSPDataFrame(init_dict={"data": data})
+        if not isinstance(frame, MSPDataFrame):
+            warnings.warn("use MSPDataFrames, unwrapped payloads won't be accepted in v2.0.0", DeprecationWarning)
+            frame = MSPDataFrame(init_dict={"data": frame})
 
         for sink in self._sinks:
-            sink.put((dtype, data))
+            sink.put(frame)
 
     @property
     def offers(self):
@@ -133,5 +134,6 @@ class BaseProcessor(BaseSink, BaseSource, ABC):
         dtype_out = f"{base_dtype}.{suffix}"
         return dtype_out if isinstance(dtype_in, str) else dtype_out.encode()
 
-    def _notify_all(self, dtype, data, suffix=None):
-        super(BaseProcessor, self)._notify_all(self._dtype_out(dtype, suffix), data)
+    def _notify_all(self, frame, suffix=None):
+        frame.dtype = self._dtype_out(frame.dtype, suffix)
+        super(BaseProcessor, self)._notify_all(frame)

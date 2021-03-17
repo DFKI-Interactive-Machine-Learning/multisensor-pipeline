@@ -41,7 +41,7 @@ class TestTypeInfo(TestCase):
                 super().__init__()
                 self._consumes = [TypeInfo(dtype=str, name="invalid_sink")]
 
-            def _update(self):
+            def _update(self, frame=None):
                 pass
 
         invalid_sink = InvalidSink()

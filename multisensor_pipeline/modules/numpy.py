@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.random import randint
 from multisensor_pipeline.modules.base import BaseSource, BaseProcessor
-from multisensor_pipeline.utils.dataframe import TypeInfo
+from multisensor_pipeline.utils.dataframe import TypeInfo, MSPDataFrame
 from time import sleep
 
 
@@ -17,9 +17,11 @@ class RandomArraySource(BaseSource):
         type_info = TypeInfo(dtype=dtype, name="random")
         self._offers = [type_info]
 
-    def _update(self):
+    def _update(self, frame=None):
         while self._active:
-            self._notify_all(self._offers[0], np.random.randint(1, 255, size=self._shape))
+            frame = MSPDataFrame(dtype=self._offers[0])
+            frame['value'] = np.random.randint(1, 255, size=self._shape)
+            self._notify_all(frame)
             sleep(self._sleep_time)
 
 
@@ -29,9 +31,7 @@ class ArrayManipulationProcessor(BaseProcessor):
         super().__init__()
         self._op = numpy_operation
 
-    def _update(self):
-        while self._active:
-            dtype, data = self.get()
-            payload = data["data"]
-            payload = self._op(payload)
-            self._notify_all(dtype + b"." + self._op.__name__.encode(), payload)
+    def _update(self, frame=None):
+        new_frame = MSPDataFrame(dtype=f"{frame.dtype}.{self._op.__name__}")
+        new_frame['value'] = self._op(frame['value'])
+        self._notify_all(new_frame)

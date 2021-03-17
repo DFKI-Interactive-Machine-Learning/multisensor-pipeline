@@ -16,14 +16,19 @@ class MSPDataFrame(dict):
                     self[key] = init_dict[k]
                     del (init_dict[k])
 
-    def __init__(self, init_dict=None, timestamp=None):
+    def __init__(self, dtype=None, init_dict: dict = None, timestamp: float = None):
         super(MSPDataFrame, self).__init__()
         if timestamp is None:
             self['timestamp'] = time()
         else:
             self['timestamp'] = timestamp
+        # if type(dtype) is not bytes:
+        #     dtype = str(dtype).encode()
+        self['dtype'] = dtype
+        assert dtype is not None
 
-        self._set_attr_from_value_or_dict('timestamp', self['timestamp'], init_dict if init_dict is not None else None)
+        self._set_attr_from_value_or_dict(key='dtype', value=self['dtype'], init_dict=init_dict)
+        self._set_attr_from_value_or_dict(key='timestamp', value=self['timestamp'], init_dict=init_dict)
         if init_dict is not None:
             self.update(init_dict)
 
@@ -34,6 +39,14 @@ class MSPDataFrame(dict):
     @timestamp.setter
     def timestamp(self, value):
         self['timestamp'] = value
+
+    @property
+    def dtype(self):
+        return self['dtype']
+
+    @dtype.setter
+    def dtype(self, value):
+        self['dtype'] = value
 
 
 class MSPEventFrame(MSPDataFrame):
