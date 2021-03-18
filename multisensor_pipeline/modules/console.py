@@ -1,4 +1,5 @@
-from multisensor_pipeline.modules.base import BaseSink, MSPDataFrame
+from . import BaseSink
+from ..dataframe import MSPDataFrame
 
 
 class ConsoleSink(BaseSink):

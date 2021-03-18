@@ -1,5 +1,5 @@
 from multisensor_pipeline.modules.base import BaseSink, BaseSource
-from ..utils.dataframe import MSPDataFrame
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
 import zmq
 import logging
 import msgpack

@@ -1,9 +1,6 @@
-from multisensor_pipeline.modules.base import BaseProcessor
+from .base import BaseProcessor, BaseSink, BaseSource
 
 
 class PassthroughProcessor(BaseProcessor):
-
     def _update(self, frame=None):
-        while self._active:
-            event, data = self.get()
-            self._notify(event, data)
+        self._notify(frame)

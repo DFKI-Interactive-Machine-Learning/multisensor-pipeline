@@ -1,5 +1,5 @@
 from multisensor_pipeline import BaseProcessor
-from multisensor_pipeline.utils.dataframe import MSPDataFrame
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
 
 
 class TimestampExtractionProcessor(BaseProcessor):

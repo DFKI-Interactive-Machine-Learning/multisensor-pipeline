@@ -2,7 +2,7 @@ from PIL import Image
 from PIL import ImageFile
 from multisensor_pipeline.modules.base import BaseProcessor
 from .utils import roi_rect, scale_to_image_coordinate
-from ...utils.dataframe import MSPDataFrame
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 

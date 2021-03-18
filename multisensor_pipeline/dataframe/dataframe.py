@@ -23,26 +23,6 @@ class Topic:
     def source_module(self) -> type:
         return self._source
 
-    # def matches(self, type_infos: List):
-    #     """Checks whether there's a match in a list of TypeInfo instances."""
-    #     return any([self == t for t in type_infos])
-    #
-    # @staticmethod
-    # def multi_match(source, sink):
-    #     """
-    #     Checks whether there's a match between two lists of TypeInfo instances.
-    #     Returns True, if any combination was a match, or if any type info was None (backwards compatibility).
-    #     """
-    #     if isinstance(sink, Queue):
-    #         logger.warning(f"Sink has type Queue which is not recommended.")
-    #         return True
-    #     if source.offers is None or sink.consumes is None:
-    #         offer_str = "generic" if source.offers is None else [str(t) for t in source.offers]
-    #         consume_str = "generic" if sink.consumes is None else [str(t) for t in sink.consumes]
-    #         logger.debug(f"Typing is not complete: offers {offer_str}; consumes {consume_str}.")
-    #         return True
-    #     return any([t.matches(sink.consumes) for t in source.offers])
-
     def __eq__(self, other):
         if not isinstance(other, Topic):
             return False
@@ -111,11 +91,3 @@ class MSPEventFrame(MSPDataFrame):
     @label.setter
     def label(self, value: str):
         self['label'] = value
-
-
-# class TypeMismatchException(Exception):
-#     """Raised when a match of TypeInfos is required, but none was found."""
-#
-#     def __init__(self, source, sink):
-#         self.source = source
-#         self.sink = sink

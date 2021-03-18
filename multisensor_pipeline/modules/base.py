@@ -1,7 +1,7 @@
 from abc import ABC
 from threading import Thread
 from queue import Queue
-from ..utils.dataframe import MSPDataFrame
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
 import logging
 
 logger = logging.getLogger(__name__)
@@ -114,10 +114,6 @@ class BaseSource(BaseModule, ABC):
         assert isinstance(sink, BaseSink) or isinstance(sink, BaseProcessor)
         self._sinks.append(sink)
         # TODO: check if types match -> raise error or warning
-        # if Topic.multi_match(self, sink):
-        #     self._sinks.append(sink)
-        #     return
-        # raise TypeMismatchException(self, sink)
 
     def _notify(self, frame: MSPDataFrame):
         """
