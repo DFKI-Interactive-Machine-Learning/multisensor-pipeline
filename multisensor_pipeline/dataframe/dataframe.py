@@ -7,6 +7,12 @@ logger = logging.getLogger(__name__)
 class Topic:
 
     def __init__(self, name: str, dtype: type = None, source_module: type = None):
+        """
+
+        :param name:
+        :param dtype:
+        :param source_module:
+        """
         self._name = name
         self._dtype = dtype
         self._source = source_module

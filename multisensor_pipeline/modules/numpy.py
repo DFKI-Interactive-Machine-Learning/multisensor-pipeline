@@ -14,11 +14,11 @@ class RandomArraySource(BaseSource):
 
         # define what is offered
         dtype = int if shape is None else np.ndarray
-        self._offers = [Topic(dtype=dtype, name="random", source_module=self.__class__)]
+        self._topic = Topic(dtype=dtype, name="random", source_module=self.__class__)
 
     def _update(self) -> MSPDataFrame:
         sleep(self._sleep_time)
-        return MSPDataFrame(topic=self._offers[0], value=np.random.randint(1, 255, size=self._shape))
+        return MSPDataFrame(topic=self._topic, value=np.random.randint(1, 255, size=self._shape))
 
 
 class ArrayManipulationProcessor(BaseProcessor):

@@ -60,7 +60,6 @@ class BaseSink(BaseModule, ABC):
         """ Initializes the worker thread and a queue that will receive new samples from sources. """
         super().__init__()
         self._queue = Queue()
-        self._consumes = None
 
     def _worker(self):
         while self._active:
@@ -76,10 +75,6 @@ class BaseSink(BaseModule, ABC):
     def get(self):
         return self._queue.get()
 
-    @property
-    def consumes(self):
-        return self._consumes
-
 
 class BaseSource(BaseModule, ABC):
     """ Base class for data sources. """
@@ -90,7 +85,6 @@ class BaseSource(BaseModule, ABC):
         """
         super().__init__()
         self._sinks = []
-        self._offers = None
 
     def _worker(self):
         while self._active:
@@ -126,10 +120,6 @@ class BaseSource(BaseModule, ABC):
 
         for sink in self._sinks:
             sink.put(frame)
-
-    @property
-    def offers(self):
-        return self._offers
 
 
 class BaseProcessor(BaseSink, BaseSource, ABC):
