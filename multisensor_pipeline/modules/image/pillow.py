@@ -39,7 +39,7 @@ class CropByPointerProcessor(BaseProcessor):
 
             if dtype.endswith(b".eof"):
                 # TODO: end of file workaround, shall be replaced by a proper EOF integration
-                self._notify_all(dtype, data)
+                self._notify(dtype, data)
                 continue
 
             # update internal temporary fields
@@ -59,5 +59,5 @@ class CropByPointerProcessor(BaseProcessor):
                     'crop_size': self.crop_size,
                     'image': img_patch
                 }
-                self._notify_all(self._image_dtype, suffix="cropped",
-                                 data=MSPDataFrame(timestamp=data.timestamp, init_dict=p))
+                self._notify(self._image_dtype, suffix="cropped",
+                             data=MSPDataFrame(timestamp=data.timestamp, init_dict=p))

@@ -74,32 +74,32 @@ class MyoSensor(BaseSource, DeviceListener):
             # sleep(max(0.0, 0.02 - 0.95 * dur))  # to achieve 50Hz (approx.)
 
     def on_connect(self, myo, timestamp, firmware_version):
-        self._notify_all('myo.connected', {
+        self._notify('myo.connected', {
             'timestamp': timestamp,
             'firmware': firmware_version
         })
         myo.set_stream_emg(enums.StreamEmg.enabled)
 
     def on_orientation_data(self, myo, timestamp, orientation):
-        self._notify_all('myo.orientation', {
+        self._notify('myo.orientation', {
             'timestamp': timestamp,
             'orientation': (orientation.x, orientation.y, orientation.z, orientation.w)
         })
 
     def on_accelerometor_data(self, myo, timestamp, acceleration):
-        self._notify_all('myo.acceleration', {
+        self._notify('myo.acceleration', {
             'timestamp': timestamp,
             'acceleration': (acceleration.x, acceleration.y, acceleration.z)
         })
 
     def on_gyroscope_data(self, myo, timestamp, gyroscope):
-        self._notify_all('myo.gyroscope', {
+        self._notify('myo.gyroscope', {
             'timestamp': timestamp,
             'gyroscope': (gyroscope.x, gyroscope.y, gyroscope.z)
         })
 
     def on_emg_data(self, myo, timestamp, emg):
-        self._notify_all('myo.emg', {
+        self._notify('myo.emg', {
             'timestamp': timestamp,
             'emg': emg
         })

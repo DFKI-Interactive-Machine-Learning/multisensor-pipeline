@@ -51,4 +51,4 @@ class CropByPointProcessor(BaseProcessor):
                         b'timestamp': payload[b'timestamp'],
                         'img_patch': img_patch
                     }
-                    self._notify_all("eyetracking.mobile.frame.image_patch", p)
+                    self._notify("eyetracking.mobile.frame.image_patch", p)

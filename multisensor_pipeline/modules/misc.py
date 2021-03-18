@@ -16,4 +16,4 @@ class TimestampExtractionProcessor(BaseProcessor):
 
             assert isinstance(dataframe, MSPDataFrame)
             time_dataframe = MSPDataFrame(timestamp=dataframe.timestamp)
-            self._notify_all(dtype=dtype, data=time_dataframe, suffix="timestamp")
+            self._notify(dtype=dtype, data=time_dataframe, suffix="timestamp")

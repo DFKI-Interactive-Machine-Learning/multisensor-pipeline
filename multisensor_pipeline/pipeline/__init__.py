@@ -95,7 +95,7 @@ class GraphPipeline(PipelineBase):
         """Starts nodes in a depth first search and stops, if all predecessors have at least one inactive successor."""
         if isinstance(node, BaseModule):
             node.start()  # this ignores queues which don't need to be started
-        self._graph.nodes[node]["active"] = True  # TODO: remove is node.is_active works as well
+        self._graph.nodes[node]["active"] = True  # TODO: remove if node.is_active works as well
         for n in self._graph.predecessors(node):
             if self._has_inactive_successors(n):
                 continue  # will be started when coming from another sink node
@@ -117,7 +117,7 @@ class GraphPipeline(PipelineBase):
         """Starts nodes in a depth first search and stops, if all predecessors have at least one inactive successor."""
         if isinstance(node, BaseModule):
             node.stop()  # this ignores queues which don't need to be started
-        self._graph.nodes[node]["active"] = False  # TODO: remove is node.is_active works as well
+        self._graph.nodes[node]["active"] = False  # TODO: remove if node.is_active works as well
         for n in self._graph.predecessors(node):
             if self._has_active_successors(n):
                 continue  # will be started when coming from another sink node

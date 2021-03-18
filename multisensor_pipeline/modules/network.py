@@ -51,7 +51,7 @@ class ZmqSubscriber(BaseSource):
             dtype = packet[0]
             data = msgpack.unpackb(packet[1], raw=False)
             data = MSPDataFrame(init_dict=data)
-            self._notify_all(dtype, data)
+            self._notify(dtype, data)
 
     def _stop(self):
         self.socket.close()

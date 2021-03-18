@@ -26,7 +26,7 @@ class Microphone(BaseSource):
     def _update(self, frame=None):
         while self._active:
             data = self._stream.read(self.chunk_size)
-            self._notify_all('microphone', data)
+            self._notify('microphone', data)
 
     def _stop(self):
         self._stream.stop_stream()

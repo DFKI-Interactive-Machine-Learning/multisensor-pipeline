@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.random import randint
 from multisensor_pipeline.modules.base import BaseSource, BaseProcessor
-from multisensor_pipeline.utils.dataframe import TypeInfo, MSPDataFrame
+from multisensor_pipeline.utils.dataframe import Topic, MSPDataFrame
 from time import sleep
 
 
@@ -14,15 +14,11 @@ class RandomArraySource(BaseSource):
 
         # define what is offered
         dtype = int if shape is None else np.ndarray
-        type_info = TypeInfo(dtype=dtype, name="random")
-        self._offers = [type_info]
+        self._offers = [Topic(dtype=dtype, name="random", source_module=self.__class__)]
 
-    def _update(self, frame=None):
-        while self._active:
-            frame = MSPDataFrame(dtype=self._offers[0])
-            frame['value'] = np.random.randint(1, 255, size=self._shape)
-            self._notify_all(frame)
-            sleep(self._sleep_time)
+    def _update(self) -> MSPDataFrame:
+        sleep(self._sleep_time)
+        return MSPDataFrame(topic=self._offers[0], value=np.random.randint(1, 255, size=self._shape))
 
 
 class ArrayManipulationProcessor(BaseProcessor):
@@ -31,7 +27,7 @@ class ArrayManipulationProcessor(BaseProcessor):
         super().__init__()
         self._op = numpy_operation
 
-    def _update(self, frame=None):
-        new_frame = MSPDataFrame(dtype=f"{frame.dtype}.{self._op.__name__}")
-        new_frame['value'] = self._op(frame['value'])
-        self._notify_all(new_frame)
+    def _update(self, frame: MSPDataFrame = None):
+        value = self._op(frame['value'])
+        topic = Topic(name=f"{frame.topic.name}.{self._op.__name__}", dtype=type(value), source_module=self.__class__)
+        self._notify(MSPDataFrame(topic=topic, value=value))

@@ -103,7 +103,7 @@ class DownsamplingProcessor(BaseProcessor):
         self._last_received = dict()
 
     def _send_sample(self, dtype, dataframe):
-        self._notify_all(dtype, dataframe, suffix=f"{self._sampling_rate}Hz")
+        self._notify(dtype, dataframe, suffix=f"{self._sampling_rate}Hz")
         self._last_sent[dtype] = dataframe
 
     def _get_history(self, dtype) -> SampleHistory:
@@ -116,7 +116,7 @@ class DownsamplingProcessor(BaseProcessor):
         hist.add(dataframe)
         send_sample = hist.get_send_sample()
         if send_sample is not None:
-            self._notify_all(dtype, send_sample, suffix=f"{self._sampling_rate}Hz")
+            self._notify(dtype, send_sample, suffix=f"{self._sampling_rate}Hz")
 
     def _update(self, frame=None):
         while self._active:
@@ -124,7 +124,7 @@ class DownsamplingProcessor(BaseProcessor):
 
             if dtype.endswith(b".eof"):
                 # TODO: end of file workaround, shall be replaced by a proper EOF integration
-                self._notify_all(dtype, dataframe)
+                self._notify(dtype, dataframe)
                 continue
 
             if dtype == self._dtype_in or self._dtype_in is None:

@@ -1,9 +1,8 @@
 from abc import ABC
 from threading import Thread
 from queue import Queue
-from ..utils.dataframe import MSPDataFrame, TypeInfo, TypeMismatchException
+from ..utils.dataframe import MSPDataFrame
 import logging
-import warnings
 
 logger = logging.getLogger(__name__)
 
@@ -32,9 +31,9 @@ class BaseModule(object):
 
     def _worker(self):
         """ Main worker function (async) """
-        self._update()
+        raise NotImplementedError()
 
-    def _update(self, frame: MSPDataFrame = None):
+    def _update(self):
         """ Custom update routine. """
         raise NotImplementedError()
 
@@ -49,6 +48,10 @@ class BaseModule(object):
         """ Custom clean-up """
         pass
 
+    @property
+    def active(self):
+        return self._active
+
 
 class BaseSink(BaseModule, ABC):
     """ Base class for data sinks. """
@@ -56,19 +59,22 @@ class BaseSink(BaseModule, ABC):
     def __init__(self):
         """ Initializes the worker thread and a queue that will receive new samples from sources. """
         super().__init__()
-        self._source_queue = Queue()
+        self._queue = Queue()
         self._consumes = None
 
     def _worker(self):
         while self._active:
-            frame = self.get()
-            self._update(frame)
+            self._update(self.get())
+
+    def _update(self, frame: MSPDataFrame = None):
+        """ Custom update routine. """
+        raise NotImplementedError()
 
     def put(self, sample):
-        self._source_queue.put(sample)
+        self._queue.put(sample)
 
     def get(self):
-        return self._source_queue.get()
+        return self._queue.get()
 
     @property
     def consumes(self):
@@ -86,6 +92,14 @@ class BaseSource(BaseModule, ABC):
         self._sinks = []
         self._offers = None
 
+    def _worker(self):
+        while self._active:
+            self._notify(self._update())
+
+    def _update(self) -> MSPDataFrame:
+        """ Custom update routine. """
+        raise NotImplementedError()
+
     def add_observer(self, sink):
         """
         Register a Sink or Queue as an observer.
@@ -98,23 +112,21 @@ class BaseSource(BaseModule, ABC):
             return
 
         assert isinstance(sink, BaseSink) or isinstance(sink, BaseProcessor)
-        if TypeInfo.multi_match(self, sink):
-            self._sinks.append(sink)
-            return
+        self._sinks.append(sink)
+        # TODO: check if types match -> raise error or warning
+        # if Topic.multi_match(self, sink):
+        #     self._sinks.append(sink)
+        #     return
+        # raise TypeMismatchException(self, sink)
 
-        raise TypeMismatchException(self, sink)
-
-    def _notify_all(self, frame: MSPDataFrame):
+    def _notify(self, frame: MSPDataFrame):
         """
         Notifies all observers that there's a new dataframe
 
         Args:
             frame: the payload as an instance of MSPDataFrame
         """
-        # TODO: enforce using MSPDataFrame instances
-        if not isinstance(frame, MSPDataFrame):
-            warnings.warn("use MSPDataFrames, unwrapped payloads won't be accepted in v2.0.0", DeprecationWarning)
-            frame = MSPDataFrame(init_dict={"data": frame})
+        assert isinstance(frame, MSPDataFrame), "You must use a MSPDataFrame instance to wrap your data."
 
         for sink in self._sinks:
             sink.put(frame)
@@ -126,14 +138,3 @@ class BaseSource(BaseModule, ABC):
 
 class BaseProcessor(BaseSink, BaseSource, ABC):
     """ Base class for data processors. """
-
-    def _dtype_out(self, dtype_in, suffix):
-        if suffix is None:
-            return dtype_in
-        base_dtype = dtype_in if isinstance(dtype_in, str) else dtype_in.decode()
-        dtype_out = f"{base_dtype}.{suffix}"
-        return dtype_out if isinstance(dtype_in, str) else dtype_out.encode()
-
-    def _notify_all(self, frame, suffix=None):
-        frame.dtype = self._dtype_out(frame.dtype, suffix)
-        super(BaseProcessor, self)._notify_all(frame)

@@ -62,4 +62,4 @@ class OneEuroProcessor(BaseProcessor):
 
             smooth_norm_pos = self._filter(sample)
             if smooth_norm_pos is not None:
-                self._notify_all(topic, payload)
+                self._notify(topic, payload)
