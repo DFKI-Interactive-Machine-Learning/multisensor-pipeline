@@ -1,7 +1,6 @@
 import numpy as np
-from numpy.random import randint
-from . import BaseSource, BaseProcessor
-from ..dataframe import Topic, MSPDataFrame
+from multisensor_pipeline.modules import BaseSource, BaseProcessor
+from multisensor_pipeline.dataframe import Topic, MSPDataFrame
 from time import sleep
 
 
