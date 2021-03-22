@@ -74,8 +74,8 @@ def main():
     source.add_observer.remote(sink)
 
     # start nodes
-    sink_ret = sink.start.remote()
     source_ret = source.start.remote()
+    sink_ret = sink.start.remote()
 
     time.sleep(60)
 
