@@ -28,7 +28,8 @@ class MPSourceWrapper(BaseSource):
         super(MPSourceWrapper, self).__init__()
         self._wrapped_active = Value("i", False)
         self._queue_out = Queue()
-        self._process = Process(target=self._wrapper_worker, args=(self._wrapped_active, self._queue_out, module_cls, kwargs))
+        self._process = Process(target=self._wrapper_worker,
+                                args=(self._wrapped_active, self._queue_out, module_cls, kwargs))
         self._sinks = []
 
     def _start(self):
