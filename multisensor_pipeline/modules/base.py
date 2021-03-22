@@ -1,6 +1,7 @@
 from abc import ABC
 from threading import Thread
 from queue import Queue
+from multiprocessing.queues import Queue as MPQueue
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
 import logging
 
@@ -101,7 +102,7 @@ class BaseSource(BaseModule, ABC):
         Args:
             sink: A thread-safe Queue object or Sink [or any class that implements put(tuple)]
         """
-        if isinstance(sink, Queue):
+        if isinstance(sink, Queue) or isinstance(sink, MPQueue):
             self._sinks.append(sink)
             return
 
