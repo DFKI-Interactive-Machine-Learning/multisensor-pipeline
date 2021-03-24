@@ -1,6 +1,9 @@
-from multisensor_pipeline.modules.base import BaseSource, BaseSink, BaseProcessor, BaseModule, logger
+from multisensor_pipeline.modules.base import BaseSource, BaseSink, BaseProcessor, BaseModule
 from abc import ABC, abstractmethod
 import networkx as nx
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class PipelineBase(ABC):
