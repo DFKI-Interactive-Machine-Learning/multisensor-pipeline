@@ -16,12 +16,12 @@ class JsonDatasetSource(BaseDatasetSource):
         self._file_handle = None
 
     def _start(self):
-        self._file_handle = open(self._file_path, "r")
+        self._file_handle = open(self._file_path, mode="r")
 
     def _update(self) -> MSPDataFrame:
         # TODO: check if EOF is reached -> auto-close
         line = next(self._file_handle)
-        dict = json.loads(line)
+        dict = json.loads(s=line, cls=MSPDataFrame.JsonDecoder)
         frame = MSPDataFrame(**dict)
         return frame
 

@@ -1,5 +1,8 @@
+from typing import Any
 import logging
 from time import time
+import json
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +42,45 @@ class Topic:
 
 
 class MSPDataFrame(dict):
+
+    class JsonEncoder(json.JSONEncoder):
+
+        def default(self, obj: Any) -> Any:
+            if isinstance(obj, np.integer):
+                return int(obj)
+            elif isinstance(obj, np.floating):
+                return float(obj)
+            elif isinstance(obj, np.ndarray):
+                return {
+                    "_kind_": "ndarray",
+                    "_value_": obj.tolist()
+                }
+            if isinstance(obj, Topic):
+                assert isinstance(obj, Topic)
+                return {
+                    "_kind_": "topic",
+                    "_value_": {
+                        "name": obj.name,
+                        "dtype": str(obj.dtype),
+                        "source_module": str(obj.source_module)
+                    }
+                }
+            return super(MSPDataFrame.JsonEncoder, self).default(obj)
+
+    class JsonDecoder(json.JSONDecoder):
+
+        def __init__(self, *args, **kwargs):
+            json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
+
+        def object_hook(self, obj):
+            if '_kind_' in obj:
+                kind = obj['_kind_']
+                if kind == 'ndarray':
+                    return np.array(obj['_value_'])
+                elif kind == 'topic':
+                    return Topic(**obj['_value_'])
+                    # TODO: decode class types
+            return obj
 
     def __init__(self, topic: Topic, value, timestamp: float = None, **kwargs):
         super(MSPDataFrame, self).__init__()
