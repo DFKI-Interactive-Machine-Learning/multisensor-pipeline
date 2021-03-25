@@ -40,16 +40,20 @@ class BaseModule(object):
         """ Custom update routine. """
         raise NotImplementedError()
 
-    def stop(self):
+    def stop(self, blocking=True):
         """ Stops the module. """
         logger.debug("stopping: {}".format(self.get_name()))
         self._active = False
-        self._thread.join()
+        if blocking:
+            self._thread.join()
         self._stop()
 
     def _stop(self):
         """ Custom clean-up """
         pass
+
+    def join(self):
+        self._thread.join()
 
     @property
     def active(self):
@@ -69,7 +73,6 @@ class BaseSink(BaseModule, ABC):
         src = frame.topic.source_module
         if src not in self._active_sources:
             self._active_sources[src] = True
-        self._update(frame)
 
     def _handle_control_message(self, frame: MSPDataFrame):
         if isinstance(frame, MSPControlMessage):
@@ -78,8 +81,9 @@ class BaseSink(BaseModule, ABC):
                     # set source to inactive
                     self._active_sources[frame.topic.source_module] = False
                     # if no active source is left
-                    if not any(self._active_sources.values()):
-                        self.stop()  # TODO: check whether this calls the source.stop (for processors)
+                    if len(self._active_sources.keys()) > 0 and not any(self._active_sources.values()):
+                        self.stop(blocking=False)
+                        # TODO: check whether this calls the source.stop (for processors)
             else:
                 logger.warning(f"unhandled control message: {frame.message}")
             return True
@@ -87,7 +91,7 @@ class BaseSink(BaseModule, ABC):
 
     def _worker(self):
         while self._active:
-            frame = self.get()
+            frame = self._queue.get()
 
             # remember connected source modules
             # TODO: could be replaced by pipeline calls -> hey module, you have the following sources... (#3)
@@ -100,15 +104,14 @@ class BaseSink(BaseModule, ABC):
             if self._handle_control_message(frame):
                 continue
 
+            self._update(frame)
+
     def _update(self, frame: MSPDataFrame = None):
         """ Custom update routine. """
         raise NotImplementedError()
 
     def put(self, sample: MSPDataFrame):
         self._queue.put(sample)
-
-    def get(self) -> MSPDataFrame:
-        return self._queue.get()
 
     @property
     def queue_stats(self) -> dict:
@@ -131,7 +134,9 @@ class BaseSource(BaseModule, ABC):
 
     def _worker(self):
         while self._active:
-            self._notify(self._update())
+            frame = self._update()
+            if frame is not None:
+                self._notify(frame)
 
     def _update(self) -> MSPDataFrame:
         """ Custom update routine. """
@@ -164,10 +169,10 @@ class BaseSource(BaseModule, ABC):
         for sink in self._sinks:
             sink.put(frame)
             
-    def stop(self):
+    def stop(self, blocking=True):
         # send end-of-stream message
         self._notify(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM, source_module=self.__class__))
-        super(BaseSource, self).stop()
+        super(BaseSource, self).stop(blocking=blocking)
 
 
 class BaseProcessor(BaseSink, BaseSource, ABC):

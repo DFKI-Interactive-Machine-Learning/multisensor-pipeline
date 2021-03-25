@@ -1,11 +1,10 @@
 from unittest import TestCase
 from multisensor_pipeline.pipeline import GraphPipeline
-import numpy as np
-from queue import Queue
 from time import sleep
 from multisensor_pipeline.modules.npy import RandomArraySource
 from multisensor_pipeline.modules.recording import JsonRecordingSink
 from multisensor_pipeline.modules.dataset import JsonDatasetSource
+from multisensor_pipeline.modules import QueueSink
 
 
 class JsonSerializationTest(TestCase):
@@ -17,7 +16,7 @@ class JsonSerializationTest(TestCase):
         # create modules
         rec_source = RandomArraySource(shape=(50,), frequency=50)
         rec_sink = JsonRecordingSink(filename, override=True)
-        rec_queue = Queue()
+        rec_queue = QueueSink()
         # add to pipeline
         rec_pipeline = GraphPipeline()
         rec_pipeline.add_source(rec_source)
@@ -34,7 +33,7 @@ class JsonSerializationTest(TestCase):
         # --- load the recording ---
         # create modules
         json_source = JsonDatasetSource(file_path=filename)
-        json_queue = Queue()
+        json_queue = QueueSink()
         json_pipeline = GraphPipeline()
         json_pipeline.add_source(json_source)
         json_pipeline.add_sink(json_queue)

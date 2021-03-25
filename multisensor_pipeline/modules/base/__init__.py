@@ -1,1 +1,1 @@
-from .base_modules import BaseModule, BaseSource, BaseProcessor, BaseSink
+from .base import BaseModule, BaseSource, BaseProcessor, BaseSink

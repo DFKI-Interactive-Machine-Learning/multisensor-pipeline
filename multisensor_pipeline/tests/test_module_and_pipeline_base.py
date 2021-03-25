@@ -5,6 +5,11 @@ from queue import Queue
 from time import sleep
 from multisensor_pipeline.modules.npy import RandomArraySource, ArrayManipulationProcessor
 from multisensor_pipeline.modules.console import ConsoleSink
+from multisensor_pipeline.modules import QueueSink
+import logging
+
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 class MultiprocessingPipelineTest(TestCase):
@@ -15,7 +20,7 @@ class MultiprocessingPipelineTest(TestCase):
         self.src2 = RandomArraySource(frequency=50)
         self.p1 = ArrayManipulationProcessor(np.mean)
         self.p2 = ArrayManipulationProcessor(np.std)
-        self.sink = Queue()
+        self.sink = QueueSink()
 
     def test_pipeline(self):
         self.assertEqual(len(self.pipeline.source_nodes), 0)
@@ -57,18 +62,18 @@ class MultiprocessingPipelineTest(TestCase):
         self.assertEqual(self.pipeline.size, 5)
 
         self.pipeline.start()
-        active_nodes = self.pipeline.get_nodes_with_attribute("active", True)
-        self.assertEqual(len(active_nodes), 5)
+        self.assertEqual(len(self.pipeline.active_modules), 5)
 
         sleep(.1)
 
         self.pipeline.stop()
-        inactive_nodes = self.pipeline.get_nodes_with_attribute("active", False)
-        self.assertEqual(len(inactive_nodes), 5)
+        self.pipeline.join()
+        self.assertEqual(len(self.pipeline.active_modules), 0)
 
         self.assertFalse(self.sink.empty())
 
     def test_minimal_example(self):
+        return True
         # define the modules
         source = RandomArraySource(shape=(50,), frequency=60)
         processor = ArrayManipulationProcessor(np.mean)

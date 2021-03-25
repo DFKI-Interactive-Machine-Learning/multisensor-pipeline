@@ -3,11 +3,10 @@ from multisensor_pipeline.modules.multiprocess import MultiprocessSourceWrapper,
     MultiprocessProcessorWrapper
 from multisensor_pipeline.modules.npy import RandomArraySource, ArrayManipulationProcessor
 from multisensor_pipeline.modules.console import ConsoleSink
-from multisensor_pipeline.modules import PassthroughProcessor
+from multisensor_pipeline.modules import PassthroughProcessor, QueueSink
 from multisensor_pipeline.pipeline import GraphPipeline
 import numpy as np
 import time
-from queue import Queue
 
 
 class PipelineTest(TestCase):
@@ -19,7 +18,7 @@ class PipelineTest(TestCase):
         # create nodes
         source = MultiprocessSourceWrapper(module_cls=RandomArraySource, shape=(50,), frequency=50)
         sink = MultiprocessSinkWrapper(module_cls=ConsoleSink)
-        queue = Queue()
+        queue = QueueSink()
 
         # connect nodes
         source.add_observer(sink)
@@ -41,7 +40,7 @@ class PipelineTest(TestCase):
         source = MultiprocessSourceWrapper(module_cls=RandomArraySource, shape=(50,), frequency=50)
         processor = MultiprocessProcessorWrapper(module_cls=ArrayManipulationProcessor, numpy_operation=np.mean)
         sink = MultiprocessSinkWrapper(module_cls=ConsoleSink)
-        queue = Queue()
+        queue = QueueSink()
 
         # connect nodes
         source.add_observer(processor)
@@ -66,7 +65,7 @@ class PipelineTest(TestCase):
         source = MultiprocessSourceWrapper(module_cls=RandomArraySource, shape=(50,), frequency=50)
         processor1 = PassthroughProcessor()
         processor2 = MultiprocessProcessorWrapper(module_cls=ArrayManipulationProcessor, numpy_operation=np.mean)
-        queue = Queue()
+        queue = QueueSink()
 
         # add modules to a pipeline
         pipeline = GraphPipeline()

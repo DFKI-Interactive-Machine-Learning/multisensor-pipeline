@@ -23,6 +23,7 @@ class JsonDatasetSource(BaseDatasetSource):
         if line is None:
             # EOF is reached -> auto-stop
             self.stop()
+            return None
         else:
             return MSPDataFrame(**json.loads(s=line, cls=MSPDataFrame.JsonDecoder))
 
