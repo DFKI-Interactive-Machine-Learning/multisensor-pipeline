@@ -79,7 +79,7 @@ class MSPDataFrame(dict):
                     return np.array(obj['_value_'])
                 elif kind == 'topic':
                     return Topic(**obj['_value_'])
-                    # TODO: decode class types
+                    # TODO: decode class types (#22)
             return obj
 
     def __init__(self, topic: Topic, value, timestamp: float = None, **kwargs):

@@ -7,7 +7,8 @@ from multisensor_pipeline.modules.npy import RandomArraySource
 from multisensor_pipeline.modules.recording import JsonRecordingSink
 from multisensor_pipeline.modules.dataset import JsonDatasetSource
 
-class PipelineTest(TestCase):
+
+class JsonSerializationTest(TestCase):
 
     def test_pipeline(self):
         filename = "json_test.json"

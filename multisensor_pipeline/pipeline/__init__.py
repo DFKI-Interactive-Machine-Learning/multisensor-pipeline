@@ -8,6 +8,9 @@ logger = logging.getLogger(__name__)
 
 class PipelineBase(ABC):
 
+    # TODO: add option: profiling -> use for modules init. (#7)
+    #  + Add property for dashboard access (pipeline is model for dashboard view)
+
     @abstractmethod
     def check_pipeline(self):
         raise NotImplementedError()
@@ -41,7 +44,7 @@ class GraphPipeline(PipelineBase):
 
     def connect(self, node, successor):
         node.add_observer(successor)  # must be first, because it implicitly validates the connection
-        self._graph.add_edge(node, successor)  # TODO: add dtype as attribute
+        self._graph.add_edge(node, successor)
 
     def get_nodes_with_attribute(self, attribute, value):
         return [node[0] for node in self._graph.nodes(data=attribute) if node[1] == value]

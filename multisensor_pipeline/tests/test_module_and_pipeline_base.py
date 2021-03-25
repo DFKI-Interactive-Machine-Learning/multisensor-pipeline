@@ -6,7 +6,8 @@ from time import sleep
 from multisensor_pipeline.modules.npy import RandomArraySource, ArrayManipulationProcessor
 from multisensor_pipeline.modules.console import ConsoleSink
 
-class PipelineTest(TestCase):
+
+class MultiprocessingPipelineTest(TestCase):
 
     def setUp(self) -> None:
         self.pipeline = GraphPipeline()
