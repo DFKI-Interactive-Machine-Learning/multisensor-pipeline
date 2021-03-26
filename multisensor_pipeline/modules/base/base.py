@@ -92,7 +92,6 @@ class BaseSink(BaseModule, ABC):
                     # if no active source is left
                     if not any(self._active_sources.values()):
                         self.stop(blocking=False)
-                        # TODO: check whether this calls the source.stop (for processors)
             else:
                 logger.warning(f"unhandled control message: {frame.message}")
             return True

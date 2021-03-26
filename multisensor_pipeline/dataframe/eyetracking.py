@@ -14,29 +14,23 @@ class MSPGazeFrame(MSPDataFrame):
     ORIGIN_CENTER = "c"
 
     def __init__(self, gaze, max_width=1., max_height=1., normalized=True, origin="bl", **kwargs):
+        scaled_gaze = self._scale_gaze(gaze, normalized, origin)
+        super(MSPGazeFrame, self).__init__(max_width=max_width, max_height=max_height, gaze=scaled_gaze, **kwargs)
 
-        self._normalized = normalized
-        self._origin = origin
-        init_dict = kwargs["init_dict"] if "init_dict" in kwargs else None
-        self._set_attr_from_value_or_dict("max_width", float(max_width), init_dict)
-        self._set_attr_from_value_or_dict("max_height", float(max_height), init_dict)
-        self._set_attr_from_value_or_dict("gaze", self._scale_gaze(gaze), init_dict)
-        super(MSPGazeFrame, self).__init__(**kwargs)
-
-    def _scale_gaze(self, gaze):
-        if self._origin == self.ORIGIN_CENTER:
+    def _scale_gaze(self, gaze, normalized, origin):
+        if origin == self.ORIGIN_CENTER:
             raise NotImplementedError()
 
         x, y = tuple(gaze)
-        if not self._normalized:
+        if not normalized:
             x /= float(self.max_width)
             y /= float(self.max_height)
 
-        if self._origin == self.ORIGIN_BOTTOM_LEFT:
+        if origin == self.ORIGIN_BOTTOM_LEFT:
             # convert to top-left coordinate
             y = 1. - y
 
-        return (x, y)
+        return x, y
 
     @property
     def x(self):
@@ -74,11 +68,7 @@ class MSPGazeFrame(MSPDataFrame):
 class MSPFixationFrame(MSPEventFrame):
 
     def __init__(self, fixation_position: MSPGazeFrame = None, **kwargs):
-        init_dict = kwargs["init_dict"] if "init_dict" in kwargs else None
-        self._set_attr_from_value_or_dict("fixation_position", fixation_position, init_dict)
-        gaze = fixation_position.gaze if fixation_position is not None else None
-        self._set_attr_from_value_or_dict("gaze", gaze, init_dict)
-        super(MSPFixationFrame, self).__init__(**kwargs)
+        super(MSPFixationFrame, self).__init__(fixation_position=fixation_position, **kwargs)
 
     @property
     def fixation_position(self) -> MSPGazeFrame:
