@@ -1,7 +1,6 @@
 from unittest import TestCase
 from multisensor_pipeline.pipeline import GraphPipeline
 import numpy as np
-from queue import Queue
 from time import sleep
 from multisensor_pipeline.modules.npy import RandomArraySource, ArrayManipulationProcessor
 from multisensor_pipeline.modules.console import ConsoleSink

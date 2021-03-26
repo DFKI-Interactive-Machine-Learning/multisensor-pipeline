@@ -1,5 +1,5 @@
 from unittest import TestCase
-from multisensor_pipeline.modules.multiprocess import MultiprocessSourceWrapper, MultiprocessSinkWrapper, \
+from multisensor_pipeline.experimental.multiprocess import MultiprocessSourceWrapper, MultiprocessSinkWrapper, \
     MultiprocessProcessorWrapper
 from multisensor_pipeline.modules.npy import RandomArraySource, ArrayManipulationProcessor
 from multisensor_pipeline.modules.console import ConsoleSink
@@ -7,6 +7,10 @@ from multisensor_pipeline.modules import PassthroughProcessor, QueueSink
 from multisensor_pipeline.pipeline import GraphPipeline
 import numpy as np
 import time
+import logging
+
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 class PipelineTest(TestCase):
@@ -16,24 +20,26 @@ class PipelineTest(TestCase):
 
     def test_source_sink_wrapper(self):
         # create nodes
-        source = MultiprocessSourceWrapper(module_cls=RandomArraySource, shape=(50,), frequency=50)
+        source = MultiprocessSourceWrapper(module_cls=RandomArraySource, shape=(5,), frequency=.001)
         sink = MultiprocessSinkWrapper(module_cls=ConsoleSink)
-        queue = QueueSink()
+        #queue = QueueSink()
 
         # connect nodes
         source.add_observer(sink)
-        source.add_observer(queue)
+        #source.add_observer(queue)
 
         # start nodes
         sink.start()
+        #queue.start()
         source.start()
 
-        time.sleep(.1)
+        time.sleep(3)
 
-        sink.stop()
-        source.stop()
+        source.stop(blocking=False)
+        sink.join()
+        #queue.join()
 
-        self.assertFalse(queue.empty())
+        #self.assertFalse(queue.empty())
 
     def test_processor_wrapper(self):
         # create nodes
@@ -49,14 +55,17 @@ class PipelineTest(TestCase):
 
         # start nodes
         sink.start()
+        queue.start()
         processor.start()
         source.start()
 
-        time.sleep(.1)
+        time.sleep(.5)
 
-        sink.stop()
-        processor.stop()
+        # sink.stop()
+        # processor.stop()
         source.stop()
+        sink.join()
+        queue.join()
 
         self.assertFalse(queue.empty())
 

@@ -40,6 +40,11 @@ class Topic:
     def __str__(self):
         return f"{self.source_module.__name__}:{self.name}:{self.dtype.__name__}"
 
+    def __repr__(self):
+        dt = self.dtype.__name__ if self._dtype is not None else None
+        src = self.source_module.__name__ if self.source_module is not None else None
+        return f"Topic(name={self.name}, dtype={self.dtype}, source_module={self.source_module})"
+
 
 class MSPDataFrame(dict):
 

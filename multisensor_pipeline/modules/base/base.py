@@ -73,15 +73,19 @@ class BaseSink(BaseModule, ABC):
         src = frame.topic.source_module
         if src not in self._active_sources:
             self._active_sources[src] = True
+            logger.debug(f"new active source: {self.get_name()} <-- {src.__name__}")
 
     def _handle_control_message(self, frame: MSPDataFrame):
         if isinstance(frame, MSPControlMessage):
+            logger.debug(f"[CONTROL] {frame.topic.source_module.__name__} -> {frame.message} -> {self.get_name()}")
             if frame.message == MSPControlMessage.END_OF_STREAM:
-                if frame.topic.source_module in self._active_sources:
+                if len(self._active_sources.keys()) == 0:
+                    self.stop(blocking=False)
+                elif frame.topic.source_module in self._active_sources:
                     # set source to inactive
                     self._active_sources[frame.topic.source_module] = False
                     # if no active source is left
-                    if len(self._active_sources.keys()) > 0 and not any(self._active_sources.values()):
+                    if not any(self._active_sources.values()):
                         self.stop(blocking=False)
                         # TODO: check whether this calls the source.stop (for processors)
             else:
@@ -93,16 +97,16 @@ class BaseSink(BaseModule, ABC):
         while self._active:
             frame = self._queue.get()
 
-            # remember connected source modules
-            # TODO: could be replaced by pipeline calls -> hey module, you have the following sources... (#3)
-            self._add_active_source(frame)
-
             if self._profiling:
                 # TODO: update_stats()
                 raise NotImplementedError("profiling is not yet implemented, see issue #7")
 
             if self._handle_control_message(frame):
                 continue
+
+            # remember connected source modules
+            # TODO: could be replaced by pipeline calls -> hey module, you have the following sources... (#3)
+            self._add_active_source(frame)
 
             self._update(frame)
 
@@ -134,9 +138,7 @@ class BaseSource(BaseModule, ABC):
 
     def _worker(self):
         while self._active:
-            frame = self._update()
-            if frame is not None:
-                self._notify(frame)
+            self._notify(self._update())
 
     def _update(self) -> MSPDataFrame:
         """ Custom update routine. """

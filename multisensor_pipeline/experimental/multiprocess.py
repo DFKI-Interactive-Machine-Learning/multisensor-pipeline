@@ -1,12 +1,20 @@
 from abc import ABC, abstractmethod
-from multisensor_pipeline.dataframe import MSPDataFrame, Topic
+from multisensor_pipeline.dataframe import MSPDataFrame, Topic, MSPControlMessage
 from multisensor_pipeline.modules.base import BaseSink, BaseSource, BaseModule, BaseProcessor
-from multiprocessing import Process, Value, Queue
+from multisensor_pipeline.modules import QueueSink
+from multiprocessing import Process, Value
 import multiprocessing as mp
 import logging
 import time
 
 logger = logging.getLogger(__name__)
+
+
+class MultiprocessQueueSink(QueueSink):
+
+    def __init__(self):
+        super(MultiprocessQueueSink, self).__init__()
+        self._q = mp.Queue()
 
 
 class MultiprocessModuleWrapper(BaseModule, ABC):
@@ -33,15 +41,24 @@ class MultiprocessModuleWrapper(BaseModule, ABC):
     def _process_worker(module_cls: type, module_args: dict, active, queue: mp.queues.Queue):
         raise NotImplementedError()
 
-    def _stop(self):
-        self._process_active.value = False
-        self._process.join()
+    def stop(self, blocking=True):
+        """ Stops the module. """
+        if self._process_active.value:
+            logger.debug("stopping: {}.{}".format(self.get_name(), self._wrapped_module_cls.__name__))
+            # ask module process to stop
+            self._process_active.value = False
+            self._process.join()
+            self._process.kill()
+            # module process stopped
+        else:
+            logger.debug("stopping: {}".format(self.get_name()))
+            self._active = False
 
 
 class MultiprocessSourceWrapper(MultiprocessModuleWrapper, BaseSource):
 
     def _init_process(self) -> Process:
-        self._queue_out = Queue()
+        self._queue_out = mp.Queue()
         return Process(target=self._process_worker,
                        args=(self._wrapped_module_cls, self._wrapped_module_args,
                              self._process_active, self._queue_out))
@@ -56,18 +73,26 @@ class MultiprocessSourceWrapper(MultiprocessModuleWrapper, BaseSource):
 
         module.add_observer(queue_out)
         module.start()
-        while active.value:
+        while active.value:  # TODO: use queue or sth like await
             time.sleep(.1)
         module.stop()
 
     def _update(self) -> MSPDataFrame:
-        return self._queue_out.get()
+        frame = self._queue_out.get()
+        if isinstance(frame, MSPControlMessage) and frame.message == MSPControlMessage.END_OF_STREAM:
+            if frame.topic.source_module == self._wrapped_module_cls:
+                self._queue_out.put(MSPControlMessage(
+                    message=MSPControlMessage.END_OF_STREAM,
+                    source_module=self.__class__))
+            elif frame.topic.source_module == self.__class__:
+                self.stop()
+        return frame
 
 
 class MultiprocessSinkWrapper(MultiprocessModuleWrapper, BaseSink):
 
     def _init_process(self) -> Process:
-        self._queue_in = Queue()
+        self._queue_in = mp.Queue()
         return Process(target=self._process_worker,
                        args=(self._wrapped_module_cls, self._wrapped_module_args,
                              self._process_active, self._queue_in))
@@ -81,9 +106,15 @@ class MultiprocessSinkWrapper(MultiprocessModuleWrapper, BaseSink):
         # TODO: wait here until start() was called for the wrapper module
 
         module.start()
-        while active.value:
-            module.put(queue_in.get())
+        while active.value or not queue_in.empty():
+            frame = queue_in.get()
+            module.put(frame)
         module.stop()
+
+    def _handle_control_message(self, frame: MSPDataFrame):
+        if isinstance(frame, MSPControlMessage):
+            self._queue_in.put(frame)
+        return super(MultiprocessSinkWrapper, self)._handle_control_message(frame)
 
     def _update(self, frame: MSPDataFrame = None):
         self._queue_in.put(frame)
@@ -92,8 +123,8 @@ class MultiprocessSinkWrapper(MultiprocessModuleWrapper, BaseSink):
 class MultiprocessProcessorWrapper(MultiprocessModuleWrapper, BaseProcessor):
 
     def _init_process(self) -> Process:
-        self._queue_in = Queue()
-        self._queue_out = Queue()
+        self._queue_in = mp.Queue()
+        self._queue_out = MultiprocessQueueSink()
         return Process(target=self._process_worker,
                        args=(self._wrapped_module_cls, self._wrapped_module_args,
                              self._process_active, self._queue_in, self._queue_out))
@@ -115,10 +146,10 @@ class MultiprocessProcessorWrapper(MultiprocessModuleWrapper, BaseProcessor):
         module.start()
         while active.value:
             module.put(queue_in.get())
-
         module.stop()
 
-    def _stop(self):
+    def stop(self, blocking=True):
         self._process_active.value = False
-        self._queue_in.put(MSPDataFrame(topic=Topic(name="eof"), value=0))
+        self._queue_in.put(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM, source_module=self.__class__))
         self._process.join()
+        super(MultiprocessProcessorWrapper, self).stop(blocking=blocking)
