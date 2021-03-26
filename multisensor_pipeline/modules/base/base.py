@@ -2,9 +2,10 @@ from abc import ABC
 from threading import Thread
 from queue import Queue
 from multiprocessing.queues import Queue as MPQueue
-from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic
 from multisensor_pipeline.dataframe.control import MSPControlMessage
 import logging
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -13,20 +14,20 @@ class BaseModule(object):
     """ Base class for all modules. """
 
     def __init__(self, profiling=False):
+        self._uuid = uuid.uuid1()
         self._thread = Thread(target=self._worker)
         self._profiling = profiling  # TODO: move to BaseSink? (issue #7)
         self._active = False
 
-    def get_name(self):
-        """ Returns the name of the actual subclass """
-        return self.__class__.__name__
-
     def start(self):
         """ Starts the module. """
-        logger.debug("starting: {}".format(self.get_name()))
+        logger.debug("starting: {}".format(self.uuid))
         self._active = True
         self._start()
         self._thread.start()
+
+    def _generate_topic(self, name: str, dtype: type = None):
+        return Topic(name=name, dtype=dtype, source_module=self.__class__, source_uuid=self.uuid)
 
     def _start(self):
         """ Custom initialization """
@@ -42,7 +43,7 @@ class BaseModule(object):
 
     def stop(self, blocking=True):
         """ Stops the module. """
-        logger.debug("stopping: {}".format(self.get_name()))
+        logger.debug("stopping: {}".format(self.uuid))
         self._active = False
         if blocking:
             self._thread.join()
@@ -59,6 +60,15 @@ class BaseModule(object):
     def active(self):
         return self._active
 
+    @property
+    def name(self):
+        """ Returns the name of the actual subclass """
+        return self.__class__.__name__
+
+    @property
+    def uuid(self):
+        return f"{self.name}:{self._uuid.int}"
+
 
 class BaseSink(BaseModule, ABC):
     """ Base class for data sinks. """
@@ -69,21 +79,16 @@ class BaseSink(BaseModule, ABC):
         self._queue = Queue()
         self._active_sources = {}
 
-    def _add_active_source(self, frame: MSPDataFrame):
-        src = frame.topic.source_module
-        if src not in self._active_sources:
-            self._active_sources[src] = True
-            logger.debug(f"new active source: {self.get_name()} <-- {src.__name__}")
+    def add_source(self, source: BaseModule):
+        self._active_sources[source.uuid] = True
 
     def _handle_control_message(self, frame: MSPDataFrame):
         if isinstance(frame, MSPControlMessage):
-            logger.debug(f"[CONTROL] {frame.topic.source_module.__name__} -> {frame.message} -> {self.get_name()}")
+            logger.debug(f"[CONTROL] {frame.topic.source_uuid} -> {frame.message} -> {self.uuid}")
             if frame.message == MSPControlMessage.END_OF_STREAM:
-                if len(self._active_sources.keys()) == 0:
-                    self.stop(blocking=False)
-                elif frame.topic.source_module in self._active_sources:
+                if frame.topic.source_uuid in self._active_sources:
                     # set source to inactive
-                    self._active_sources[frame.topic.source_module] = False
+                    self._active_sources[frame.topic.source_uuid] = False
                     # if no active source is left
                     if not any(self._active_sources.values()):
                         self.stop(blocking=False)
@@ -103,10 +108,6 @@ class BaseSink(BaseModule, ABC):
 
             if self._handle_control_message(frame):
                 continue
-
-            # remember connected source modules
-            # TODO: could be replaced by pipeline calls -> hey module, you have the following sources... (#3)
-            self._add_active_source(frame)
 
             self._update(frame)
 
@@ -173,7 +174,7 @@ class BaseSource(BaseModule, ABC):
             
     def stop(self, blocking=True):
         # send end-of-stream message
-        self._notify(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM, source_module=self.__class__))
+        self._notify(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM, source=self))
         super(BaseSource, self).stop(blocking=blocking)
 
 

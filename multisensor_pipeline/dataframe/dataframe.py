@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class Topic:
 
-    def __init__(self, name: str, dtype: type = None, source_module: type = None):
+    def __init__(self, name: str, source_uuid: str, dtype: type = None, source_module: type = None):
         """
 
         :param name:
@@ -19,6 +19,7 @@ class Topic:
         self._name = name
         self._dtype = dtype
         self._source = source_module
+        self._uuid = source_uuid
 
     @property
     def name(self) -> str:
@@ -32,6 +33,10 @@ class Topic:
     def source_module(self) -> type:
         return self._source
 
+    @property
+    def source_uuid(self) -> str:
+        return self._uuid
+
     def __eq__(self, other):
         if not isinstance(other, Topic):
             return False
@@ -41,8 +46,6 @@ class Topic:
         return f"{self.source_module.__name__}:{self.name}:{self.dtype.__name__}"
 
     def __repr__(self):
-        dt = self.dtype.__name__ if self._dtype is not None else None
-        src = self.source_module.__name__ if self.source_module is not None else None
         return f"Topic(name={self.name}, dtype={self.dtype}, source_module={self.source_module})"
 
 
@@ -67,7 +70,8 @@ class MSPDataFrame(dict):
                     "_value_": {
                         "name": obj.name,
                         "dtype": str(obj.dtype),
-                        "source_module": str(obj.source_module)
+                        "source_module": str(obj.source_module),
+                        "source_uuid": obj.source_uuid
                     }
                 }
             return super(MSPDataFrame.JsonEncoder, self).default(obj)

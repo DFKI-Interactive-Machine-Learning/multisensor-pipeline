@@ -28,6 +28,7 @@ class GraphPipeline(PipelineBase):
 
     def connect(self, node, successor):
         node.add_observer(successor)  # must be first, because it implicitly validates the connection
+        successor.add_source(node)
         self._graph.add_edge(node, successor)
 
     def get_nodes_with_attribute(self, attribute, value):
@@ -111,8 +112,6 @@ class GraphPipeline(PipelineBase):
     def join(self):
         for node in self.sink_nodes:
             node.join()
-        # TODO: wait for sink nodes to stop (if blocking)  (#3)
-        #  --> they should offer a join() function;
 
 
 class SubGraphPipeline(GraphPipeline, BaseProcessor):

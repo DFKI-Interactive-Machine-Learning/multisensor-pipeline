@@ -5,8 +5,8 @@ class MSPControlMessage(MSPDataFrame):
 
     END_OF_STREAM = "EOS"
 
-    def __init__(self, message, source_module: type):
-        topic = Topic(name="control", source_module=source_module)
+    def __init__(self, message, source):
+        topic = Topic(name="control", source_module=source.name, source_uuid=source.uuid)
         super(MSPControlMessage, self).__init__(topic=topic, value=message)
 
     @property

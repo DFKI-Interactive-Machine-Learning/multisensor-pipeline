@@ -13,7 +13,7 @@ class RandomArraySource(BaseSource):
 
         # define what is offered
         dtype = int if shape is None else np.ndarray
-        self._topic = Topic(dtype=dtype, name="random", source_module=self.__class__)
+        self._topic = self._generate_topic(name="random", dtype=dtype)
 
     def _update(self) -> MSPDataFrame:
         sleep(self._sleep_time)
@@ -28,5 +28,5 @@ class ArrayManipulationProcessor(BaseProcessor):
 
     def _update(self, frame: MSPDataFrame = None):
         value = self._op(frame['value'])
-        topic = Topic(name=f"{frame.topic.name}.{self._op.__name__}", dtype=type(value), source_module=self.__class__)
+        topic = self._generate_topic(name=f"{frame.topic.name}.{self._op.__name__}", dtype=type(value))
         self._notify(MSPDataFrame(topic=topic, value=value))

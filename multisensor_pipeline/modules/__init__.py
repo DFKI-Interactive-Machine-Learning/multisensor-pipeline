@@ -9,6 +9,20 @@ class PassthroughProcessor(BaseProcessor):
         self._notify(frame)
 
 
+class ListSink(BaseSink):
+
+    def __init__(self):
+        super(ListSink, self).__init__()
+        self._list = []
+
+    @property
+    def list(self):
+        return self._list
+
+    def _update(self, frame: MSPDataFrame = None):
+        self._list.append(frame)
+
+
 class QueueSink(BaseSink):
 
     def __init__(self):

@@ -63,7 +63,7 @@ class MultiprocessingPipelineTest(TestCase):
         self.pipeline.start()
         self.assertEqual(len(self.pipeline.active_modules), 5)
 
-        sleep(.1)
+        sleep(1)
 
         self.pipeline.stop()
         self.pipeline.join()
