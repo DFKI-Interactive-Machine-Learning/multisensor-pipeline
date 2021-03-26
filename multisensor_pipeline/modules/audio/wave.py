@@ -1,4 +1,5 @@
 from multisensor_pipeline.modules.base import BaseSink
+from multisensor_pipeline.dataframe import MSPDataFrame
 import wave
 import pyaudio
 import logging
@@ -16,10 +17,9 @@ class WaveFile(BaseSink):
         self._wf.setsampwidth(pyaudio.get_sample_size(format))
         self._wf.setframerate(rate)
 
-    def _update(self, frame=None):
-        while self._active:
-            _, data = self.get()
-            self._wf.writeframes(data["data"])
+    def _update(self, frame: MSPDataFrame = None):
+        if frame.topic.name == "audio":
+            self._wf.writeframes(frame["chunk"])
 
     def _stop(self):
         self._wf.close()

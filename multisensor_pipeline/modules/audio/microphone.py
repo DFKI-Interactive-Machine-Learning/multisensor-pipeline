@@ -1,4 +1,5 @@
 from multisensor_pipeline.modules.base import BaseSource
+from multisensor_pipeline.dataframe import MSPDataFrame
 import pyaudio
 import logging
 
@@ -23,10 +24,9 @@ class Microphone(BaseSource):
                                       input=True,
                                       frames_per_buffer=self.chunk_size)
 
-    def _update(self, frame=None):
-        while self._active:
-            data = self._stream.read(self.chunk_size)
-            self._notify('microphone', data)
+    def _update(self) -> MSPDataFrame:
+        data = self._stream.read(self.chunk_size)
+        return MSPDataFrame(topic=self._generate_topic(name="audio"), chunk=data)
 
     def _stop(self):
         self._stream.stop_stream()
