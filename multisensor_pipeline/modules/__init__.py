@@ -43,3 +43,8 @@ class QueueSink(BaseSink):
         self._q.empty()
 
 
+class ConsoleSink(BaseSink):
+
+    def _update(self, frame: MSPDataFrame = None):
+        if frame is not None:
+            print(f"{frame.topic}:\t{frame}")

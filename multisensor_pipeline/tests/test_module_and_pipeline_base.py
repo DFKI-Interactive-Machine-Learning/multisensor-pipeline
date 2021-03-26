@@ -3,8 +3,7 @@ from multisensor_pipeline.pipeline import GraphPipeline
 import numpy as np
 from time import sleep
 from multisensor_pipeline.modules.npy import RandomArraySource, ArrayManipulationProcessor
-from multisensor_pipeline.modules.console import ConsoleSink
-from multisensor_pipeline.modules import QueueSink
+from multisensor_pipeline.modules import QueueSink, ConsoleSink
 import logging
 
 

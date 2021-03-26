@@ -19,7 +19,7 @@ We recommend to use an Anaconda environment with Python 3.7 (x64). To install th
 ```python
 from multisensor_pipeline.pipeline import GraphPipeline
 from multisensor_pipeline.modules.numpy import RandomArraySource, ArrayManipulationProcessor
-from multisensor_pipeline.modules.console import ConsoleSink
+from multisensor_pipeline.modules import ConsoleSink
 from time import sleep
 import numpy as np
 

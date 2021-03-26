@@ -2,8 +2,8 @@ from unittest import TestCase
 from multisensor_pipeline.pipeline import GraphPipeline
 from time import sleep
 from multisensor_pipeline.modules.npy import RandomArraySource
-from multisensor_pipeline.modules.recording import JsonRecordingSink
-from multisensor_pipeline.modules.dataset import JsonDatasetSource
+from multisensor_pipeline.modules.persitence.recording import JsonRecordingSink
+from multisensor_pipeline.modules.persitence.dataset import JsonDatasetSource
 from multisensor_pipeline.modules import ListSink
 
 

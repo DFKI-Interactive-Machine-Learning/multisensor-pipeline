@@ -2,8 +2,7 @@ from unittest import TestCase
 from multisensor_pipeline.experimental.multiprocess import MultiprocessSourceWrapper, MultiprocessSinkWrapper, \
     MultiprocessProcessorWrapper
 from multisensor_pipeline.modules.npy import RandomArraySource, ArrayManipulationProcessor
-from multisensor_pipeline.modules.console import ConsoleSink
-from multisensor_pipeline.modules import PassthroughProcessor, QueueSink
+from multisensor_pipeline.modules import PassthroughProcessor, QueueSink, ConsoleSink
 from multisensor_pipeline.pipeline import GraphPipeline
 import numpy as np
 import time

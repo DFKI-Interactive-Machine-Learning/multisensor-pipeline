@@ -98,7 +98,7 @@ class MSPDataFrame(dict):
         else:
             self['timestamp'] = timestamp
         self['topic'] = topic
-        self['value'] = value
+        self['value'] = value  # TODO: do we really need a mandatory value (or rather a MSPValueDataframe)?
 
         if kwargs is not None:
             self.update(kwargs)
