@@ -10,13 +10,13 @@ if __name__ == '__main__':
     chunks = []
 
     try:
-        mic = Microphone(channels=1)
+        mic = Microphone(channels=2)
         mic.add_observer(queue)
         mic.start()
 
         for i in range(500):
-            dtype, data = queue.get()
-            chunks.append(data["data"])
+            frame = queue.get()
+            chunks.append(frame["chunk"])
 
     except Exception as e:
         logging.error(e)

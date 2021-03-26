@@ -7,8 +7,8 @@ class MSPControlMessage(MSPDataFrame):
 
     def __init__(self, message, source):
         topic = Topic(name="control", source_module=source.name, source_uuid=source.uuid)
-        super(MSPControlMessage, self).__init__(topic=topic, value=message)
+        super(MSPControlMessage, self).__init__(topic=topic, message=message)
 
     @property
     def message(self):
-        return self.value
+        return self['message']

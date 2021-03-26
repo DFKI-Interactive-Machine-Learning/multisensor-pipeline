@@ -22,8 +22,5 @@ setup(
         'numpy',
         'Pillow'
     ],
-    # extras_require={
-    #     'myo':  ['myo-python==0.2.2']
-    # },
     keywords=['multimodality', 'streaming', 'multisensor', 'sensors', 'multimodal interaction', 'pipeline']
 )
