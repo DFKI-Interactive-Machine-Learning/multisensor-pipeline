@@ -43,6 +43,6 @@ class CropByPointerProcessor(BaseProcessor):
             if img_patch is None:
                 return None
 
-            return MSPDataFrame(topic=self._generate_topic(f"{frame.topic.name}.cropped"),
+            return MSPDataFrame(topic=self._generate_topic(name=f"{frame.topic.name}.cropped", dtype=frame.topic.dtype),
                                 timestamp=frame.timestamp, image=img_patch, base_topic=frame.topic,
                                 crop_size=self.crop_size)

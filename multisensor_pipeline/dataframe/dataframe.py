@@ -37,6 +37,10 @@ class Topic:
     def source_uuid(self) -> str:
         return self._uuid
 
+    @property
+    def uuid(self):
+        return f"{self.source_uuid}:{self.name}:{self.dtype.__name__}"
+
     def __eq__(self, other):
         if not isinstance(other, Topic):
             return False
