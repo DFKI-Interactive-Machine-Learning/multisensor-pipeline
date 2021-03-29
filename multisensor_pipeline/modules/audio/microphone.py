@@ -25,8 +25,10 @@ class Microphone(BaseSource):
                                       frames_per_buffer=self.chunk_size)
 
     def _update(self) -> MSPDataFrame:
+        # if self._stream.is_active():
         data = self._stream.read(self.chunk_size)
         return MSPDataFrame(topic=self._generate_topic(name="audio"), chunk=data)
+        # return None
 
     def _stop(self):
         self._stream.stop_stream()

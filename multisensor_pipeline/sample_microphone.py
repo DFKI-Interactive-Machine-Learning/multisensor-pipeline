@@ -1,30 +1,37 @@
 from multisensor_pipeline.modules.audio.microphone import Microphone
+from multisensor_pipeline.modules import ListSink
 import wave
 import pyaudio
-from queue import Queue
+import logging
+from time import sleep
 import logging
 
+
+logging.basicConfig(level=logging.DEBUG)
+
+
 if __name__ == '__main__':
+    n_channels = 2
 
-    queue = Queue()
-    chunks = []
-
+    sink = ListSink()
     try:
-        mic = Microphone(channels=2)
-        mic.add_observer(queue)
+        mic = Microphone(channels=n_channels)
+        mic.add_observer(sink)
+        sink.start()
         mic.start()
-
-        for i in range(500):
-            frame = queue.get()
-            chunks.append(frame["chunk"])
-
+        logging.info("recording started")
+        sleep(5)
     except Exception as e:
         logging.error(e)
     finally:
-        mic.stop()
+        mic.stop(blocking=False)
+        sink.join()
+        logging.info("recording stopped")
+
+    chunks = [f["chunk"] for f in sink.list]
 
     wf = wave.open('test.wav', 'wb')
-    wf.setnchannels(1)
+    wf.setnchannels(n_channels)
     wf.setsampwidth(pyaudio.get_sample_size(pyaudio.paInt16))
     wf.setframerate(44100)
     wf.writeframes(b''.join(chunks))

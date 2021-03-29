@@ -141,7 +141,7 @@ class BaseSource(BaseModule, ABC):
             frame = self._update()
             if frame is None:
                 continue
-            self._notify(self._update())
+            self._notify(frame)
 
     def _update(self) -> MSPDataFrame:
         """ Custom update routine. """
@@ -159,6 +159,7 @@ class BaseSource(BaseModule, ABC):
             return
 
         assert isinstance(sink, BaseSink) or isinstance(sink, BaseProcessor)
+        sink.add_source(self)
         self._sinks.append(sink)
         # TODO: check if types match -> raise error or warning
 
