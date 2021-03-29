@@ -124,7 +124,7 @@ class MultiprocessProcessorWrapper(MultiprocessModuleWrapper, BaseProcessor):
 
     def _init_process(self) -> Process:
         self._queue_in = mp.Queue()
-        self._queue_out = MultiprocessQueueSink()
+        self._queue_out = mp.Queue()
         return Process(target=self._process_worker,
                        args=(self._wrapped_module_cls, self._wrapped_module_args,
                              self._process_active, self._queue_in, self._queue_out))
@@ -146,10 +146,15 @@ class MultiprocessProcessorWrapper(MultiprocessModuleWrapper, BaseProcessor):
         module.start()
         while active.value:
             module.put(queue_in.get())
-        module.stop()
+        # module.stop()
 
     def stop(self, blocking=True):
+        logger.debug("stopping: {}.{}".format(self.name, self._wrapped_module_cls.__name__))
+        # ask module process to stop
         self._process_active.value = False
         self._queue_in.put(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM, source=self))
         self._process.join()
-        super(MultiprocessProcessorWrapper, self).stop(blocking=blocking)
+        self._process.terminate()
+        # module process stopped
+        logger.debug("stopped: {}.{}".format(self.name, self._wrapped_module_cls.__name__))
+        super(MultiprocessModuleWrapper, self).stop(blocking=blocking)

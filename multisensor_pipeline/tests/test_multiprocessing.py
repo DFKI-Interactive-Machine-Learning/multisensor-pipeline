@@ -1,5 +1,5 @@
 from unittest import TestCase
-from multisensor_pipeline.experimental.multiprocess import MultiprocessSourceWrapper, MultiprocessSinkWrapper, \
+from multisensor_pipeline.modules.multiprocess import MultiprocessSourceWrapper, MultiprocessSinkWrapper, \
     MultiprocessProcessorWrapper
 from multisensor_pipeline.modules.npy import RandomArraySource, ArrayManipulationProcessor
 from multisensor_pipeline.modules import PassthroughProcessor, QueueSink, ConsoleSink
@@ -14,25 +14,22 @@ logging.basicConfig(level=logging.DEBUG)
 
 class PipelineTest(TestCase):
 
-    def setUp(self) -> None:
-        pass
-
     def test_source_sink_wrapper(self):
         # create nodes
         source = MultiprocessSourceWrapper(module_cls=RandomArraySource, shape=(5,), sampling_rate=.4)
         sink = MultiprocessSinkWrapper(module_cls=ConsoleSink)
-        #queue = QueueSink()
+        queue = QueueSink()
 
         # connect nodes
         source.add_observer(sink)
-        #source.add_observer(queue)
+        source.add_observer(queue)
 
         # start nodes
         sink.start()
-        #queue.start()
+        queue.start()
         source.start()
 
-        time.sleep(2)
+        time.sleep(.5)
 
         source.stop(blocking=False)
         sink.join()
@@ -42,13 +39,11 @@ class PipelineTest(TestCase):
         self.assertFalse(sink._process.is_alive())
         self.assertFalse(sink._thread.is_alive())
 
-        #queue.join()
+        queue.join()
 
-        pass
-        #self.assertFalse(queue.empty())
+        self.assertFalse(queue.empty())
 
     def test_processor_wrapper(self):
-        return
         # create nodes
         source = MultiprocessSourceWrapper(module_cls=RandomArraySource, shape=(50,), sampling_rate=50)
         processor = MultiprocessProcessorWrapper(module_cls=ArrayManipulationProcessor, numpy_operation=np.mean)
@@ -68,8 +63,6 @@ class PipelineTest(TestCase):
 
         time.sleep(.5)
 
-        # sink.stop()
-        # processor.stop()
         source.stop()
         sink.join()
         queue.join()
@@ -77,7 +70,6 @@ class PipelineTest(TestCase):
         self.assertFalse(queue.empty())
 
     def test_parallelized_pipeline(self):
-        return
         # create modules
         source = MultiprocessSourceWrapper(module_cls=RandomArraySource, shape=(50,), sampling_rate=50)
         processor1 = PassthroughProcessor()
@@ -97,7 +89,7 @@ class PipelineTest(TestCase):
         pipeline.connect(processor2, queue)
 
         pipeline.start()
-        time.sleep(.1)
+        time.sleep(.5)
         pipeline.stop()
 
         self.assertFalse(queue.empty())
