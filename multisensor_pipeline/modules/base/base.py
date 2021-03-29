@@ -142,8 +142,8 @@ class BaseSink(BaseModule, ABC):
                     # set source to inactive
                     self._active_sources[frame.topic.source_uuid] = False
                     # if no active source is left
-                    if not any(self._active_sources.values()):
-                        self.stop(blocking=False)
+                if not any(self._active_sources.values()):
+                    self.stop(blocking=False)
             else:
                 logger.warning(f"unhandled control message: {frame.message}")
             return True

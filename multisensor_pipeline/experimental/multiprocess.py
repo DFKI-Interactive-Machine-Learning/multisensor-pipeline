@@ -6,6 +6,7 @@ from multiprocessing import Process, Value
 import multiprocessing as mp
 import logging
 import time
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -41,19 +42,6 @@ class MultiprocessModuleWrapper(BaseModule, ABC):
     def _process_worker(module_cls: type, module_args: dict, active, queue: mp.queues.Queue):
         raise NotImplementedError()
 
-    def stop(self, blocking=True):
-        """ Stops the module. """
-        if self._process_active.value:
-            logger.debug("stopping: {}.{}".format(self.get_name(), self._wrapped_module_cls.__name__))
-            # ask module process to stop
-            self._process_active.value = False
-            self._process.join()
-            self._process.kill()
-            # module process stopped
-        else:
-            logger.debug("stopping: {}".format(self.get_name()))
-            self._active = False
-
 
 class MultiprocessSourceWrapper(MultiprocessModuleWrapper, BaseSource):
 
@@ -74,19 +62,23 @@ class MultiprocessSourceWrapper(MultiprocessModuleWrapper, BaseSource):
         module.add_observer(queue_out)
         module.start()
         while active.value:  # TODO: use queue or sth like await
-            time.sleep(.1)
+            time.sleep(.5)
         module.stop()
 
     def _update(self) -> MSPDataFrame:
-        frame = self._queue_out.get()
-        if isinstance(frame, MSPControlMessage) and frame.message == MSPControlMessage.END_OF_STREAM:
-            if frame.topic.source_module == self._wrapped_module_cls:
-                self._queue_out.put(MSPControlMessage(
-                    message=MSPControlMessage.END_OF_STREAM,
-                    source_module=self.__class__))
-            elif frame.topic.source_module == self.__class__:
-                self.stop()
-        return frame
+        return self._queue_out.get()
+
+    def stop(self, blocking=False):
+        """ Stops the module. """
+        logger.debug("stopping: {}.{}".format(self.name, self._wrapped_module_cls.__name__))
+        # ask module process to stop
+        self._process_active.value = False
+        self._process.join()
+        self._process.terminate()
+        # module process stopped
+        logger.debug("stopped: {}.{}".format(self.name, self._wrapped_module_cls.__name__))
+        super(MultiprocessModuleWrapper, self).stop(blocking=blocking)
+        self._queue_out.put(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM, source=self))
 
 
 class MultiprocessSinkWrapper(MultiprocessModuleWrapper, BaseSink):
@@ -109,15 +101,23 @@ class MultiprocessSinkWrapper(MultiprocessModuleWrapper, BaseSink):
         while active.value or not queue_in.empty():
             frame = queue_in.get()
             module.put(frame)
-        module.stop()
-
-    def _handle_control_message(self, frame: MSPDataFrame):
-        if isinstance(frame, MSPControlMessage):
-            self._queue_in.put(frame)
-        return super(MultiprocessSinkWrapper, self)._handle_control_message(frame)
+        # module.stop(blocking=False)
+        pass
 
     def _update(self, frame: MSPDataFrame = None):
         self._queue_in.put(frame)
+
+    def stop(self, blocking=False):
+        """ Stops the module. """
+        logger.debug("stopping: {}.{}".format(self.name, self._wrapped_module_cls.__name__))
+        # ask module process to stop
+        self._process_active.value = False
+        self._queue_in.put(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM, source=self))
+        self._process.join()
+        self._process.terminate()
+        # module process stopped
+        logger.debug("stopped: {}.{}".format(self.name, self._wrapped_module_cls.__name__))
+        super(MultiprocessModuleWrapper, self).stop(blocking=blocking)
 
 
 class MultiprocessProcessorWrapper(MultiprocessModuleWrapper, BaseProcessor):
@@ -150,6 +150,6 @@ class MultiprocessProcessorWrapper(MultiprocessModuleWrapper, BaseProcessor):
 
     def stop(self, blocking=True):
         self._process_active.value = False
-        self._queue_in.put(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM, source_module=self.__class__))
+        self._queue_in.put(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM, source=self))
         self._process.join()
         super(MultiprocessProcessorWrapper, self).stop(blocking=blocking)
