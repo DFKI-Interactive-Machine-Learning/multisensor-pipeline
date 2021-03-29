@@ -138,10 +138,7 @@ class BaseSource(BaseModule, ABC):
 
     def _worker(self):
         while self._active:
-            frame = self._update()
-            if frame is None:
-                continue
-            self._notify(frame)
+            self._notify(self._update())
 
     def _update(self) -> MSPDataFrame:
         """ Custom update routine. """
