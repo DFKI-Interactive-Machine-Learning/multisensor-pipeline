@@ -15,7 +15,7 @@ class JsonSerializationTest(TestCase):
 
         # --- perform a recording ---
         # create modules
-        rec_source = RandomArraySource(shape=(50,), frequency=5)
+        rec_source = RandomArraySource(shape=(5,), sampling_rate=100)
         rec_sink = JsonRecordingSink(filename, override=True)
         rec_queue = ListSink()
         # add to pipeline
@@ -28,7 +28,7 @@ class JsonSerializationTest(TestCase):
         rec_pipeline.connect(rec_source, rec_queue)
         # run pipeline for
         rec_pipeline.start()
-        sleep(2)
+        sleep(.5)
         rec_pipeline.stop()
         rec_pipeline.join()
 

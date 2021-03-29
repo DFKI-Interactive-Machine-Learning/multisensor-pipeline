@@ -1,6 +1,5 @@
 from .base import BaseProcessor, BaseSink, BaseSource
 from queue import Queue
-
 from ..dataframe import MSPDataFrame
 
 

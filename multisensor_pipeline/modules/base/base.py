@@ -70,6 +70,58 @@ class BaseModule(object):
         return f"{self.name}:{self._uuid.int}"
 
 
+class BaseSource(BaseModule, ABC):
+    """ Base class for data sources. """
+
+    def __init__(self):
+        """
+        Initializes the worker thread and a queue list for communication with observers that listen to that source.
+        """
+        super().__init__()
+        self._sinks = []
+
+    def _worker(self):
+        while self._active:
+            self._notify(self._update())
+
+    def _update(self) -> MSPDataFrame:
+        """ Custom update routine. """
+        raise NotImplementedError()
+
+    def add_observer(self, sink):
+        """
+        Register a Sink or Queue as an observer.
+
+        Args:
+            sink: A thread-safe Queue object or Sink [or any class that implements put(tuple)]
+        """
+        if isinstance(sink, Queue) or isinstance(sink, MPQueue):
+            self._sinks.append(sink)
+            return
+
+        assert isinstance(sink, BaseSink) or isinstance(sink, BaseProcessor)
+        sink.add_source(self)
+        self._sinks.append(sink)
+        # TODO: check if types match -> raise error or warning
+
+    def _notify(self, frame: MSPDataFrame):
+        """
+        Notifies all observers that there's a new dataframe
+
+        Args:
+            frame: the payload as an instance of MSPDataFrame
+        """
+        assert isinstance(frame, MSPDataFrame), "You must use a MSPDataFrame instance to wrap your data."
+
+        for sink in self._sinks:
+            sink.put(frame)
+
+    def stop(self, blocking=True):
+        # send end-of-stream message
+        self._notify(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM, source=self))
+        super(BaseSource, self).stop(blocking=blocking)
+
+
 class BaseSink(BaseModule, ABC):
     """ Base class for data sinks. """
 
@@ -124,58 +176,6 @@ class BaseSink(BaseModule, ABC):
         Report per source node.
         """
         raise NotImplementedError()
-
-
-class BaseSource(BaseModule, ABC):
-    """ Base class for data sources. """
-
-    def __init__(self):
-        """
-        Initializes the worker thread and a queue list for communication with observers that listen to that source.
-        """
-        super().__init__()
-        self._sinks = []
-
-    def _worker(self):
-        while self._active:
-            self._notify(self._update())
-
-    def _update(self) -> MSPDataFrame:
-        """ Custom update routine. """
-        raise NotImplementedError()
-
-    def add_observer(self, sink):
-        """
-        Register a Sink or Queue as an observer.
-
-        Args:
-            sink: A thread-safe Queue object or Sink [or any class that implements put(tuple)]
-        """
-        if isinstance(sink, Queue) or isinstance(sink, MPQueue):
-            self._sinks.append(sink)
-            return
-
-        assert isinstance(sink, BaseSink) or isinstance(sink, BaseProcessor)
-        sink.add_source(self)
-        self._sinks.append(sink)
-        # TODO: check if types match -> raise error or warning
-
-    def _notify(self, frame: MSPDataFrame):
-        """
-        Notifies all observers that there's a new dataframe
-
-        Args:
-            frame: the payload as an instance of MSPDataFrame
-        """
-        assert isinstance(frame, MSPDataFrame), "You must use a MSPDataFrame instance to wrap your data."
-
-        for sink in self._sinks:
-            sink.put(frame)
-            
-    def stop(self, blocking=True):
-        # send end-of-stream message
-        self._notify(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM, source=self))
-        super(BaseSource, self).stop(blocking=blocking)
 
 
 class BaseProcessor(BaseSink, BaseSource, ABC):

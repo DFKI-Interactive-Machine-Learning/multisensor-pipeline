@@ -14,8 +14,8 @@ class MultiprocessingPipelineTest(TestCase):
 
     def setUp(self) -> None:
         self.pipeline = GraphPipeline()
-        self.src1 = RandomArraySource(shape=(50,), frequency=50)
-        self.src2 = RandomArraySource(frequency=50)
+        self.src1 = RandomArraySource(shape=(50,), sampling_rate=50)
+        self.src2 = RandomArraySource(sampling_rate=50)
         self.p1 = ArrayManipulationProcessor(np.mean)
         self.p2 = ArrayManipulationProcessor(np.std)
         self.sink = QueueSink()
@@ -73,7 +73,7 @@ class MultiprocessingPipelineTest(TestCase):
     def test_minimal_example(self):
         return True
         # define the modules
-        source = RandomArraySource(shape=(50,), frequency=60)
+        source = RandomArraySource(shape=(50,), sampling_rate=60)
         processor = ArrayManipulationProcessor(np.mean)
         sink = ConsoleSink()
 
