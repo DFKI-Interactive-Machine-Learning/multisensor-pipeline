@@ -15,12 +15,12 @@ setup(
     description="The core library of the DFKI multisensor pipeline framework.",
     python_requires='>=3.6.0',
     install_requires=[
-        'requests',
         'pyzmq',
         'PyAudio',
         'networkx',
         'numpy',
         'Pillow'
     ],
-    keywords=['multimodality', 'streaming', 'multisensor', 'sensors', 'multimodal interaction', 'pipeline']
+    keywords=['multimodality', 'streaming', 'multisensor', 'sensors', 'multimodal interaction', 'pipeline',
+              'stream processing', 'multiprocessing']
 )

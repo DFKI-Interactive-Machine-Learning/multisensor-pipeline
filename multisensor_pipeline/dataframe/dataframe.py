@@ -80,6 +80,7 @@ class MSPDataFrame(dict):
                 }
             return super(MSPDataFrame.JsonEncoder, self).default(obj)
 
+
     class JsonDecoder(json.JSONDecoder):
 
         def __init__(self, *args, **kwargs):
