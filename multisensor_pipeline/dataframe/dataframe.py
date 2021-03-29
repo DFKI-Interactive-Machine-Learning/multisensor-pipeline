@@ -123,14 +123,6 @@ class MSPDataFrame(dict):
     def topic(self, value: Topic):
         self['topic'] = value
 
-    # @property
-    # def value(self):
-    #     return self['value']
-    #
-    # @value.setter
-    # def value(self, value):
-    #     self['value'] = value
-
 
 class MSPEventFrame(MSPDataFrame):
 

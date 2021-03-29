@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class OneEuroProcessor(BaseProcessor):
     """
     Applies the 1€ smoothing filter on a continuous signal.
-    Supports b'eyetracking.mobile.gaze' and b'eyetracking.mobile.surfaces'.
+    http://cristal.univ-lille.fr/~casiez/1euro/
 
     To minimize jitter and lag when tracking human motion, the two parameters (fcmin and beta) can be set using a
     simple two-step procedure. First beta is set to 0 and fcmin (mincutoff) to a reasonable middle-ground value such

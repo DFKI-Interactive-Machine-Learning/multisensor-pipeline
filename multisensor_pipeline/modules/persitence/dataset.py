@@ -1,5 +1,5 @@
 from abc import ABC
-from multisensor_pipeline.dataframe import MSPDataFrame, MSPControlMessage
+from multisensor_pipeline.dataframe import MSPControlMessage
 from multisensor_pipeline.modules import BaseSource
 
 

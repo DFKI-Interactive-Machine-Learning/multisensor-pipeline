@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class WaveFile(BaseSink):
 
-    def __init__(self, filename, channels, format, rate):
+    def __init__(self, filename: str, channels: int = 2, format: int = pyaudio.paInt16, rate: int = 44100):
         super(WaveFile, self).__init__()
         self._frames = []
         self._wf = wave.open(filename, 'wb')

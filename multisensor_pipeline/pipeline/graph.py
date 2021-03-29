@@ -28,7 +28,6 @@ class GraphPipeline(PipelineBase):
 
     def connect(self, node, successor):
         node.add_observer(successor)  # must be first, because it implicitly validates the connection
-        # successor.add_source(node)
         self._graph.add_edge(node, successor)
 
     def get_nodes_with_attribute(self, attribute, value):
