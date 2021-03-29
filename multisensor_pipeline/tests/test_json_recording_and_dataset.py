@@ -3,7 +3,7 @@ from multisensor_pipeline.pipeline import GraphPipeline
 from time import sleep, time
 from multisensor_pipeline.modules.npy import RandomArraySource
 from multisensor_pipeline.modules.persitence.recording import JsonRecordingSink
-from multisensor_pipeline.modules.persitence.dataset import JsonDatasetSource
+from multisensor_pipeline.modules.persitence.replay import JsonReplaySource
 from multisensor_pipeline.modules import ListSink
 import numpy as np
 
@@ -34,7 +34,7 @@ class JsonSerializationTest(TestCase):
 
         # --- load the recording ---
         # create modules
-        json_source = JsonDatasetSource(file_path=filename, playback_speed=1.)
+        json_source = JsonReplaySource(file_path=filename, playback_speed=1.)
         json_queue = ListSink()
         json_pipeline = GraphPipeline()
         json_pipeline.add_source(json_source)
