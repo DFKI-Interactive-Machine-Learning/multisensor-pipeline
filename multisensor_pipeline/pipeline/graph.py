@@ -1,6 +1,7 @@
 from .base import PipelineBase
 from multisensor_pipeline.modules.base import *
 import networkx as nx
+from typing import Union, List
 
 from ..dataframe import MSPDataFrame
 
@@ -13,6 +14,19 @@ class GraphPipeline(PipelineBase):
 
     def __init__(self):
         self._graph = nx.DiGraph()
+
+    def add(self, nodes: Union[BaseModule, List[BaseModule]]):
+        if isinstance(nodes, list):
+            for n in nodes:
+                self.add(n)
+        elif isinstance(nodes, BaseProcessor):
+            self.add_processor(nodes)
+        elif isinstance(nodes, BaseSource):
+            self.add_source(nodes)
+        elif isinstance(nodes, BaseSink):
+            self.add_sink(nodes)
+        else:
+            raise TypeError("The parameter node must be an instance of BaseSource, BaseProcessor, or BaseSink.")
 
     def add_source(self, source_node: BaseSource):
         assert isinstance(source_node, BaseSource)

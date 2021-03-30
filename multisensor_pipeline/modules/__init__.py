@@ -8,6 +8,18 @@ class PassthroughProcessor(BaseProcessor):
         self._notify(frame)
 
 
+class TimestampExtractionProcessor(BaseProcessor):
+
+    def __init__(self, target_topic_name=None):
+        super(TimestampExtractionProcessor, self).__init__()
+        self._topic_name = target_topic_name
+
+    def _update(self, frame: MSPDataFrame = None):
+        if self._topic_name is None and frame.topic.name == self._topic_name:
+            _topic = self._generate_topic(name=f"{frame.topic.name}.timestamp")
+            return MSPDataFrame(topic=_topic, timestamp=frame.timestamp)
+
+
 class ListSink(BaseSink):
 
     def __init__(self):
@@ -49,13 +61,7 @@ class ConsoleSink(BaseSink):
             print(f"{frame.topic}:\t{frame}")
 
 
-class TimestampExtractionProcessor(BaseProcessor):
-
-    def __init__(self, target_topic_name=None):
-        super(TimestampExtractionProcessor, self).__init__()
-        self._topic_name = target_topic_name
+class TrashSink(BaseSink):
 
     def _update(self, frame: MSPDataFrame = None):
-        if self._topic_name is None and frame.topic.name == self._topic_name:
-            _topic = self._generate_topic(name=f"{frame.topic.name}.timestamp")
-            return MSPDataFrame(topic=_topic, timestamp=frame.timestamp)
+        pass

@@ -6,16 +6,18 @@ from multisensor_pipeline.dataframe import MSPDataFrame
 
 class RandomArraySource(BaseFixedRateSource):
 
-    def __init__(self, shape=None, sampling_rate=1):
+    def __init__(self, shape=None, min: int= 0, max: int = 100, sampling_rate: float = 1):
         super(RandomArraySource, self).__init__(sampling_rate)
         self._shape = shape
+        self._min = min
+        self._max = max
 
         # define what is offered
         dtype = int if shape is None else np.ndarray
         self._topic = self._generate_topic(name="random", dtype=dtype)
 
     def _update(self) -> MSPDataFrame:
-        return MSPDataFrame(topic=self._topic, value=np.random.randint(1, 255, size=self._shape))
+        return MSPDataFrame(topic=self._topic, value=np.random.randint(self._min, self._max, size=self._shape))
 
 
 class ArrayManipulationProcessor(BaseProcessor):
