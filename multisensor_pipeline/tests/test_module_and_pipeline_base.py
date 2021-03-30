@@ -3,8 +3,9 @@ from multisensor_pipeline.pipeline import GraphPipeline
 import numpy as np
 from time import sleep
 from multisensor_pipeline.modules.npy import RandomArraySource, ArrayManipulationProcessor
-from multisensor_pipeline.modules import QueueSink, ConsoleSink
+from multisensor_pipeline.modules import QueueSink, ConsoleSink, SleepTrashSink,SleepPassthroughProcessor, ListSink
 import logging
+import math
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -71,7 +72,6 @@ class MultiprocessingPipelineTest(TestCase):
         self.assertFalse(self.sink.empty())
 
     def test_minimal_example(self):
-        return True
         # define the modules
         source = RandomArraySource(shape=(50,), sampling_rate=60)
         processor = ArrayManipulationProcessor(np.mean)
@@ -92,3 +92,43 @@ class MultiprocessingPipelineTest(TestCase):
         pipeline.start()
         sleep(.1)
         pipeline.stop()
+        pipeline.join()
+
+    def test_dropout(self):
+        dropout_threshold = .2
+        sleep_time = .5
+
+        # source - sink pipeline
+        source = RandomArraySource(sampling_rate=10)
+        sink = SleepTrashSink(sleep_time=dropout_threshold, dropout=dropout_threshold)
+
+        p = GraphPipeline()
+        p.add([source, sink])
+        p.connect(source, sink)
+        p.start()
+
+        sleep(sleep_time)
+
+        p.stop()
+        p.join()
+
+        # source - processor - sink pipeline
+        source = RandomArraySource(sampling_rate=10)
+        processor = SleepPassthroughProcessor(sleep_time=dropout_threshold, dropout=dropout_threshold)
+        sink = ListSink()
+
+        p = GraphPipeline()
+        p.add([source, processor, sink])
+        p.connect(source, processor)
+        p.connect(processor, sink)
+
+        p.start()
+        sleep(sleep_time)
+        p.stop()
+        p.join()
+
+        num_received = len(sink.list)
+        num_expected = math.ceil(1. / dropout_threshold * sleep_time)
+
+        self.assertTrue(abs(num_received - num_expected) <= 2)
+

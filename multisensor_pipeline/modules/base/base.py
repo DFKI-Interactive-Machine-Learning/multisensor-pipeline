@@ -4,6 +4,7 @@ from queue import Queue
 from multiprocessing.queues import Queue as MPQueue
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic
 from multisensor_pipeline.dataframe.control import MSPControlMessage
+from typing import Union
 import logging
 import uuid
 
@@ -125,11 +126,14 @@ class BaseSource(BaseModule, ABC):
 class BaseSink(BaseModule, ABC):
     """ Base class for data sinks. """
 
-    def __init__(self):
+    def __init__(self, dropout: Union[bool, float] = False):
         """ Initializes the worker thread and a queue that will receive new samples from sources. """
         super().__init__()
         self._queue = Queue()
         self._active_sources = {}
+        self._dropout = dropout  # in seconds
+        if dropout and isinstance(dropout, bool):
+            self._dropout = 5
 
     def add_source(self, source: BaseModule):
         self._active_sources[source.uuid] = True
@@ -166,8 +170,21 @@ class BaseSink(BaseModule, ABC):
         """ Custom update routine. """
         raise NotImplementedError()
 
-    def put(self, sample: MSPDataFrame):
-        self._queue.put(sample)
+    def _perform_sample_dropout(self, frame_time):
+        if not self._dropout:
+            return
+
+        with self._queue.mutex:
+            while len(self._queue.queue) > 0:
+                frame_age = frame_time - self._queue.queue[0].timestamp
+                if frame_age > self._dropout:
+                    self._queue.queue.popleft()
+                else:
+                    break
+
+    def put(self, frame: MSPDataFrame):
+        self._perform_sample_dropout(frame.timestamp)
+        self._queue.put(frame)
 
     @property
     def queue_stats(self) -> dict:

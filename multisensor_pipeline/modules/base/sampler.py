@@ -18,8 +18,8 @@ class BaseFixedRateSource(BaseSource, ABC):
         return self._sampling_rate
 
     def _notify(self, frame: MSPDataFrame):
-        self._sleep(frame)
         super(BaseFixedRateSource, self)._notify(frame)
+        self._sleep(frame)
 
     def _sleep(self, frame: MSPDataFrame):
         if isinstance(frame, MSPControlMessage):
@@ -27,7 +27,9 @@ class BaseFixedRateSource(BaseSource, ABC):
         if self._sampling_rate == float("inf"):
             return
 
-        if self._last_frame_timestamp is not None:
+        if self._last_frame_timestamp is None:
+            sleep(self._sleep_time)
+        else:
             processing_duration = time() - self._last_frame_timestamp
             if processing_duration < self._sleep_time:
                 sleep(self._sleep_time - processing_duration)

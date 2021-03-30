@@ -1,11 +1,23 @@
 from .base import BaseProcessor, BaseSink, BaseSource
 from queue import Queue
+from time import sleep
 from ..dataframe import MSPDataFrame
 
 
 class PassthroughProcessor(BaseProcessor):
     def _update(self, frame=None):
         self._notify(frame)
+
+
+class SleepPassthroughProcessor(BaseProcessor):
+
+    def __init__(self, sleep_time, **kwargs):
+        super().__init__(**kwargs)
+        self._sleep_time = sleep_time
+
+    def _update(self, frame: MSPDataFrame = None):
+        self._notify(frame)
+        sleep(self._sleep_time)
 
 
 class TimestampExtractionProcessor(BaseProcessor):
@@ -65,3 +77,13 @@ class TrashSink(BaseSink):
 
     def _update(self, frame: MSPDataFrame = None):
         pass
+
+
+class SleepTrashSink(TrashSink):
+
+    def __init__(self, sleep_time: float, **kwargs):
+        super().__init__(**kwargs)
+        self._sleep_time = sleep_time
+
+    def _update(self, frame: MSPDataFrame = None):
+        sleep(self._sleep_time)
