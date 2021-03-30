@@ -103,7 +103,6 @@ class MSPDataFrame(dict):
         else:
             self['timestamp'] = timestamp
         self['topic'] = topic
-        # self['value'] = value  # TODO: do we really need a mandatory value (or rather a MSPValueDataframe)?
 
         if kwargs is not None:
             self.update(kwargs)
@@ -127,8 +126,8 @@ class MSPDataFrame(dict):
 
 class MSPEventFrame(MSPDataFrame):
 
-    def __init__(self, duration: float = 0, label: str = None, **kwargs):
-        super(MSPEventFrame, self).__init__(duration=duration, label=label, **kwargs)
+    def __init__(self, value=None, duration: float = 0, **kwargs):
+        super(MSPEventFrame, self).__init__(value=value, duration=duration, **kwargs)
 
     @property
     def duration(self) -> float:
@@ -139,9 +138,9 @@ class MSPEventFrame(MSPDataFrame):
         self['duration'] = value
 
     @property
-    def label(self) -> str:
-        return self['label']
+    def value(self) -> str:
+        return self['value']
 
-    @label.setter
-    def label(self, value: str):
-        self['label'] = value
+    @value.setter
+    def value(self, value: str):
+        self['value'] = value
