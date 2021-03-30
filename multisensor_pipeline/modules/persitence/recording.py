@@ -38,7 +38,7 @@ class RecordingSink(BaseSink, ABC):
             return True
         return any([t == topic for t in self._topics])
 
-    def _update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame = None):
         if self.check_topic(frame.topic):
             self.write(frame)
 
@@ -50,7 +50,7 @@ class JsonRecordingSink(RecordingSink):
 
     _json_file = None
 
-    def _start(self):
+    def on_start(self):
         assert self.target.suffix == ".json", f"The file extension must be json, but was {self.target.suffix}"
         if not self.override:
             assert not self.target.exists(), f"The file existis, but override is disabled ({self.target})"
@@ -59,5 +59,5 @@ class JsonRecordingSink(RecordingSink):
     def write(self, frame):
         self._json_file.write(json.dumps(obj=frame, cls=MSPDataFrame.JsonEncoder) + '\n')
 
-    def _stop(self):
+    def on_stop(self):
         self._json_file.close()

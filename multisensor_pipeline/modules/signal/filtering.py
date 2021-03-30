@@ -45,7 +45,7 @@ class OneEuroProcessor(BaseProcessor):
         self._last_timestamp = timestamp
         return self._filter_x(point[0], timestamp), self._filter_y(point[1], timestamp)
 
-    def _update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame = None):
         if frame.topic.name == self._signal_topic_name:
             smoothed_point = self._filter(frame[self._signal_key], frame.timestamp)
             if smoothed_point is not None:

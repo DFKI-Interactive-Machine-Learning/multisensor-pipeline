@@ -17,9 +17,9 @@ class WaveFile(BaseSink):
         self._wf.setsampwidth(pyaudio.get_sample_size(format))
         self._wf.setframerate(rate)
 
-    def _update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame = None):
         if frame.topic.name == "audio":
             self._wf.writeframes(frame["chunk"])
 
-    def _stop(self):
+    def on_stop(self):
         self._wf.close()

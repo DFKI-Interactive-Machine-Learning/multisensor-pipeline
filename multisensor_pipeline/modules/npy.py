@@ -16,7 +16,7 @@ class RandomArraySource(BaseFixedRateSource):
         dtype = int if shape is None else np.ndarray
         self._topic = self._generate_topic(name="random", dtype=dtype)
 
-    def _update(self) -> MSPDataFrame:
+    def on_update(self) -> MSPDataFrame:
         return MSPDataFrame(topic=self._topic, value=np.random.randint(self._min, self._max, size=self._shape))
 
 
@@ -26,7 +26,7 @@ class ArrayManipulationProcessor(BaseProcessor):
         super().__init__()
         self._op = numpy_operation
 
-    def _update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame = None):
         value = self._op(frame['value'])
         topic = self._generate_topic(name=f"{frame.topic.name}.{self._op.__name__}", dtype=type(value))
         self._notify(MSPDataFrame(topic=topic, value=value))

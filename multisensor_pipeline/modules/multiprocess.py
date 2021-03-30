@@ -39,7 +39,7 @@ class MultiprocessModuleWrapper(BaseModule, ABC):
     def _stop_process(self):
         raise NotImplementedError()
 
-    def _start(self):
+    def on_start(self):
         self._init_event.wait()  # Wait until initialization is finished
         self._start_event.set()  # Start the main loop of the process
 
@@ -67,7 +67,7 @@ class MultiprocessSourceWrapper(MultiprocessModuleWrapper, BaseSource):
         stop_event.wait()
         module.stop()
 
-    def _update(self) -> MSPDataFrame:
+    def on_update(self) -> MSPDataFrame:
         return self._queue_out.get()
 
     def _stop_process(self):
@@ -100,7 +100,7 @@ class MultiprocessSinkWrapper(MultiprocessModuleWrapper, BaseSink):
         while not stop_event.is_set() or not queue_in.empty():
             module.put(queue_in.get())
 
-    def _update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame = None):
         self._queue_in.put(frame)
 
     def _stop_process(self):
@@ -125,7 +125,7 @@ class MultiprocessProcessorWrapper(MultiprocessSinkWrapper, MultiprocessSourceWr
                           args=(self._wrapped_module_cls, self._wrapped_module_args, self._init_event,
                                 self._start_event, self._stop_event, self._queue_in, self._queue_out))
 
-    def _update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame = None):
         self._queue_in.put(frame)
         self._notify(self._queue_out.get())
 

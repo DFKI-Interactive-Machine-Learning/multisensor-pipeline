@@ -20,13 +20,13 @@ class ZmqPublisher(BaseSink):
         self.socket = self.context.socket(zmq.PUB)
         self.socket.bind("{}://{}:{}".format(self.protocol, self.url, self.port))
 
-    def _update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame = None):
         # payload = (frame.topic.name, msgpack.packb(frame, use_bin_type=True))
         # self.socket.send_multipart(payload)
         payload = json.dumps(frame, cls=MSPDataFrame.JsonEncoder)
         self.socket.send_json(payload)
 
-    def _stop(self):
+    def on_stop(self):
         self.socket.close()
         self.context.term()
 
@@ -46,13 +46,13 @@ class ZmqSubscriber(BaseSource):
         self.source_filter = topic_filter
         self.socket.setsockopt_string(zmq.SUBSCRIBE, self.source_filter)
 
-    def _update(self) -> MSPDataFrame:
+    def on_update(self) -> MSPDataFrame:
         # packet = self.socket.recv_multipart()
         # frame = msgpack.unpackb(packet[1], raw=False)
         payload = self.socket.recv_json()
         frame = MSPDataFrame(**json.loads(s=payload, cls=MSPDataFrame.JsonDecoder))
         return frame
 
-    def _stop(self):
+    def on_stop(self):
         self.socket.close()
         self.context.term()

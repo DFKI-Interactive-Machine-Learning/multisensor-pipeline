@@ -47,10 +47,10 @@ class JsonReplaySource(BaseReplaySource):
         self._file_path = file_path
         self._file_handle = None
 
-    def _start(self):
+    def on_start(self):
         self._file_handle = open(self._file_path, mode="r")
 
-    def _update(self) -> MSPDataFrame:
+    def on_update(self) -> MSPDataFrame:
         line = self._file_handle.readline()
         if line == '':
             # EOF is reached -> auto-stop
@@ -58,5 +58,5 @@ class JsonReplaySource(BaseReplaySource):
         else:
             return MSPDataFrame(**json.loads(s=line, cls=MSPDataFrame.JsonDecoder))
 
-    def _stop(self):
+    def on_stop(self):
         self._file_handle.close()

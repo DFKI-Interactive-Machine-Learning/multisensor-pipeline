@@ -31,7 +31,7 @@ class CropByPointerProcessor(BaseProcessor):
             return None
         return image.crop(rect)
 
-    def _update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame = None):
         # update internal temporary fields
         if frame.topic.name == self._image_topic_name:
             img = frame[self._image_key]

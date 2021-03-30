@@ -107,7 +107,7 @@ class DownsamplingProcessor(BaseProcessor):
             self._sample_hist[uid] = self.DataFrameHistory(uid, fps_out=self._sampling_rate)
         return self._sample_hist[uid]
 
-    def _update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame = None):
         if self._topic_names is None or frame.topic.name in self._topic_names:
             hist = self._get_history(frame.topic.uuid)
             hist.add(frame)

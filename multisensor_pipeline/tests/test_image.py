@@ -10,7 +10,7 @@ from time import sleep
 
 class EmptyImageSource(BaseSource):
 
-    def _update(self) -> MSPDataFrame:
+    def on_update(self) -> MSPDataFrame:
         image = Image.new(mode="RGBA", size=(1000, 1000), color=(0, 0, 0, 254))
         return MSPDataFrame(self._generate_topic(name="empty_image", dtype=Image.Image), image=image)
 

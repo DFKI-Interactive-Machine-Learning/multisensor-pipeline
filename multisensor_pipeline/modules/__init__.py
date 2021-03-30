@@ -5,7 +5,7 @@ from ..dataframe import MSPDataFrame
 
 
 class PassthroughProcessor(BaseProcessor):
-    def _update(self, frame=None):
+    def on_update(self, frame=None):
         self._notify(frame)
 
 
@@ -15,7 +15,7 @@ class SleepPassthroughProcessor(BaseProcessor):
         super().__init__(**kwargs)
         self._sleep_time = sleep_time
 
-    def _update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame = None):
         self._notify(frame)
         sleep(self._sleep_time)
 
@@ -26,7 +26,7 @@ class TimestampExtractionProcessor(BaseProcessor):
         super(TimestampExtractionProcessor, self).__init__()
         self._topic_name = target_topic_name
 
-    def _update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame = None):
         if self._topic_name is None and frame.topic.name == self._topic_name:
             _topic = self._generate_topic(name=f"{frame.topic.name}.timestamp")
             return MSPDataFrame(topic=_topic, timestamp=frame.timestamp)
@@ -42,7 +42,7 @@ class ListSink(BaseSink):
     def list(self):
         return self._list
 
-    def _update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame = None):
         self._list.append(frame)
 
 
@@ -56,7 +56,7 @@ class QueueSink(BaseSink):
     def queue(self):
         return self._q
 
-    def _update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame = None):
         self._q.put(frame)
 
     def get(self):
@@ -68,14 +68,14 @@ class QueueSink(BaseSink):
 
 class ConsoleSink(BaseSink):
 
-    def _update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame = None):
         if frame is not None:
             print(f"{frame.topic}:\t{frame}")
 
 
 class TrashSink(BaseSink):
 
-    def _update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame = None):
         pass
 
 
@@ -85,5 +85,5 @@ class SleepTrashSink(TrashSink):
         super().__init__(**kwargs)
         self._sleep_time = sleep_time
 
-    def _update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame = None):
         sleep(self._sleep_time)

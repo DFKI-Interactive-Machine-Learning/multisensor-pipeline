@@ -14,7 +14,7 @@ class BaseDatasetSource(BaseSource, ABC):
 
     def _worker(self):
         while self._active:
-            frame = self._update()
+            frame = self.on_update()
             if isinstance(frame, MSPControlMessage) and frame.message == MSPControlMessage.END_OF_FILE:
                 self.stop(blocking=False)
                 continue

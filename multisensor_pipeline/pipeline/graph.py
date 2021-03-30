@@ -134,7 +134,7 @@ class SubGraphPipeline(GraphPipeline, BaseProcessor):
         super().__init__()
         raise NotImplementedError()
 
-    def _update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame = None):
         raise NotImplementedError()
 
     @property

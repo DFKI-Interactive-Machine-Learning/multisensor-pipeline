@@ -17,20 +17,20 @@ class BaseModule(object):
     def __init__(self, profiling=False):
         self._uuid = uuid.uuid1()
         self._thread = Thread(target=self._worker)
-        self._profiling = profiling  # TODO: move to BaseSink? (issue #7)
+        self._profiling = profiling
         self._active = False
 
     def start(self):
         """ Starts the module. """
         logger.debug("starting: {}".format(self.uuid))
         self._active = True
-        self._start()
+        self.on_start()
         self._thread.start()
 
     def _generate_topic(self, name: str, dtype: type = None):
         return Topic(name=name, dtype=dtype, source_module=self.__class__, source_uuid=self.uuid)
 
-    def _start(self):
+    def on_start(self):
         """ Custom initialization """
         pass
 
@@ -38,7 +38,7 @@ class BaseModule(object):
         """ Main worker function (async) """
         raise NotImplementedError()
 
-    def _update(self):
+    def on_update(self):
         """ Custom update routine. """
         raise NotImplementedError()
 
@@ -48,9 +48,9 @@ class BaseModule(object):
         self._active = False
         if blocking:
             self._thread.join()
-        self._stop()
+        self.on_stop()
 
-    def _stop(self):
+    def on_stop(self):
         """ Custom clean-up """
         pass
 
@@ -70,6 +70,14 @@ class BaseModule(object):
     def uuid(self):
         return f"{self.name}:{self._uuid.int}"
 
+    @property
+    def stats(self) -> dict:
+        """
+        Returns information about the max queue size and the fill state. Also the throughput range, mean.
+        Report per source node.
+        """
+        raise NotImplementedError()
+
 
 class BaseSource(BaseModule, ABC):
     """ Base class for data sources. """
@@ -83,9 +91,15 @@ class BaseSource(BaseModule, ABC):
 
     def _worker(self):
         while self._active:
-            self._notify(self._update())
+            frame = self.on_update()
 
-    def _update(self) -> MSPDataFrame:
+            if self._profiling:
+                # TODO: update_stats()
+                raise NotImplementedError("profiling is not yet implemented, see issue #7")
+
+            self._notify(frame)
+
+    def on_update(self) -> MSPDataFrame:
         """ Custom update routine. """
         raise NotImplementedError()
 
@@ -164,9 +178,9 @@ class BaseSink(BaseModule, ABC):
             if self._handle_control_message(frame):
                 continue
 
-            self._update(frame)
+            self.on_update(frame)
 
-    def _update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame = None):
         """ Custom update routine. """
         raise NotImplementedError()
 
@@ -185,14 +199,6 @@ class BaseSink(BaseModule, ABC):
     def put(self, frame: MSPDataFrame):
         self._perform_sample_dropout(frame.timestamp)
         self._queue.put(frame)
-
-    @property
-    def queue_stats(self) -> dict:
-        """
-        Returns information about the max queue size and the fill state. Also the throughput range, mean.
-        Report per source node.
-        """
-        raise NotImplementedError()
 
 
 class BaseProcessor(BaseSink, BaseSource, ABC):
