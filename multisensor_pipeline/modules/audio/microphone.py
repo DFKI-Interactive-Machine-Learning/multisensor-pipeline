@@ -1,5 +1,6 @@
 from multisensor_pipeline.modules.base import BaseSource
 from multisensor_pipeline.dataframe import MSPDataFrame
+from typing import Optional
 import pyaudio
 import logging
 
@@ -24,11 +25,9 @@ class Microphone(BaseSource):
                                       input=True,
                                       frames_per_buffer=self.chunk_size)
 
-    def on_update(self) -> MSPDataFrame:
-        # if self._stream.is_active():
+    def on_update(self) -> Optional[MSPDataFrame]:
         data = self._stream.read(self.chunk_size)
         return MSPDataFrame(topic=self._generate_topic(name="audio"), chunk=data)
-        # return None
 
     def on_stop(self):
         self._stream.stop_stream()

@@ -15,34 +15,34 @@ class GraphPipeline(PipelineBase):
     def __init__(self):
         self._graph = nx.DiGraph()
 
-    def add(self, nodes: Union[BaseModule, List[BaseModule]]):
-        if isinstance(nodes, list):
-            for n in nodes:
+    def add(self, modules: Union[BaseModule, List[BaseModule]]):
+        if isinstance(modules, list):
+            for n in modules:
                 self.add(n)
-        elif isinstance(nodes, BaseProcessor):
-            self.add_processor(nodes)
-        elif isinstance(nodes, BaseSource):
-            self.add_source(nodes)
-        elif isinstance(nodes, BaseSink):
-            self.add_sink(nodes)
+        elif isinstance(modules, BaseProcessor):
+            self.add_processor(modules)
+        elif isinstance(modules, BaseSource):
+            self.add_source(modules)
+        elif isinstance(modules, BaseSink):
+            self.add_sink(modules)
         else:
             raise TypeError("The parameter node must be an instance of BaseSource, BaseProcessor, or BaseSink.")
 
-    def add_source(self, source_node: BaseSource):
-        assert isinstance(source_node, BaseSource)
-        self._graph.add_node(source_node, role=self.ROLE_SOURCE)
+    def add_source(self, source_module: BaseSource):
+        assert isinstance(source_module, BaseSource)
+        self._graph.add_node(source_module, role=self.ROLE_SOURCE)
 
-    def add_processor(self, processor_node: BaseProcessor):
-        assert isinstance(processor_node, BaseProcessor)
-        self._graph.add_node(processor_node, role=self.ROLE_PROCESSOR)
+    def add_processor(self, processor_module: BaseProcessor):
+        assert isinstance(processor_module, BaseProcessor)
+        self._graph.add_node(processor_module, role=self.ROLE_PROCESSOR)
 
-    def add_sink(self, sink_node: BaseSink):
-        assert isinstance(sink_node, BaseSink)
-        self._graph.add_node(sink_node, role=self.ROLE_SINK)
+    def add_sink(self, sink_module: BaseSink):
+        assert isinstance(sink_module, BaseSink)
+        self._graph.add_node(sink_module, role=self.ROLE_SINK)
 
-    def connect(self, node, successor):
-        node.add_observer(successor)  # must be first, because it implicitly validates the connection
-        self._graph.add_edge(node, successor)
+    def connect(self, module, successor):
+        module.add_observer(successor)  # must be first, because it implicitly validates the connection
+        self._graph.add_edge(module, successor)
 
     def get_nodes_with_attribute(self, attribute, value):
         return [node[0] for node in self._graph.nodes(data=attribute) if node[1] == value]
@@ -134,7 +134,7 @@ class SubGraphPipeline(GraphPipeline, BaseProcessor):
         super().__init__()
         raise NotImplementedError()
 
-    def on_update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame):
         raise NotImplementedError()
 
     @property

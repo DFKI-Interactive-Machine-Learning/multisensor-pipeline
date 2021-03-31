@@ -4,13 +4,14 @@ from multisensor_pipeline.dataframe import MSPDataFrame
 from multisensor_pipeline.modules.image.pillow import CropByPointerProcessor
 from multisensor_pipeline.modules.npy import RandomArraySource
 from multisensor_pipeline.modules import TrashSink
+from typing import Optional
 from PIL import Image
 from time import sleep
 
 
 class EmptyImageSource(BaseSource):
 
-    def on_update(self) -> MSPDataFrame:
+    def on_update(self) -> Optional[MSPDataFrame]:
         image = Image.new(mode="RGBA", size=(1000, 1000), color=(0, 0, 0, 254))
         return MSPDataFrame(self._generate_topic(name="empty_image", dtype=Image.Image), image=image)
 
@@ -29,8 +30,8 @@ class ImageCroppingTest(unittest.TestCase):
         p.connect(pnt_source, crop_processor)
         p.connect(crop_processor, sink)
         p.start()
-        sleep(5)
+        sleep(1)
         p.stop()
         p.join()
 
-        # self.assertEqual(True, False)
+        self.assertEqual(True, True)

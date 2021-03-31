@@ -1,12 +1,13 @@
 from .base import BaseProcessor, BaseSink, BaseSource
+from typing import Optional
 from queue import Queue
 from time import sleep
 from ..dataframe import MSPDataFrame
 
 
 class PassthroughProcessor(BaseProcessor):
-    def on_update(self, frame=None):
-        self._notify(frame)
+    def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
+        return frame
 
 
 class SleepPassthroughProcessor(BaseProcessor):
@@ -15,21 +16,22 @@ class SleepPassthroughProcessor(BaseProcessor):
         super().__init__(**kwargs)
         self._sleep_time = sleep_time
 
-    def on_update(self, frame: MSPDataFrame = None):
-        self._notify(frame)
+    def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
         sleep(self._sleep_time)
+        return frame
 
 
-class TimestampExtractionProcessor(BaseProcessor):
+class AttributeExtractionProcessor(BaseProcessor):
 
-    def __init__(self, target_topic_name=None):
-        super(TimestampExtractionProcessor, self).__init__()
+    def __init__(self, target_topic_name=None, key="timestamp"):
+        super(AttributeExtractionProcessor, self).__init__()
         self._topic_name = target_topic_name
+        self._key = key
 
-    def on_update(self, frame: MSPDataFrame = None):
-        if self._topic_name is None and frame.topic.name == self._topic_name:
-            _topic = self._generate_topic(name=f"{frame.topic.name}.timestamp")
-            return MSPDataFrame(topic=_topic, timestamp=frame.timestamp)
+    def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
+        if (self._topic_name is None or frame.topic.name == self._topic_name) and self._key in frame:
+            _topic = self._generate_topic(name=f"{frame.topic.name}.{self._key}")
+            return MSPDataFrame(topic=_topic, timestamp=frame['key'])
 
 
 class ListSink(BaseSink):
@@ -42,7 +44,7 @@ class ListSink(BaseSink):
     def list(self):
         return self._list
 
-    def on_update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame):
         self._list.append(frame)
 
 
@@ -56,7 +58,7 @@ class QueueSink(BaseSink):
     def queue(self):
         return self._q
 
-    def on_update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame):
         self._q.put(frame)
 
     def get(self):
@@ -68,14 +70,14 @@ class QueueSink(BaseSink):
 
 class ConsoleSink(BaseSink):
 
-    def on_update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame):
         if frame is not None:
             print(f"{frame.topic}:\t{frame}")
 
 
 class TrashSink(BaseSink):
 
-    def on_update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame):
         pass
 
 
@@ -85,5 +87,5 @@ class SleepTrashSink(TrashSink):
         super().__init__(**kwargs)
         self._sleep_time = sleep_time
 
-    def on_update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame):
         sleep(self._sleep_time)

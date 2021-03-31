@@ -2,6 +2,7 @@ from PIL import Image, ImageFile
 from multisensor_pipeline.modules.base import BaseProcessor
 from .utils import roi_rect
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
+from typing import Optional
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -31,7 +32,7 @@ class CropByPointerProcessor(BaseProcessor):
             return None
         return image.crop(rect)
 
-    def on_update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
         # update internal temporary fields
         if frame.topic.name == self._image_topic_name:
             img = frame[self._image_key]

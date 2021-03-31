@@ -3,6 +3,7 @@ from multisensor_pipeline.dataframe import MSPDataFrame, Topic
 
 class MSPControlMessage(MSPDataFrame):
 
+    EMPTY = "EMTPY"
     END_OF_STREAM = "EOS"
     END_OF_FILE = "EOF"
 

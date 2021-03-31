@@ -2,6 +2,7 @@ from abc import ABC
 import json
 from multisensor_pipeline.dataframe import MSPDataFrame, MSPControlMessage
 from multisensor_pipeline.modules.persitence.dataset import BaseDatasetSource
+from typing import Optional
 from time import time, sleep
 
 
@@ -17,12 +18,14 @@ class BaseReplaySource(BaseDatasetSource, ABC):
     def playback_speed(self):
         return self._playback_speed
 
-    def _notify(self, frame: MSPDataFrame):
+    def _notify(self, frame: Optional[MSPDataFrame]):
+        if frame is None:
+            return
         self._sleep(frame)
         frame['playback_timestamp'] = time()
         super(BaseReplaySource, self)._notify(frame)
 
-    def _sleep(self, frame):
+    def _sleep(self, frame: MSPDataFrame):
         if isinstance(frame, MSPControlMessage):
             return
         if self._playback_speed == float("inf"):
@@ -50,7 +53,7 @@ class JsonReplaySource(BaseReplaySource):
     def on_start(self):
         self._file_handle = open(self._file_path, mode="r")
 
-    def on_update(self) -> MSPDataFrame:
+    def on_update(self) -> Optional[MSPDataFrame]:
         line = self._file_handle.readline()
         if line == '':
             # EOF is reached -> auto-stop

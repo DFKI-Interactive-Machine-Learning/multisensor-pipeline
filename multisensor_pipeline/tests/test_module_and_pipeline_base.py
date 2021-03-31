@@ -74,19 +74,17 @@ class MultiprocessingPipelineTest(TestCase):
     def test_minimal_example(self):
         # define the modules
         source = RandomArraySource(shape=(50,), sampling_rate=60)
-        processor = ArrayManipulationProcessor(np.mean)
+        processor = ArrayManipulationProcessor(numpy_operation=np.mean)
         sink = ConsoleSink()
 
         # add module to a pipeline...
         pipeline = GraphPipeline()
-        pipeline.add_source(source)
-        pipeline.add_processor(processor)
-        pipeline.add_sink(sink)
+        pipeline.add(modules=[source, processor, sink])
         # ...and connect the modules
-        pipeline.connect(source, processor)
-        pipeline.connect(processor, sink)
+        pipeline.connect(module=source, successor=processor)
+        pipeline.connect(module=processor, successor=sink)
         # (optional) add another edge to print all random numbers
-        pipeline.connect(source, sink)
+        pipeline.connect(module=source, successor=sink)
 
         # print mean of random numbers for 0.1 seconds
         pipeline.start()

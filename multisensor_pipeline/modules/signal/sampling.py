@@ -1,5 +1,6 @@
 from multisensor_pipeline import BaseProcessor
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
+from typing import Optional
 import logging
 import numpy as np
 
@@ -35,7 +36,7 @@ class DownsamplingProcessor(BaseProcessor):
             self.dataframes = self.dataframes[sample_id + 1:]
             return self.last_sent
 
-        def get_dataframe(self) -> MSPDataFrame:
+        def get_dataframe(self) -> Optional[MSPDataFrame]:
             assert len(self.dataframes) > 0, "there was no sample yet"
 
             # if nothing was sent before take first=last sample and reset the list
@@ -53,7 +54,6 @@ class DownsamplingProcessor(BaseProcessor):
                     recent_time_diffs = np.fabs(recent_timestamps - last_sent_time - self.target_period_time)
                     sample_id = np.argmin(recent_time_diffs)
                     return self._update_and_get_last_sample(sample_id)
-
             return None
 
         @property
@@ -107,7 +107,7 @@ class DownsamplingProcessor(BaseProcessor):
             self._sample_hist[uid] = self.DataFrameHistory(uid, fps_out=self._sampling_rate)
         return self._sample_hist[uid]
 
-    def on_update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
         if self._topic_names is None or frame.topic.name in self._topic_names:
             hist = self._get_history(frame.topic.uuid)
             hist.add(frame)

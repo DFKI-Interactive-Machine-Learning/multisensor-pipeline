@@ -38,7 +38,7 @@ class RecordingSink(BaseSink, ABC):
             return True
         return any([t == topic for t in self._topics])
 
-    def on_update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame):
         if self.check_topic(frame.topic):
             self.write(frame)
 

@@ -1,6 +1,7 @@
 from multisensor_pipeline import BaseProcessor
 from multisensor_pipeline.dataframe import MSPDataFrame
 from multisensor_pipeline.modules.signal.one_euro_filter import OneEuroFilter
+from typing import Optional
 import logging
 
 
@@ -45,10 +46,10 @@ class OneEuroProcessor(BaseProcessor):
         self._last_timestamp = timestamp
         return self._filter_x(point[0], timestamp), self._filter_y(point[1], timestamp)
 
-    def on_update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
         if frame.topic.name == self._signal_topic_name:
             smoothed_point = self._filter(frame[self._signal_key], frame.timestamp)
             if smoothed_point is not None:
                 frame[self._signal_key] = smoothed_point
                 frame.topic = self._generate_topic(f"{frame.topic.name}.smoothed", frame.topic.dtype)
-                self._notify(frame)
+                return frame

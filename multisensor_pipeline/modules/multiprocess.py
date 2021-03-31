@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from multisensor_pipeline.dataframe import MSPDataFrame, MSPControlMessage
 from multisensor_pipeline.modules.base import BaseSink, BaseSource, BaseModule, BaseProcessor
+from typing import Optional
 import multiprocessing as mp
 import logging
 
@@ -67,7 +68,7 @@ class MultiprocessSourceWrapper(MultiprocessModuleWrapper, BaseSource):
         stop_event.wait()
         module.stop()
 
-    def on_update(self) -> MSPDataFrame:
+    def on_update(self) -> Optional[MSPDataFrame]:
         return self._queue_out.get()
 
     def _stop_process(self):
@@ -100,7 +101,7 @@ class MultiprocessSinkWrapper(MultiprocessModuleWrapper, BaseSink):
         while not stop_event.is_set() or not queue_in.empty():
             module.put(queue_in.get())
 
-    def on_update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame):
         self._queue_in.put(frame)
 
     def _stop_process(self):
@@ -125,9 +126,10 @@ class MultiprocessProcessorWrapper(MultiprocessSinkWrapper, MultiprocessSourceWr
                           args=(self._wrapped_module_cls, self._wrapped_module_args, self._init_event,
                                 self._start_event, self._stop_event, self._queue_in, self._queue_out))
 
-    def on_update(self, frame: MSPDataFrame = None):
+    def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
+        # TODO: check is BaseProcessor _worker is called or another...
         self._queue_in.put(frame)
-        self._notify(self._queue_out.get())
+        return self._queue_out.get()
 
     @staticmethod
     def _process_worker(module_cls: type, module_args: dict, init_event, start_event, stop_event,

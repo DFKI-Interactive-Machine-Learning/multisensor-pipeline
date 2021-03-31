@@ -6,7 +6,7 @@ from time import time, sleep
 
 class BaseFixedRateSource(BaseSource, ABC):
 
-    def __init__(self, sampling_rate: int = 1):
+    def __init__(self, sampling_rate: float = 1.):
         super().__init__()
         self._sampling_rate = sampling_rate
         self._sleep_time = 1. / self._sampling_rate
