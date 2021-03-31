@@ -64,52 +64,70 @@ The example contains four major steps:
     - *source >> sink*: in addition, all random arrays are printed to the console.
 4. Starting and stopping the pipeline: `start()` is starting all modules of the pipeline, e.g., the source starts to generate arrays now. This loop runs infinitely long and has to be stopped from outside by calling the non-blocking `stop()` function of the pipeline instance. You can wait until the pipeline has stopped using its `join()` function.  
 
+## The MSPDataFrame Class
+Instances of the `MSPDataFrame` class are used to transfer data and meta information from one module to the next.
+The only required parameter is `topic: Topic` which defines what kind of data the frame delivers. The best practice is to use the factory method for this: `self._generate_topic(self, name: str, dtype: type = None)`. The actual payload can be added using keyword arguments (kwargs) when initializing an instance of `MSPDataFrame` (see `value` in the examples above). Also, you can add key-value pairs after instantiation as with any Pyhton `dict`, because `MSPDataFrame` inherits from `dict`.
+
+In principle, `MSPDataFrame` can carry any data type. However, the `persistence` and `networking` package requires serialization and deserialization of data frames. Currently, we support all standard data types in Python and numpy arrays (`ndarray`). Support for pillow images (`PIL.Image`) will follow.
+
+
 ## Custom Modules
-You can inherit from the `BaseSource`, `BaseProcessor` and `BaseSink` to extend our pipeline. Have a look at the tests and included modules to see how to implement your custom module.
+You can easily create custom modules by inheriting from one of the abstrac module classes: `BaseSource`, `BaseProcessor`, and `BaseSink`. All modules offer and/or consume data streams frame-by-frame using the `MSPDataFrame` class as data structure.
 
-All modules offer or consume data streams frame-by-frame (or both, in case of a processor) using the `MSPDataFrame` class. A source module offers data frames by generating them in `BaseSource.on_update(self) -> MSPDataFrame`. A sink module consumes instances of `MSPDataFrame` in `BaseSource.on_update(self, frame: MSPDataFrame)`. Processors receive an `MSPDataFrame` instance in `on_update(self, frame: MSPDataFrame) -> MSPDataFrame` and return a processed version of it. Each sink or processor module must decide whether and how to process incoming `frame` objects.
+### Inherit from _BaseSource_
+```python
+class RandomIntSource(BaseSource):
+    """ Generate 50 random numbers per second. """
+       
+    def on_update(self) -> Optional[MSPDataFrame]:
+        sleep(.02)
+        topic = self._generate_topic(name="random", dtype=int)
+        return MSPDataFrame(topic=topic, value=randint(0, 100))
+```
 
-### MSPDataFrame
+### Inherit from _BaseProcessor_
+```python
+class ConstraintCheckingProcessor(BaseProcessor):
+    """ Checks, if incoming values are greater than 50. """
 
-The `MSPDataFrame` class is used to transfer sensor data and meta information from one module to the next. The only required parameter is `topic: Topic` which defines what kind of data the frame delivers. An instance can be created using `BaseModule._generate_topic(self, name: str, dtype: type = None)`. The actual sensor data can be added using key-value pairs (kwargs) when initializing an instance of `MSPDataFrame`. Also, you can add key-value pairs similar to Python `dict`s. The following example shows the `on_update` function of a processor:
+    def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
+        topic = self._generate_topic(name="constraint_check", dtype=bool)
+        return MSPDataFrame(topic=topic, value=frame["value"] > 50)
+```
 
+### Inherit from _BaseSink_
+```python
+class ConsoleSink(BaseSink):
+    """ Prints incoming frames to the console. """
+
+    def on_update(self, frame: MSPDataFrame):
+        print(frame)
+```
+
+### Using your Modules
 
 ```python
-# TODO
+if __name__ == '__main__':
+    # define the modules
+    source = RandomIntSource()
+    processor = ConstraintCheckingProcessor()
+    sink = ConsoleSink()
+    
+    # add module to a pipeline...
+    pipeline = GraphPipeline()
+    pipeline.add(modules=[source, processor, sink])
+    # ...and connect the modules
+    pipeline.connect(module=source, successor=processor)
+    pipeline.connect(module=processor, successor=sink)
+    
+    # print result of the constraint checker for 0.1 seconds
+    pipeline.start()
+    sleep(.1)
+    pipeline.stop()
+    pipeline.join()
 ```
-   
-Processors and sinks must handle incoming frames and need to decide whether a frame should be processed or not. See the following example code:
 
-```python
-def on_update(self, frame: MSPDataFrame) -> MSPDataFrame:
-        if frame.topic.name == "mouse.pos":
-            self.do_something(frame)
-```
+You can now use your custom modules as part of a pipeline. This example connects the three sample modules using the `GraphPipeline` and executes it for 0.1 seconds. It prints the output of the `ConstraintCheckingProcessor` approximately 4 times: half of them show `value=True`, the other half shows `value=False`.
+Further examples can be found in the `modules` and `tests` packages.
  
-
-### Conventions for `data` Parameter
-The `data` parameter contains the actual payload of the notification message in terms of an `MSPDataFrame` instance. It enables the transfer of multiple key-value pairs at once with a single timestamp. The values of one dataframe should, semantically and temporally, belong together, e.g., an image and its classification results or a set of IMU measurements like acceleration and orientation coming from a single sensor.
-The `MSPDataFrame` class inherits from `dict` can be initialized using a timestamp or without. In the latter case, the current system time is used as timestamp. The data fields can be read and modified as for any Pyhton dictionary. You can also handover an `init_dict` to the constructor to set all fields at once. 
-The `MSPEventFrame` inherits from the `MSPDataFrame`. It offers two additional field: *label* and *duration*.
-
-> **Backwards Compatibility:** All modules that do not yet support the new `MSPDataFrame` and demos using these modules were changed in the following way: The `_notify_all` method creates an instance of the `MSPDataFrame` and stores the original payload using the key `"data"`, if any type other than `MSPDataFrame` is given. The `data` variable in all update loops of affected modules is replaced by `data["data"]`. 
-
-
-Depending on your goals, you can inherit from these base classes to achieve a stronger typing or to add more functionality. Examples for using the base classes are:
-
-* Use `MSPDataFrame` when streaming a sample from a continuous data stream, e.g., a gaze sample, an image frame from a webcam or a random number. You can also use this class for streaming data chunks from, e.g., a microphone. This will enforce that your sample has a timestamp. Any other information can be added as key-value pairs. 
-* Use `MSPEventFrame` for pushing events to the pipeline with or without a duration, e.g., a gesture detection or ASR event which have a start time and a duration, or a hotword detection event which has a start time only (and a zero duration). This will enforce that your event has a timestamp, a duration and a label.
-* Use a custom implementation, if you want to extend, e.g., which fields shall be enforced. For this, inherit from `MSPDataFrame` or `MSPEventFrame`, add further parameters to the constructor and add access to them via properties. 
-
-### Conventions for Data Types
-
-| Datatype      | Type in MSP           |
-|---------------|-----------------------|
-| image         | PIL.Image             |
-| numeric       | int, float            |
-| categorical   | string                |
-| array         | list                  |
-| complex       | dict                  |
-
-The list and dict data structures can contain any number of types from this table as long as subsequent processors and sinks know how to handle it.
 

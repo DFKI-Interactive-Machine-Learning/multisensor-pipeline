@@ -2,13 +2,34 @@ from unittest import TestCase
 from multisensor_pipeline.pipeline import GraphPipeline
 import numpy as np
 from time import sleep
+from multisensor_pipeline.dataframe import MSPDataFrame
+from multisensor_pipeline import BaseSource, BaseProcessor, BaseSink
 from multisensor_pipeline.modules.npy import RandomArraySource, ArrayManipulationProcessor
-from multisensor_pipeline.modules import QueueSink, ConsoleSink, SleepTrashSink,SleepPassthroughProcessor, ListSink
+from multisensor_pipeline.modules import QueueSink, ConsoleSink, SleepTrashSink, SleepPassthroughProcessor, ListSink
 import logging
+from typing import Optional
+from random import randint
 import math
 
 
 logging.basicConfig(level=logging.DEBUG)
+
+
+class RandomIntSource(BaseSource):
+    """ Generate 50 random numbers per second. """
+
+    def on_update(self) -> Optional[MSPDataFrame]:
+        sleep(.02)
+        topic = self._generate_topic(name='random', dtype=int)
+        return MSPDataFrame(topic=topic, value=randint(0, 100))
+
+
+class ConstraintCheckingProcessor(BaseProcessor):
+    """ Checks, if incoming values are greater than 50. """
+
+    def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
+        topic = self._generate_topic(name='constraint_check', dtype=bool)
+        return MSPDataFrame(topic=topic, value=frame["value"] > 50)
 
 
 class MultiprocessingPipelineTest(TestCase):
@@ -87,6 +108,25 @@ class MultiprocessingPipelineTest(TestCase):
         pipeline.connect(module=source, successor=sink)
 
         # print mean of random numbers for 0.1 seconds
+        pipeline.start()
+        sleep(.1)
+        pipeline.stop()
+        pipeline.join()
+
+    def test_custom_modules_example(self):
+        # define the modules
+        source = RandomIntSource()
+        processor = ConstraintCheckingProcessor()
+        sink = ConsoleSink()
+
+        # add module to a pipeline...
+        pipeline = GraphPipeline()
+        pipeline.add(modules=[source, processor, sink])
+        # ...and connect the modules
+        pipeline.connect(module=source, successor=processor)
+        pipeline.connect(module=processor, successor=sink)
+
+        # print result of the constraint checker for 0.1 seconds
         pipeline.start()
         sleep(.1)
         pipeline.stop()

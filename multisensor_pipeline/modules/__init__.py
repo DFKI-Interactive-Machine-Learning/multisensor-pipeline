@@ -72,6 +72,7 @@ class QueueSink(BaseSink):
 
 
 class ConsoleSink(BaseSink):
+    """ Prints incoming frames to the console. """
 
     def on_update(self, frame: MSPDataFrame):
         if frame is not None:
