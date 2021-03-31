@@ -4,6 +4,7 @@ from queue import Queue
 from multiprocessing.queues import Queue as MPQueue
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic
 from multisensor_pipeline.dataframe.control import MSPControlMessage
+from multisensor_pipeline.modules.base.profiling import MSPModuleStats
 from typing import Union, Optional
 import logging
 import uuid
@@ -18,6 +19,7 @@ class BaseModule(object):
         self._uuid = uuid.uuid1()
         self._thread = Thread(target=self._worker)
         self._profiling = profiling
+        self._stats = MSPModuleStats()
         self._active = False
 
     def start(self):
@@ -71,12 +73,9 @@ class BaseModule(object):
         return f"{self.name}:{self._uuid.int}"
 
     @property
-    def stats(self) -> dict:
-        """
-        Returns information about the max queue size and the fill state. Also the throughput range, mean.
-        Report per source node.
-        """
-        raise NotImplementedError()
+    def stats(self) -> MSPModuleStats:
+        """ Returns real-time profiling information. """
+        return self._stats
 
 
 class BaseSource(BaseModule, ABC):
@@ -91,13 +90,7 @@ class BaseSource(BaseModule, ABC):
 
     def _worker(self):
         while self._active:
-            frame = self.on_update()
-
-            if self._profiling:
-                # TODO: update_stats()
-                raise NotImplementedError("profiling is not yet implemented, see issue #7")
-
-            self._notify(frame)
+            self._notify(self.on_update())
 
     def on_update(self) -> Optional[MSPDataFrame]:
         """ Custom update routine. """
@@ -133,6 +126,9 @@ class BaseSource(BaseModule, ABC):
 
         for sink in self._sinks:
             sink.put(frame)
+
+        if self._profiling:
+            self._stats.add_frame(frame, MSPModuleStats.Direction.OUT)
 
     def stop(self, blocking=True):
         # send end-of-stream message
@@ -174,12 +170,11 @@ class BaseSink(BaseModule, ABC):
         while self._active:
             frame = self._queue.get()
 
-            if self._profiling:
-                # TODO: update_stats()
-                raise NotImplementedError("profiling is not yet implemented, see issue #7")
-
             if self._handle_control_message(frame):
                 continue
+
+            if self._profiling:
+                self._stats.add_frame(frame, MSPModuleStats.Direction.IN)
 
             self.on_update(frame)
 
@@ -187,21 +182,26 @@ class BaseSink(BaseModule, ABC):
         """ Custom update routine. """
         raise NotImplementedError()
 
-    def _perform_sample_dropout(self, frame_time):
+    def _perform_sample_dropout(self, frame_time) -> int:
         if not self._dropout:
-            return
+            return 0
 
+        num_skipped = 0
         with self._queue.mutex:
             while len(self._queue.queue) > 0:
                 frame_age = frame_time - self._queue.queue[0].timestamp
                 if frame_age > self._dropout:
                     self._queue.queue.popleft()
+                    num_skipped += 1
                 else:
                     break
+        return num_skipped
 
     def put(self, frame: MSPDataFrame):
-        self._perform_sample_dropout(frame.timestamp)
+        skipped_frames = self._perform_sample_dropout(frame.timestamp)
         self._queue.put(frame)
+        if self._profiling:
+            self._stats.add_queue_state(qsize=self._queue.qsize(), skipped_frames=skipped_frames)
 
 
 class BaseProcessor(BaseSink, BaseSource, ABC):
@@ -211,18 +211,14 @@ class BaseProcessor(BaseSink, BaseSource, ABC):
         while self._active:
             # get incoming frame
             frame = self._queue.get()
-            if self._profiling:
-                # TODO: update_stats() (sink)
-                raise NotImplementedError("profiling is not yet implemented, see issue #7")
             if self._handle_control_message(frame):
                 continue
+            if self._profiling:
+                self._stats.add_frame(frame, MSPModuleStats.Direction.IN)
 
             new_frame = self.on_update(frame)
 
             # send processed frame
-            if self._profiling:
-                # TODO: update_stats() (source)
-                raise NotImplementedError("profiling is not yet implemented, see issue #7")
             self._notify(new_frame)
 
     def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:

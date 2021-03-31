@@ -112,14 +112,14 @@ if __name__ == '__main__':
     source = RandomIntSource()
     processor = ConstraintCheckingProcessor()
     sink = ConsoleSink()
-    
+
     # add module to a pipeline...
     pipeline = GraphPipeline()
     pipeline.add(modules=[source, processor, sink])
     # ...and connect the modules
     pipeline.connect(module=source, successor=processor)
     pipeline.connect(module=processor, successor=sink)
-    
+
     # print result of the constraint checker for 0.1 seconds
     pipeline.start()
     sleep(.1)

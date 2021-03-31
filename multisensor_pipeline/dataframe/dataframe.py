@@ -44,7 +44,7 @@ class Topic:
     def __eq__(self, other):
         if not isinstance(other, Topic):
             return False
-        return self.dtype == other.dtype and self.name == other.name and self.source_module == other.source_module
+        return self.dtype == other.dtype and self.name == other.name and self.source_uuid == other.source_uuid
 
     def __str__(self):
         return f"{self.source_module.__name__}:{self.name}:{self.dtype.__name__}"
