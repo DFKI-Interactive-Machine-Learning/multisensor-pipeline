@@ -47,6 +47,9 @@ class ListSink(BaseSink):
     def on_update(self, frame: MSPDataFrame):
         self._list.append(frame)
 
+    def __len__(self):
+        return len(self._list)
+
 
 class QueueSink(BaseSink):
 

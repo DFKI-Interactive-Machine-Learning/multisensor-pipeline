@@ -127,7 +127,6 @@ class MultiprocessProcessorWrapper(MultiprocessSinkWrapper, MultiprocessSourceWr
                                 self._start_event, self._stop_event, self._queue_in, self._queue_out))
 
     def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
-        # TODO: check is BaseProcessor _worker is called or another...
         self._queue_in.put(frame)
         return self._queue_out.get()
 

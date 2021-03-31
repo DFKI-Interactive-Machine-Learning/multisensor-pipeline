@@ -128,7 +128,6 @@ class BaseSource(BaseModule, ABC):
         """
         if frame is None:
             return
-            # frame = MSPControlMessage(message=MSPControlMessage.EMPTY, source=self)
 
         assert isinstance(frame, MSPDataFrame), "You must use a MSPDataFrame instance to wrap your data."
 

@@ -61,7 +61,7 @@ class PipelineTest(TestCase):
         processor.start()
         source.start()
 
-        time.sleep(.5)
+        time.sleep(.25)
 
         source.stop()
         sink.join()
@@ -89,7 +89,7 @@ class PipelineTest(TestCase):
         pipeline.connect(processor2, queue)
 
         pipeline.start()
-        time.sleep(.5)
+        time.sleep(.25)
         pipeline.stop()
 
         self.assertFalse(queue.empty())
