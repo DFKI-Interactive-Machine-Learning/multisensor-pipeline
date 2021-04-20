@@ -19,7 +19,8 @@ setup(
         'PyAudio',
         'networkx',
         'numpy',
-        'Pillow'
+        'Pillow',
+        'pynput'
     ],
     keywords=['multimodality', 'streaming', 'multisensor', 'sensors', 'multimodal interaction', 'pipeline',
               'stream processing', 'multiprocessing']
