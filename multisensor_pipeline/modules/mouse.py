@@ -1,8 +1,5 @@
 import collections
-from time import sleep
 from pynput import mouse
-from multisensor_pipeline import GraphPipeline
-from multisensor_pipeline.modules import ConsoleSink
 from multisensor_pipeline.modules.base import BaseSource
 from multisensor_pipeline.dataframe import MSPEventFrame, MSPDataFrame
 from typing import Optional
@@ -38,19 +35,18 @@ class Mouse(BaseSource):
         self.listener.start()
 
     def on_move(self, x, y):
-        frame = MSPDataFrame(topic=self._generate_topic(name="mouse.coordinates", dtype=float), chunk={"x": x, "y": y})
+        frame = MSPEventFrame(topic=self._generate_topic(name="mouse.coordinates", dtype=float), chunk={"x": x, "y": y})
         self.queue.append(frame)
 
     def on_click(self, x, y, button, pressed):
-        frame = MSPDataFrame(topic=self._generate_topic(name="mouse.click", dtype=float), chunk={"x": x, "y": y, "button":button, "pressed":pressed})
+        frame = MSPEventFrame(topic=self._generate_topic(name="mouse.click", dtype=float),
+                              chunk={"x": x, "y": y, "button": button, "pressed": pressed})
         self.queue.append(frame)
-
 
     def on_scroll(self, x, y, dx, dy):
-        frame = MSPDataFrame(topic=self._generate_topic(name="mouse.scroll", dtype=float),
-                             chunk={"x": x, "y": y, "scroll_x": dx, "scroll_y": dy})
+        frame = MSPEventFrame(topic=self._generate_topic(name="mouse.scroll", dtype=float),
+                              chunk={"x": x, "y": y, "scroll_x": dx, "scroll_y": dy})
         self.queue.append(frame)
-
 
     def on_update(self) -> Optional[MSPDataFrame]:
         while not self.queue:
@@ -61,4 +57,3 @@ class Mouse(BaseSource):
     def on_stop(self):
         self.stop_listener = True
         self.listener.stop()
-
