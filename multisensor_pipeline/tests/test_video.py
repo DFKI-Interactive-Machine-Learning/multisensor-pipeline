@@ -8,6 +8,7 @@ from PIL import Image
 from multisensor_pipeline import GraphPipeline
 from multisensor_pipeline.modules import ConsoleSink, QueueSink
 from multisensor_pipeline.modules.video.video import VideoSource
+from multisensor_pipeline.modules.video.webcam import WebCamSource
 
 
 class VideoTesting(unittest.TestCase):
@@ -46,8 +47,7 @@ class VideoTesting(unittest.TestCase):
             packet = stream.encode(frame)
             output.mux(packet)
 
-        packet = stream.encode(None)
-        output.mux(packet)
+        output.mux(stream.encode())
         output.close()
 
         # (1) define the modules
@@ -61,7 +61,7 @@ class VideoTesting(unittest.TestCase):
         # (3) ...and connect the modules
         pipeline.connect(source, sink)
 
-        # (4) print mouse movements
+
 
         pipeline.start()
         sleep(2)
@@ -81,7 +81,7 @@ class VideoTesting(unittest.TestCase):
             packet = stream.encode(frame)
             output.mux(packet)
 
-        packet = stream.encode(None)
+        packet = stream.encode()
         output.mux(packet)
         output.close()
 
@@ -96,7 +96,7 @@ class VideoTesting(unittest.TestCase):
         # (3) ...and connect the modules
         pipeline.connect(source, sink)
 
-        # (4) print mouse movements
+
 
         pipeline.start()
         sleep(.3)
@@ -105,3 +105,86 @@ class VideoTesting(unittest.TestCase):
         self.assertGreater(498, sink.queue.qsize())
 
 
+class WebCamTesting(unittest.TestCase):
+    def test_no_webcam(self):
+        # (1) definethe modules
+        try:
+            source = WebCamSource(web_cam_format="random")
+
+            sink = QueueSink()
+
+            # (2) add module to a pipeline...
+            pipeline = GraphPipeline()
+            pipeline.add_source(source)
+            pipeline.add_sink(sink)
+            # (3) ...and connect the modules
+            pipeline.connect(source, sink)
+
+            pipeline.start()
+            sleep(5)
+            pipeline.stop()
+        except ValueError as e:
+            self.assertEqual(True, True)
+
+    def test_mac_webcam(self):
+        try:
+            # (1) define the modules
+            source = WebCamSource()
+
+            sink = QueueSink()
+
+            # (2) add module to a pipeline...
+            pipeline = GraphPipeline()
+            pipeline.add_source(source)
+            pipeline.add_sink(sink)
+            # (3) ...and connect the modules
+            pipeline.connect(source, sink)
+
+            pipeline.start()
+            sleep(2)
+            pipeline.stop()
+            self.assertGreater(sink.queue.qsize(), 5)
+        except ValueError as e:
+            self.assertEqual(True, True)
+
+    def test_linux_webcam(self):
+        try:
+            # (1) define the modules
+            source = WebCamSource(web_cam_format="video4linux2")
+
+            sink = QueueSink()
+
+            # (2) add module to a pipeline...
+            pipeline = GraphPipeline()
+            pipeline.add_source(source)
+            pipeline.add_sink(sink)
+            # (3) ...and connect the modules
+            pipeline.connect(source, sink)
+
+            pipeline.start()
+            sleep(2)
+            pipeline.stop()
+            self.assertGreater(sink.queue.qsize(), 5)
+        except ValueError as e:
+            self.assertEqual(True, True)
+
+    def test_win_webcam(self):
+        try:
+            # (1) define the modules
+            source = WebCamSource(web_cam_format="vfwcap")
+
+            sink = QueueSink()
+
+            # (2) add module to a pipeline...
+            pipeline = GraphPipeline()
+            pipeline.add_source(source)
+            pipeline.add_sink(sink)
+            # (3) ...and connect the modules
+            pipeline.connect(source, sink)
+
+            pipeline.start()
+            sleep(2)
+            pipeline.stop()
+            self.assertGreater(sink.queue.qsize(), 5)
+        except ValueError as e:
+            self.assertEqual(True, True)

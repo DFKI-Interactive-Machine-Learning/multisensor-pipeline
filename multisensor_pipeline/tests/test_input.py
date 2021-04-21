@@ -22,11 +22,11 @@ class MouseInputTest(unittest.TestCase):
         # (3) ...and connect the modules
         pipeline.connect(source, sink)
 
-        # (4) print mouse movements
         pipeline.start()
 
         sleep(.3)
         pipeline.stop()
+        self.assertEqual(True, True)
 
 
 class KeyboardInputTest(unittest.TestCase):
@@ -43,10 +43,10 @@ class KeyboardInputTest(unittest.TestCase):
         # (3) ...and connect the modules
         pipeline.connect(source, sink)
 
-        # (4) print mouse movements
         pipeline.start()
         sleep(.3)
         pipeline.stop()
+        self.assertEqual(True, True)
 
     def test_simulated_keyboard_input(self):
 
@@ -62,11 +62,11 @@ class KeyboardInputTest(unittest.TestCase):
         # (3) ...and connect the modules
         pipeline.connect(source, sink)
 
-        # (4) print mouse movements
         pipeline.start()
         sleep(.3)
         keyboard.press(Key.caps_lock)
         keyboard.release(Key.caps_lock)
         sleep(.3)
         pipeline.stop()
-        self.assertEqual(2, len(sink.list), "number of keyboard interactions are not correctly recognized or permission to simulate a keyboard is not given")
+        self.assertEqual(2, len(sink.list), "number of keyboard interactions are not correctly recognized or "
+                                            "permission to simulate a keyboard is not given")
