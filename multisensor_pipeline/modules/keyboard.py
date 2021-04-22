@@ -31,11 +31,12 @@ class Keyboard(BaseSource):
         self.listener.start()
 
     def on_press(self, key):
-        frame = MSPEventFrame(topic=self._generate_topic(name="mouse.coordinates", dtype=str), chunk={"key": key})
+        frame = MSPEventFrame(topic=self._generate_topic(name="keyboard.press", dtype=str), chunk={"key": key})
         self.queue.append(frame)
 
     def on_release(self, key):
-        frame = MSPEventFrame(topic=self._generate_topic(name="mouse.coordinates", dtype=str), chunk={"key": key})
+        frame = MSPEventFrame(topic=self._generate_topic(name="keyboard.release", dtype=str), chunk={"key": key})
+        self.queue.append(frame)
 
     def on_update(self) -> Optional[MSPDataFrame]:
         while not self.queue:

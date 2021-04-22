@@ -30,7 +30,6 @@ class AudioTest(TestCase):
         chunks = [f["chunk"] for f in sink.list]
         self.assertGreater(len(chunks), 0)
 
-
     def test_mic_to_wave_pipeline(self):
         filename = 'test_mic_to_wave_pipeline.wav'
         # create nodes
@@ -50,4 +49,3 @@ class AudioTest(TestCase):
         pipeline.join()
 
         self.assertTrue(pathlib.Path(filename).exists() and pathlib.Path(filename).is_file())
-

@@ -7,18 +7,23 @@ from typing import Optional
 
 class RandomArraySource(BaseFixedRateSource):
 
-    def __init__(self, shape=None, min: int = 0, max: int = 100, sampling_rate: float = 1.):
+    def __init__(self, shape=None, min: int = 0, max: int = 100, sampling_rate: float = 1., max_count=float("inf")):
         super(RandomArraySource, self).__init__(sampling_rate)
         self._shape = shape
         self._min = min
         self._max = max
+        self.max_count = max_count
+        self.index = 0
 
         # define what is offered
         dtype = int if shape is None else np.ndarray
         self._topic = self._generate_topic(name="random", dtype=dtype)
 
     def on_update(self) -> Optional[MSPDataFrame]:
-        return MSPDataFrame(topic=self._topic, value=np.random.randint(self._min, self._max, size=self._shape))
+        if self.index < self.max_count:
+            self.index += 1
+            return MSPDataFrame(topic=self._topic, value=np.random.randint(self._min, self._max, size=self._shape))
+        return
 
 
 class ArrayManipulationProcessor(BaseProcessor):

@@ -63,10 +63,16 @@ class KeyboardInputTest(unittest.TestCase):
         pipeline.connect(source, sink)
 
         pipeline.start()
-        sleep(.3)
+
         keyboard.press(Key.caps_lock)
         keyboard.release(Key.caps_lock)
         sleep(.3)
         pipeline.stop()
-        self.assertEqual(2, len(sink.list), "number of keyboard interactions are not correctly recognized or "
-                                            "permission to simulate a keyboard is not given")
+        if "darwin" in keyboard.__str__():
+            # There seems te be a bug in pynput keyboard controller for Mac OSX:
+            # Keypress is recognized as press and release
+            self.assertEqual(4, len(sink.list), "number of keyboard interactions are not correctly recognized or "
+                                                "permission to simulate a keyboard is not given")
+        else:
+            self.assertEqual(2, len(sink.list), "number of keyboard interactions are not correctly recognized or "
+                                                "permission to simulate a keyboard is not given")

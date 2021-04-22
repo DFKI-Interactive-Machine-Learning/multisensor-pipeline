@@ -10,6 +10,10 @@ class VideoSource(BaseDatasetSource):
     """
 
     def __init__(self, file_path="", **kwargs):
+        """
+        :param file_path: video file path
+        :param kwargs: kwargs for BaseDa
+        """
         super(VideoSource, self).__init__(**kwargs)
         self.file_path = file_path
         self.video = None
