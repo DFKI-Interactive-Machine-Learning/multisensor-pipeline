@@ -1,0 +1,74 @@
+site_name: Multisensor Pipeline (MSP)
+repo_url: https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline
+
+theme:
+  name: 'material'
+  features:
+    - navigation.top
+    - search.suggest
+    - navigation.instant
+    - navigation.sections
+    - navigation.indexes
+
+nav:
+  - Overview: 'index.md'
+  - Installation: 'installation.md'
+  - Modules:
+      - Base:
+        - Base Module: 'Documentation/modules/base/base_module.md'
+        - Base Source: 'Documentation/modules/base/base_source.md'
+        - Base Sink: 'Documentation/modules/base/base_sink.md'
+        - Base Processor: 'Documentation/modules/base/base_processor.md'
+        - Profiling: 'Documentation/modules/base/profiling.md'
+      - Audio:
+        - Microphone: 'Documentation/modules/audio/microphone.md'
+        - WaveFile: 'Documentation/modules/audio/wave.md'
+      - Image:
+          - PillowImage: 'Documentation/modules/image/pillow.md'
+          - Utils: 'Documentation/modules/image/utils.md'
+      - Persistance:
+        - Dataset: 'Documentation/modules/persistence/dataset.md'
+        - Recording: 'Documentation/modules/persistence/recording.md'
+        - Replay: 'Documentation/modules/persistence/replay.md'
+      - Signal:
+        - filtering: 'Documentation/modules/signal/filtering.md'
+        - one_euro_filter: 'Documentation/modules/signal/one_euro_filter.md'
+        - sampling: 'Documentation/modules/signal/sampling.md'
+      - Video:
+          - VideoFile: 'Documentation/modules/video/video.md'
+          - Webcam: 'Documentation/modules/video/webcam.md'
+      - Multiprocess: 'Documentation/modules/multiprocess.md'
+      - Network: 'Documentation/modules/network.md'
+      - Npy: 'Documentation/modules/npy.md'
+  - Custom Modules:
+      - Creating Custom Modules: 'custom_modules.md'
+      - Existing Extensions: 'existing_modules.md'
+
+
+markdown_extensions:
+  - toc:
+      slugify: !!python/name:pymdownx.slugs.uslugify
+
+plugins:
+- mkdocstrings:
+    default_handler: python
+    handlers:
+      python:
+        selection:
+          filters:
+            - "^_"  # include all members starting with _
+        rendering:
+          show_source: true
+          show_root_heading: true
+          show_root_full_path: false
+    watch:
+      - ./multisensor_pipeline
+- search:
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline
+
+
+
