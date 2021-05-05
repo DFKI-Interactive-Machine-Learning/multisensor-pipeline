@@ -10,11 +10,16 @@ from multisensor_pipeline.modules import ConsoleSink
 class WebCamSource(BaseSource):
     """
     Source for webcam. Sends PIL frames.
-    See more information about which web_cam_format to use in https://ffmpeg.org/ffmpeg-devices.html#Input-Devices
-    Options is a dict and uses following format  https://ffmpeg.org/ffmpeg.html#Video-Options
     """
 
-    def __init__(self, web_cam_format="avfoundation", web_cam_id="0", options={'framerate': '30'}):
+    def __init__(self, web_cam_format="avfoundation", web_cam_id:str = "0", options={'framerate': '30'}):
+        """
+        Initialize the Source
+        Args:
+            web_cam_format: See more information about which web_cam_format to use in https://ffmpeg.org/ffmpeg-devices.html#Input-Devices
+            web_cam_id: ID of the webcam usually "0"
+            options: Options is a dict and uses following format  https://ffmpeg.org/ffmpeg.html#Video-Options
+        """
         super(WebCamSource, self).__init__()
         self.web_cam_id = web_cam_id
         self.web_cam_format = web_cam_format

@@ -9,7 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 class Mouse(BaseSource):
-    """Source for mouse input. Can observe mouse movement, scroll and clicks.
+    """
+    Source for mouse input. Can observe mouse movement, scroll and clicks.
     Sends MSPEventFrame when mouse changes are detected
     """
 

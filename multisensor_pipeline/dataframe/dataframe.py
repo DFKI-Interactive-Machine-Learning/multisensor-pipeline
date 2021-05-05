@@ -54,7 +54,6 @@ class Topic:
 
 
 class MSPDataFrame(dict):
-
     class JsonEncoder(json.JSONEncoder):
 
         def default(self, obj: Any) -> Any:
@@ -79,7 +78,6 @@ class MSPDataFrame(dict):
                     }
                 }
             return super(MSPDataFrame.JsonEncoder, self).default(obj)
-
 
     class JsonDecoder(json.JSONDecoder):
 

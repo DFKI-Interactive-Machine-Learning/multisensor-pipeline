@@ -13,9 +13,16 @@ logger = logging.getLogger(__name__)
 
 
 class BaseModule(object):
-    """ Base class for all modules. """
+    """
+    Base Class for all Modules
+    """
 
     def __init__(self, profiling=False):
+        """
+        Initialize the BaseModule
+        Args:
+           profiling: Option to enable profiling
+        """
         self._uuid = uuid.uuid1()
         self._thread = Thread(target=self._worker)
         self._profiling = profiling
@@ -23,7 +30,9 @@ class BaseModule(object):
         self._active = False
 
     def start(self):
-        """ Starts the module. """
+        """
+        Starts the module.
+        """
         logger.debug("starting: {}".format(self.uuid))
         self._active = True
         self.on_start()
@@ -61,6 +70,7 @@ class BaseModule(object):
 
     @property
     def active(self):
+        """ Returns if the module is activ """
         return self._active
 
     @property
@@ -70,6 +80,7 @@ class BaseModule(object):
 
     @property
     def uuid(self):
+        """ Returns the uuuid of the module """
         return f"{self.name}:{self._uuid.int}"
 
     @property
@@ -89,6 +100,7 @@ class BaseSource(BaseModule, ABC):
         self._sinks = []
 
     def _worker(self):
+        """ Source worker function: notify observer when source update function returns a DataFrame """
         while self._active:
             self._notify(self.on_update())
 
@@ -130,8 +142,13 @@ class BaseSource(BaseModule, ABC):
         if self._profiling:
             self._stats.add_frame(frame, MSPModuleStats.Direction.OUT)
 
-    def stop(self, blocking=True):
-        # send end-of-stream message
+    def stop(self, blocking: bool = True):
+        """
+        Stops the source and sends a MSPControlMessage.END_OF_STREAM all observers it stopped
+
+        Args:
+            blocking:
+        """
         self._notify(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM, source=self))
         super(BaseSource, self).stop(blocking=blocking)
 
@@ -140,7 +157,12 @@ class BaseSink(BaseModule, ABC):
     """ Base class for data sinks. """
 
     def __init__(self, dropout: Union[bool, float] = False):
-        """ Initializes the worker thread and a queue that will receive new samples from sources. """
+        """
+        Initializes the worker thread and a queue that will receive new samples from sources.
+
+        Args:
+           dropout: Set the max age before elements of the queue are dropped
+        """
         super().__init__()
         self._queue = Queue()
         self._active_sources = {}
@@ -149,9 +171,21 @@ class BaseSink(BaseModule, ABC):
             self._dropout = 5
 
     def add_source(self, source: BaseModule):
+        """
+        Add a source module to be observed
+
+        Args:
+           source: Set the max age before elements of the queue are dropped
+        """
         self._active_sources[source.uuid] = True
 
     def _handle_control_message(self, frame: MSPDataFrame):
+        """
+        Handles incoming control messages from the observed sources (e.g. MSPControlMessage.END_OF_STREAM )
+
+        Args:
+           frame: frame containing MSPControlMessage
+        """
         if isinstance(frame, MSPControlMessage):
             logger.debug(f"[CONTROL] {frame.topic.source_uuid} -> {frame.message} -> {self.uuid}")
             if frame.message == MSPControlMessage.END_OF_STREAM:
@@ -167,6 +201,9 @@ class BaseSink(BaseModule, ABC):
         return False
 
     def _worker(self):
+        """
+        Sink worker function: handles the incoming Dataframes
+        """
         while self._active:
             frame = self._queue.get()
 
@@ -208,6 +245,9 @@ class BaseProcessor(BaseSink, BaseSource, ABC):
     """ Base class for data processors. """
 
     def _worker(self):
+        """
+        Processor worker function: handles the incoming dataframe and sends the new processed frame to the observers
+        """
         while self._active:
             # get incoming frame
             frame = self._queue.get()

@@ -9,10 +9,11 @@ class VideoSource(BaseDatasetSource):
     Source for video file input. Sends PIL frames.
     """
 
-    def __init__(self, file_path="", **kwargs):
+    def __init__(self, file_path: str = "", **kwargs):
         """
-        :param file_path: video file path
-        :param kwargs: kwargs for BaseDa
+        Args:
+            file_path: video file path
+            kwargs: kwargs for BaseDa
         """
         super(VideoSource, self).__init__(**kwargs)
         self.file_path = file_path
@@ -44,4 +45,3 @@ class VideoSource(BaseDatasetSource):
 
     def on_stop(self):
         self.video.close()
-

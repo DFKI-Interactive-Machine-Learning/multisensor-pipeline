@@ -8,8 +8,21 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class CropByPointerProcessor(BaseProcessor):
+    """
+    Crops PillowImage on a give point with a definable crop size
+    """
 
-    def __init__(self, image_topic_name, pointer_topic_names, crop_size=200, image_key="image", point_key="point"):
+    def __init__(self, image_topic_name, pointer_topic_names, crop_size: int = 200, image_key: str = "image",
+                 point_key: str = "point"):
+        """
+        Initialize the Processor
+        Args:
+           image_topic_name: image topic names to be handled
+           pointer_topic_names: pointer topic names to be handled
+           crop_size: size of the crop AOI
+           image_key: should always be "image" because it's the default for transferring images
+           point_key: key of the point in the signal
+        """
         super(CropByPointerProcessor, self).__init__()
         self.crop_size = crop_size
         self._image = None
@@ -23,6 +36,9 @@ class CropByPointerProcessor(BaseProcessor):
 
     @staticmethod
     def crop(image: Image, point, crop_size: int):
+        """
+            Crops the PillowImage
+        """
         if image is None:
             return None
         w, h = image.size

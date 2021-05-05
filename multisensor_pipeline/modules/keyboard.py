@@ -9,7 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 class Keyboard(BaseSource):
-    """Source for keyboard input. Can observe keyboard press and releases of button
+    """
+    Source for keyboard input. Can observe keyboard press and releases of button
     """
 
     def __init__(self, press=True, release=False):

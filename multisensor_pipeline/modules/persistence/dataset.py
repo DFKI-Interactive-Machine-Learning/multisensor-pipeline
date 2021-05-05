@@ -6,8 +6,15 @@ from time import time, sleep
 
 
 class BaseDatasetSource(BaseSource, ABC):
-
+    """
+    Base Module for DatasetSources
+    """
     def __init__(self, playback_speed: float = float("inf")):
+        """
+        Initializes the BaseDatasetSource
+        Args:
+            playback_speed: sets the playback speed. Default set to as fast as possible.
+        """
         super(BaseDatasetSource, self).__init__()
         self._playback_speed = playback_speed
         self._last_frame_timestamp = None
@@ -25,6 +32,11 @@ class BaseDatasetSource(BaseSource, ABC):
         self.stop(blocking=False)
 
     def _notify(self, frame: Optional[MSPDataFrame]):
+        """
+        If the frame is not null (End of Dataset) it notifies all observers that there's a new dataframe else it stops
+        Args:
+            frame:  Dataframe
+        """
         if frame is None:
             self._auto_stop()
         else:
@@ -32,6 +44,12 @@ class BaseDatasetSource(BaseSource, ABC):
             super(BaseDatasetSource, self)._notify(frame)
 
     def _sleep(self, frame: MSPDataFrame):
+        """
+        Modifies the dataframe timestamp corresponding the playback speed. Sleeps if necessary to achieve correct
+        playback speed
+        Args:
+            frame:  Dataframe
+        """
         if isinstance(frame, MSPControlMessage):
             return
         if self._playback_speed == float("inf"):

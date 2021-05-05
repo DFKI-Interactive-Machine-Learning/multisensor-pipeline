@@ -5,8 +5,13 @@ from collections import deque
 
 
 class MSPModuleStats:
-
+    """
+    Profiling of the pipeline
+    """
     class MovingAverageStats(object):
+        """
+          Implementation of MovingAverageStats see https://en.wikipedia.org/wiki/Moving_average
+        """
 
         def __init__(self, k=20):
             self._k = k  # window size for moving average
@@ -33,6 +38,9 @@ class MSPModuleStats:
             self._num_samples += 1
 
     class FrequencyStats(MovingAverageStats):
+        """
+            Implementation of FrequencyStats
+        """
 
         _last_sample = None  # timestamp of last frame (time of being received)
 
@@ -47,6 +55,9 @@ class MSPModuleStats:
         IN = 1
 
     def __init__(self):
+        """
+            Initialize the Profiling of the pipeline
+        """
         self._start_time = datetime.now()
         self._stop_time = None
 
