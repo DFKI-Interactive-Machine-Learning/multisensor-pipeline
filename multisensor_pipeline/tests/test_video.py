@@ -107,7 +107,7 @@ class VideoTesting(unittest.TestCase):
 
 class WebCamTesting(unittest.TestCase):
     def test_no_webcam(self):
-        # (1) definethe modules
+        # (1) define the modules
         try:
             source = WebCamSource(web_cam_format="random")
 

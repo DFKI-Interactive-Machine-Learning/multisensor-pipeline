@@ -28,7 +28,10 @@ class ProfilingTest(unittest.TestCase):
             frames.append(MSPDataFrame(topic="test",  value=randint(0, 20)))
 
         for frame in frames:
-            msp_stats.add_frame(frame, direction=MSPModuleStats.Direction.IN)
+            msp_stats.add_frame(
+                frame=frame,
+                direction=MSPModuleStats.Direction.IN,
+            )
             sleep(0.05)
 
-        stats = msp_stats.get_stats(direction=MSPModuleStats.Direction.IN)
+        _ = msp_stats.get_stats(direction=MSPModuleStats.Direction.IN)
