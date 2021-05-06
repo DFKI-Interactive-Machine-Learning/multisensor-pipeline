@@ -22,6 +22,9 @@ setup(
         'Pillow',
         'pynput'
     ],
-    keywords=['multimodality', 'streaming', 'multisensor', 'sensors', 'multimodal interaction', 'pipeline',
-              'stream processing', 'multiprocessing']
+    keywords=[
+        'multimodality', 'streaming', 'multisensor', 'sensors',
+        'multimodal interaction', 'pipeline', 'stream processing',
+        'multiprocessing',
+    ]
 )
