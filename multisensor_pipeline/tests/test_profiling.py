@@ -1,12 +1,8 @@
 import unittest
-from random import  randint
+from random import randint
 from time import sleep
-
-from multisensor_pipeline import GraphPipeline
 from multisensor_pipeline.dataframe import MSPDataFrame
-from multisensor_pipeline.modules import QueueSink
 from multisensor_pipeline.modules.base.profiling import MSPModuleStats
-from multisensor_pipeline.modules.npy import RandomArraySource
 
 
 class ProfilingTest(unittest.TestCase):
