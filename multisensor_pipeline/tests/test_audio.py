@@ -10,8 +10,7 @@ import pathlib
 
 class AudioTest(TestCase):
 
-    def test_microphone_input(self):
-
+    def _test_microphone_input(self):
         sink = ListSink()
         try:
             mic = Microphone(channels=1)
@@ -30,8 +29,9 @@ class AudioTest(TestCase):
         chunks = [f["chunk"] for f in sink.list]
         self.assertGreater(len(chunks), 0)
 
-    def test_mic_to_wave_pipeline(self):
+    def _test_mic_to_wave_pipeline(self):
         filename = 'test_mic_to_wave_pipeline.wav'
+
         # create nodes
         mic = Microphone(channels=1)
         wav = WaveFile(filename, channels=1)
