@@ -141,4 +141,5 @@ fabric.properties
 # Files created by running the test suite
 /json_test.json
 /multisensor_pipeline/tests/json_test.json
+/multisensor_pipeline/tests/output_av.mp4
 /multisensor_pipeline/tests/test_mic_to_wave_pipeline.wav
