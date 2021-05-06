@@ -67,7 +67,7 @@ test-py310:
             libfribidi-dev
             libharfbuzz-dev
             libjpeg-turbo-progs
-            libjpeg8-dev
+            libjpeg62-turbo-dev
             liblcms2-dev
             libopengl-dev
             libopenjp2-7-dev
