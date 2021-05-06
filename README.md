@@ -61,21 +61,21 @@ The example contains four major steps:
 1.  All modules are created and parametrized
 2.  The pipeline is created and all modules are added to it.
 3.  The modules are connected to build the multisensor pipeline. This step defines what your pipeline is going to do and therefore is the most important step.
-    - *source >> processor*: the random arrays are sent to the array manipulator.
-    - *processor >> sink*: the manipulated arrays, i.e., the means of them, are sent to the sink module which prints them to the console.
-    - *source >> sink*: in addition, all random arrays are printed to the console.
+    -   *source >> processor*: the random arrays are sent to the array manipulator.
+    -   *processor >> sink*: the manipulated arrays, i.e., the means of them, are sent to the sink module which prints them to the console.
+    -   *source >> sink*: in addition, all random arrays are printed to the console.
 4. Starting and stopping the pipeline: `start()` is starting all modules of the pipeline, e.g., the source starts to generate arrays now. This loop runs infinitely long and has to be stopped from outside by calling the non-blocking `stop()` function of the pipeline instance. You can wait until the pipeline has stopped using its `join()` function.  
 
 ## The MSPDataFrame Class
+
 Instances of the `MSPDataFrame` class are used to transfer data and meta information from one module to the next.
-The only required parameter is `topic: Topic` which defines what kind of data the frame delivers. The best practice is to use the factory method for this: `self._generate_topic(self, name: str, dtype: type = None)`. The actual payload can be added using keyword arguments (kwargs) when initializing an instance of `MSPDataFrame` (see `value` in the examples above). Also, you can add key-value pairs after instantiation as with any Pyhton `dict`, because `MSPDataFrame` inherits from `dict`.
+The only required parameter is `topic: Topic` which defines what kind of data the frame delivers. The best practice is to use the factory method for this: `self._generate_topic(self, name: str, dtype: type = None)`. The actual payload can be added using keyword arguments (kwargs) when initializing an instance of `MSPDataFrame` (see `value` in the examples above). Also, you can add key-value pairs after instantiation as with any Python `dict`, because `MSPDataFrame` inherits from `dict`.
 
 In principle, `MSPDataFrame` can carry any data type. However, the `persistence` and `networking` package requires serialization and deserialization of data frames. Currently, we support all standard data types in Python and numpy arrays (`ndarray`). Support for pillow images (`PIL.Image`) will follow.
 
-
 ## Custom Modules
 
-You can easily create custom modules by inheriting from one of the abstrac module classes: `BaseSource`, `BaseProcessor`, and `BaseSink`. All modules offer and/or consume data streams frame-by-frame using the `MSPDataFrame` class as data structure.
+You can easily create custom modules by inheriting from one of the abstract module classes: `BaseSource`, `BaseProcessor`, and `BaseSink`. All modules offer and/or consume data streams frame-by-frame using the `MSPDataFrame` class as data structure.
 
 ### Inherit from _BaseSource_
 
@@ -134,4 +134,4 @@ if __name__ == '__main__':
 ```
 
 You can now use your custom modules as part of a pipeline. This example connects the three sample modules using the `GraphPipeline` and executes it for 0.1 seconds. It prints the output of the `ConstraintCheckingProcessor` approximately 4 times: half of them show `value=True`, the other half shows `value=False`.
-Further examples can be found in the `modules` and `tests` packages.
+More examples can be found in the `modules` and `tests` packages.
