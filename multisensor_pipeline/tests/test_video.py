@@ -12,7 +12,7 @@ from multisensor_pipeline.modules.video.webcam import WebCamSource
 
 
 class VideoTesting(unittest.TestCase):
-    def test_no_video_file(self):
+    def _test_no_video_file(self):
         # (1) define the modules
         source = VideoSource(playback_speed=1)
         sink = ConsoleSink()
