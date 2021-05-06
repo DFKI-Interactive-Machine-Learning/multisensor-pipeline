@@ -67,7 +67,7 @@ class VideoTesting(unittest.TestCase):
         self.assertEqual(sink.queue.qsize(), 23)
         os.remove("output_av.mp4")
 
-    def test_long_video(self):
+    def _test_long_video(self):
         # Create a video file with 24 PIL Images and export it
         img_sequence = []
         for x in range(500):
