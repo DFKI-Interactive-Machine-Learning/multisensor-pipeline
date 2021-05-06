@@ -1,22 +1,26 @@
-from unittest import TestCase
-from multisensor_pipeline.pipeline import GraphPipeline
-import numpy as np
+import unittest
 from time import sleep
-from multisensor_pipeline.dataframe import MSPDataFrame
-from multisensor_pipeline import BaseSource, BaseProcessor, BaseSink
-from multisensor_pipeline.modules.npy import RandomArraySource, ArrayManipulationProcessor
-from multisensor_pipeline.modules import QueueSink, ConsoleSink, SleepTrashSink, SleepPassthroughProcessor, ListSink
 import logging
 from typing import Optional
 from random import randint
 import math
 
+import numpy as np
+import pytest
+
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
+from multisensor_pipeline.modules.base.base import BaseSource, BaseProcessor
+from multisensor_pipeline.modules.npy import RandomArraySource, \
+    ArrayManipulationProcessor
+from multisensor_pipeline.modules import QueueSink, ConsoleSink, \
+    SleepTrashSink, SleepPassthroughProcessor, ListSink
+from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 logging.basicConfig(level=logging.DEBUG)
 
 
 class RandomIntSource(BaseSource):
-    """ Generate 50 random numbers per second. """
+    """Generate 50 random numbers per second."""
 
     def on_update(self) -> Optional[MSPDataFrame]:
         sleep(.02)
@@ -25,72 +29,70 @@ class RandomIntSource(BaseSource):
 
 
 class ConstraintCheckingProcessor(BaseProcessor):
-    """ Checks, if incoming values are greater than 50. """
+    """Checks, if incoming values are greater than 50."""
 
     def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
         topic = self._generate_topic(name='constraint_check', dtype=bool)
         return MSPDataFrame(topic=topic, value=frame["value"] > 50)
 
 
-class MultiprocessingPipelineTest(TestCase):
+class BaseTestCase(unittest.TestCase):
+    def test_pipeline_example(self):
+        pipeline = GraphPipeline()
+        source_vector = RandomArraySource(shape=(50,), sampling_rate=50)
+        source_scalar = RandomArraySource(sampling_rate=50)
+        processor_mean = ArrayManipulationProcessor(np.mean)
+        processor_std = ArrayManipulationProcessor(np.std)
+        sink = QueueSink()
 
-    def setUp(self) -> None:
-        self.pipeline = GraphPipeline()
-        self.src1 = RandomArraySource(shape=(50,), sampling_rate=50)
-        self.src2 = RandomArraySource(sampling_rate=50)
-        self.p1 = ArrayManipulationProcessor(np.mean)
-        self.p2 = ArrayManipulationProcessor(np.std)
-        self.sink = QueueSink()
+        assert len(pipeline.source_nodes) == 0
 
-    def test_pipeline(self):
-        self.assertEqual(len(self.pipeline.source_nodes), 0)
+        pipeline.add_source(source_vector)
 
-        self.pipeline.add_source(self.src1)
+        assert len(pipeline.source_nodes) == 1
+        assert len(pipeline.processor_nodes) == 0
+        assert len(pipeline.sink_nodes) == 0
 
-        self.assertEqual(len(self.pipeline.source_nodes), 1)
-        self.assertEqual(len(self.pipeline.processor_nodes), 0)
-        self.assertEqual(len(self.pipeline.sink_nodes), 0)
+        pipeline.add_source(source_scalar)
+        assert len(pipeline.source_nodes) == 2
+        assert len(pipeline.processor_nodes) == 0
+        assert len(pipeline.sink_nodes) == 0
 
-        self.pipeline.add_source(self.src2)
-        self.assertEqual(len(self.pipeline.source_nodes), 2)
-        self.assertEqual(len(self.pipeline.processor_nodes), 0)
-        self.assertEqual(len(self.pipeline.sink_nodes), 0)
+        pipeline.add_processor(processor_mean)
+        assert len(pipeline.source_nodes) == 2
+        assert len(pipeline.processor_nodes) == 1
+        assert len(pipeline.sink_nodes) == 0
 
-        self.pipeline.add_processor(self.p1)
-        self.assertEqual(len(self.pipeline.source_nodes), 2)
-        self.assertEqual(len(self.pipeline.processor_nodes), 1)
-        self.assertEqual(len(self.pipeline.sink_nodes), 0)
+        pipeline.add_processor(processor_std)
+        assert len(pipeline.source_nodes) == 2
+        assert len(pipeline.processor_nodes) == 2
+        assert len(pipeline.sink_nodes) == 0
 
-        self.pipeline.add_processor(self.p2)
-        self.assertEqual(len(self.pipeline.source_nodes), 2)
-        self.assertEqual(len(self.pipeline.processor_nodes), 2)
-        self.assertEqual(len(self.pipeline.sink_nodes), 0)
+        pipeline.add_sink(sink)
+        assert len(pipeline.source_nodes) == 2
+        assert len(pipeline.processor_nodes) == 2
+        assert len(pipeline.sink_nodes) == 1
 
-        self.pipeline.add_sink(self.sink)
-        self.assertEqual(len(self.pipeline.source_nodes), 2)
-        self.assertEqual(len(self.pipeline.processor_nodes), 2)
-        self.assertEqual(len(self.pipeline.sink_nodes), 1)
+        with pytest.raises(AssertionError):
+            pipeline.check_pipeline()
 
-        with self.assertRaises(AssertionError):
-            self.pipeline.check_pipeline()
+        pipeline.connect(source_vector, processor_mean)
+        pipeline.connect(source_vector, processor_std)
+        pipeline.connect(source_scalar, sink)
+        pipeline.connect(processor_mean, sink)
+        pipeline.connect(processor_std, sink)
+        assert pipeline.size == 5
 
-        self.pipeline.connect(self.src1, self.p1)
-        self.pipeline.connect(self.src1, self.p2)
-        self.pipeline.connect(self.src2, self.sink)
-        self.pipeline.connect(self.p1, self.sink)
-        self.pipeline.connect(self.p2, self.sink)
-        self.assertEqual(self.pipeline.size, 5)
-
-        self.pipeline.start()
-        self.assertEqual(len(self.pipeline.active_modules), 5)
+        pipeline.start()
+        assert len(pipeline.active_modules) == 5
 
         sleep(1)
 
-        self.pipeline.stop()
-        self.pipeline.join()
-        self.assertEqual(len(self.pipeline.active_modules), 0)
+        pipeline.stop()
+        pipeline.join()
+        assert len(pipeline.active_modules) == 0
 
-        self.assertFalse(self.sink.empty())
+        assert not sink.empty()
 
     def test_minimal_example(self):
         # define the modules
@@ -132,13 +134,16 @@ class MultiprocessingPipelineTest(TestCase):
         pipeline.stop()
         pipeline.join()
 
-    def test_dropout(self):
+    def test_dropout_example(self):
         dropout_threshold = .2
         sleep_time = .5
 
         # source - sink pipeline
         source = RandomArraySource(sampling_rate=10)
-        sink = SleepTrashSink(sleep_time=dropout_threshold, dropout=dropout_threshold)
+        sink = SleepTrashSink(
+            sleep_time=dropout_threshold,
+            dropout=dropout_threshold,
+        )
 
         p = GraphPipeline()
         p.add([source, sink])
@@ -152,7 +157,10 @@ class MultiprocessingPipelineTest(TestCase):
 
         # source - processor - sink pipeline
         source = RandomArraySource(sampling_rate=10)
-        processor = SleepPassthroughProcessor(sleep_time=dropout_threshold, dropout=dropout_threshold)
+        processor = SleepPassthroughProcessor(
+            sleep_time=dropout_threshold,
+            dropout=dropout_threshold,
+        )
         sink = ListSink()
 
         p = GraphPipeline()
@@ -168,5 +176,4 @@ class MultiprocessingPipelineTest(TestCase):
         num_received = len(sink.list)
         num_expected = math.ceil(1. / dropout_threshold * sleep_time)
 
-        self.assertTrue(abs(num_received - num_expected) <= 2)
-
+        assert abs(num_received - num_expected) <= 2

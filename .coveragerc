@@ -1,5 +1,5 @@
 [run]
-omit = *tests*
+omit = *experimental*
 
 [report]
-omit = *tests*
+omit = *experimental*
