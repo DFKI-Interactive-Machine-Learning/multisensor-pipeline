@@ -45,10 +45,19 @@ test-py310:
     image: python:3.10-rc-slim-buster
     script:
         -   apt update
-        -   apt install --yes --no-install-recommends gcc portaudio19-dev
-            python-dev pkg-config libavformat-dev libavcodec-dev
-            libavdevice-dev libavutil-dev libswscale-dev libswresample-dev
+        -   apt install --yes --no-install-recommends
+            g++
+            gcc
+            libavformat-dev
+            libavcodec-dev
+            libavdevice-dev
+            libavutil-dev
+            libswscale-dev
+            libswresample-dev
             libavfilter-dev
+            pkg-config
+            portaudio19-dev
+            python-dev
         -   python3.10 -m venv venv
         -   venv/bin/python -m pip install --upgrade tox wheel pip
         -   venv/bin/python -m tox -e py310
