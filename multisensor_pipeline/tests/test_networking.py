@@ -15,7 +15,7 @@ class NetworkingTest(TestCase):
     def setUp(self) -> None:
         self.wait_time = .5
 
-    def test_zmq_pub_sub(self):
+    def _test_zmq_pub_sub(self):
         logger.info("initialize pipelines: [mic -> pub] ->TCP-> [sub -> final_sink].")
 
         # initialize subscriber pipeline
@@ -54,4 +54,3 @@ class NetworkingTest(TestCase):
         sink2_values = set([(f.timestamp, f['value'].flatten().tolist()[0]) for f in sink2.list])
 
         self.assertEqual(len(list(sink1_values - sink2_values)), len(sink1.list) - len(sink2.list))
-
