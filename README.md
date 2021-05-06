@@ -1,4 +1,5 @@
 # Multisensor Pipeline (MSP)
+
 The multisensor pipeline (`msp`) package enables stream and event processing with a small amount of dependencies. The main purpose of the `msp` pipeline is the development of research prototypes, but it can also be used for realizing small productive systems or demos that require an acquisition of multiple sensors or data streams (*source*), processing of this data(*processor*), and a utilization of the output (*sink*). The modules in a pipeline form a weakly connected directed graph. Sources and sinks are defined analogously to graph theory, processors are equivalent to internals (see this [Wikipedia article](https://en.wikipedia.org/wiki/Directed_graph#Indegree_and_outdegree)). A pipeline needs at least one source and one sink module. An `msp` pipeline can...
 
 - read/stream signals from any number of **source modules** like sensors, microphones, cameras, pens, eye trackers, etc.
@@ -11,9 +12,9 @@ The multisensor pipeline (`msp`) package enables stream and event processing wit
 * Each module runs in a separate thread to ensure responsiveness.
 * Low number of dependecies = easy to integrate in your project.
 
-
 ## Installation
-We recommend to use an Anaconda environment with Python 3.6 (x64) or greater. To install the `multisensor_pipeline`, activate your environment of choice and run the following command:
+
+We recommend using an Anaconda environment with Python 3.6 (x64) or greater. To install the `multisensor_pipeline`, activate your environment of choice and run the following command:
 
 ```shell
 pip install multisensor-pipeline
@@ -72,9 +73,11 @@ In principle, `MSPDataFrame` can carry any data type. However, the `persistence`
 
 
 ## Custom Modules
+
 You can easily create custom modules by inheriting from one of the abstrac module classes: `BaseSource`, `BaseProcessor`, and `BaseSink`. All modules offer and/or consume data streams frame-by-frame using the `MSPDataFrame` class as data structure.
 
 ### Inherit from _BaseSource_
+
 ```python
 class RandomIntSource(BaseSource):
     """ Generate 50 random numbers per second. """
@@ -86,6 +89,7 @@ class RandomIntSource(BaseSource):
 ```
 
 ### Inherit from _BaseProcessor_
+
 ```python
 class ConstraintCheckingProcessor(BaseProcessor):
     """ Checks, if incoming values are greater than 50. """
@@ -96,6 +100,7 @@ class ConstraintCheckingProcessor(BaseProcessor):
 ```
 
 ### Inherit from _BaseSink_
+
 ```python
 class ConsoleSink(BaseSink):
     """ Prints incoming frames to the console. """
@@ -129,5 +134,3 @@ if __name__ == '__main__':
 
 You can now use your custom modules as part of a pipeline. This example connects the three sample modules using the `GraphPipeline` and executes it for 0.1 seconds. It prints the output of the `ConstraintCheckingProcessor` approximately 4 times: half of them show `value=True`, the other half shows `value=False`.
 Further examples can be found in the `modules` and `tests` packages.
- 
-
