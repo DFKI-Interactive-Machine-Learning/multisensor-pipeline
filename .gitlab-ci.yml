@@ -1,0 +1,52 @@
+stages:
+    -   test
+
+test-py36:
+    image: python:3.6
+    script:
+        -   apt update
+        -   apt install --yes --no-install-recommends gcc portaudio19-dev
+        -   python3.6 -m venv venv
+        -   venv/bin/python -m pip install --upgrade tox wheel pip
+        -   venv/bin/python -m tox -e py36
+    stage: test
+
+test-py37:
+    image: python:3.7
+    script:
+        -   apt update
+        -   apt install --yes --no-install-recommends gcc portaudio19-dev
+        -   python3.7 -m venv venv
+        -   venv/bin/python -m pip install --upgrade tox wheel pip
+        -   venv/bin/python -m tox -e py37
+    stage: test
+
+test-py38:
+    image: python:3.8
+    script:
+        -   apt update
+        -   apt install --yes --no-install-recommends gcc portaudio19-dev
+        -   python3.8 -m venv venv
+        -   venv/bin/python -m pip install --upgrade tox wheel pip
+        -   venv/bin/python -m tox -e py38
+    stage: test
+
+test-py39:
+    image: python:3.9
+    script:
+        -   apt update
+        -   apt install --yes --no-install-recommends gcc portaudio19-dev
+        -   python3.9 -m venv venv
+        -   venv/bin/python -m pip install --upgrade tox wheel pip
+        -   venv/bin/python -m tox -e py39
+    stage: test
+
+test-py310:
+    image: python:3.10-rc-slim-buster
+    script:
+        -   apt update
+        -   apt install --yes --no-install-recommends gcc portaudio19-dev
+        -   python3.10 -m venv venv
+        -   venv/bin/python -m pip install --upgrade tox wheel pip
+        -   venv/bin/python -m tox -e py310
+    stage: test
