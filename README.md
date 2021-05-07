@@ -13,6 +13,35 @@ The multisensor pipeline (`msp`) package enables stream and event processing wit
 *   Each module runs in a separate thread to ensure responsiveness.
 *   Low number of dependencies = easy to integrate in your project.
 
+# Status
+
+[![pipeline status](https://gitlab.com/bengt/multisensor-pipeline/badges/v2.0.0-bengt-active-reading/pipeline.svg)](https://gitlab.com/bengt/multisensor-pipeline/-/commits/v2.0.0-bengt-active-reading)
+[![coverage report](https://gitlab.com/bengt/multisensor-pipeline/badges/v2.0.0-bengt-active-reading/coverage.svg)](https://gitlab.com/bengt/multisensor-pipeline/-/commits/v2.0.0-bengt-active-reading)
+
+## Operating Systems
+
+We currently support Linux, Windows and MacOS.
+
+## Desktop Environments
+
+Under Linux, we currently support the X Window System (X11), only.
+
+## Python Versions
+
+We currently support Python 3.6, 3.7, 3.8, and 3.9. This information might
+become outdated. To be sure, check the continuous integration:
+
+https://gitlab.com/bengt/multisensor-pipeline/-/pipelines
+
+## Prerequisites
+
+This package depends on PyAudio, which are bindings for portaudio19 and their 
+development headers:
+
+```shell
+sudo apt install --yes --no-install-recommends gcc portaudio19-dev
+```
+
 ## Installation
 
 We recommend using an Anaconda environment with Python 3.6 (x64) or greater. To install the `multisensor_pipeline`, activate your environment of choice and run the following command:
