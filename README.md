@@ -28,7 +28,7 @@ Under Linux, we currently support the X Window System (X11), only.
 
 ## Python Versions
 
-We currently support Python 3.6, 3.7, 3.8, 3.9 and 3.10. This information might
+We currently support Python 3.6, 3.7, 3.8, and 3.9. This information might
 become outdated. To be sure, check the continuous integration:
 
 https://gitlab.com/bengt/multisensor-pipeline/-/pipelines
