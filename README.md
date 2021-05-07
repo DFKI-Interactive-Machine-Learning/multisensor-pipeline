@@ -13,15 +13,52 @@ The multisensor pipeline (`msp`) package enables stream and event processing wit
 *   Each module runs in a separate thread to ensure responsiveness.
 *   Low number of dependencies = easy to integrate in your project.
 
+# Status
+
+[![pipeline status](https://gitlab.com/bengt/multisensor-pipeline/badges/main/pipeline.svg)](https://gitlab.com/bengt/multisensor-pipeline/-/commits/main)
+[![coverage report](https://gitlab.com/bengt/multisensor-pipeline/badges/main/coverage.svg)](https://gitlab.com/bengt/multisensor-pipeline/-/commits/main)
+
+## Operating Systems
+
+We currently support Linux, Windows and MacOS.
+
+## Desktop Environments
+
+Under Linux, we currently support the X Window System (X11), only.
+
+## Python Versions
+
+We currently support Python 3.6, 3.7, 3.8, 3.9 and 3.10. This information might
+become outdated. To be sure, check the continuous integration:
+
+https://gitlab.com/bengt/multisensor-pipeline/-/pipelines
+
+## Prerequisites
+
+This package depends on PyAudio, which are bindings for portaudio19 and their 
+development headers:
+
+```shell
+sudo apt install --yes --no-install-recommends gcc portaudio19-dev
+```
+
 ## Installation
 
-We recommend using an Anaconda environment with Python 3.6 (x64) or greater. To install the `multisensor_pipeline`, activate your environment of choice and run the following command:
+For end users of multisensor pipeline, we recommend using an Anaconda environment with Python 3.6 (x64) or greater. To install the `multisensor_pipeline`, activate your environment of choice and run the following command:
 
 ```shell
 pip install multisensor-pipeline
 ```
 
-You can also install the package from source: `python setup.py install`
+For developers of multisensor pipeline, we recommend using a virtual 
+environment just for tox and its requirements. tox can then be used for 
+managing installation environments:
+
+```shell
+python3.6 -m venv venv
+venv/bin/python -m pip install tox wheel
+venv/bin/python -m tox -e py36
+```
 
 ## Quick Start Example
 
