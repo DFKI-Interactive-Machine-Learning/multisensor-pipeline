@@ -13,6 +13,10 @@ The multisensor pipeline (`msp`) package enables stream and event processing wit
 *   Each module runs in a separate thread to ensure responsiveness.
 *   Low number of dependencies = easy to integrate in your project.
 
+# Status
+
+[![.github/workflows/ci.yml](https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline/actions/workflows/ci.yml)
+
 ## Installation
 
 We recommend using an Anaconda environment with Python 3.6 (x64) or greater. To install the `multisensor_pipeline`, activate your environment of choice and run the following command:
@@ -23,14 +27,30 @@ pip install multisensor-pipeline
 
 **System Requirements & Prerequisites**
 
-* Operating System: We currently support Linux, Windows and MacOS.
+* Operating System: We currently support Linux, Windows and macOS.
 * Desktop Environments: Under Linux, we currently support the X Window System (X11), only.
 * Python Versions: We currently support Python 3.6, 3.7, 3.8, and 3.9.
-* Linux dependency: This package depends on PyAudio, which are bindings for portaudio19 and their 
+* Library dependency: This package depends on PyAudio, which are bindings for portaudio19 and their 
 development headers:
-    ```shell
-    sudo apt install --yes --no-install-recommends gcc portaudio19-dev
-    ```
+
+Under Linux:
+
+```shell
+sudo apt install --yes --no-install-recommends gcc portaudio19-dev
+```
+
+Under macOS:
+
+```shell
+brew install portaudio
+```
+
+Under Windows:
+
+```shell
+vcpkg update
+vcpkg install portaudio  # Currently defunct
+```
 
 ## Quick Start Example
 
