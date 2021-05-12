@@ -1,0 +1,1 @@
+::: multisensor_pipeline.modules.image.CropByPointerProcessor

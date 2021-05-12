@@ -1,5 +1,7 @@
 from multisensor_pipeline import BaseProcessor
+from multisensor_pipeline.dataframe import MSPDataFrame
 from multisensor_pipeline.modules.signal.one_euro_filter import OneEuroFilter
+from typing import Optional
 import logging
 
 
@@ -9,7 +11,7 @@ logger = logging.getLogger(__name__)
 class OneEuroProcessor(BaseProcessor):
     """
     Applies the 1€ smoothing filter on a continuous signal.
-    Supports b'eyetracking.mobile.gaze' and b'eyetracking.mobile.surfaces'.
+    http://cristal.univ-lille.fr/~casiez/1euro/
 
     To minimize jitter and lag when tracking human motion, the two parameters (fcmin and beta) can be set using a
     simple two-step procedure. First beta is set to 0 and fcmin (mincutoff) to a reasonable middle-ground value such
@@ -23,43 +25,31 @@ class OneEuroProcessor(BaseProcessor):
     if slow speed jitter is a problem, decrease fcmin.
     """
 
-    def __init__(self, freq=30, fcmin=1.5, beta=.001, dcutoff=1):
+    def __init__(self, signal_topic_name, signal_key, freq=30, fcmin=1.5, beta=.001, dcutoff=1):
+        super(OneEuroProcessor, self).__init__()
 
-        super().__init__()
-
+        self._signal_topic_name = signal_topic_name
+        self._signal_key = signal_key
         config = {
             'freq': freq,  # Hz
             'mincutoff': fcmin,
-            'beta': beta,  # FIXME
+            'beta': beta,
             'dcutoff': dcutoff  # this one should be ok
         }
         self._filter_x = OneEuroFilter(**config)
         self._filter_y = OneEuroFilter(**config)
         self._last_timestamp = None
 
-    def _filter(self, sample):
-        norm_pos = sample[b"norm_pos"]
-        timestamp = sample[b"timestamp"]
+    def _filter(self, point, timestamp):
         if self._last_timestamp is not None and self._last_timestamp >= timestamp:
             return None
-        sample[b"norm_pos"] = self._filter_x(norm_pos[0], timestamp), self._filter_y(norm_pos[1], timestamp)
         self._last_timestamp = timestamp
-        return sample
+        return self._filter_x(point[0], timestamp), self._filter_y(point[1], timestamp)
 
-    def _update_loop(self):
-        while self._active:
-            topic, payload = self.get()
-
-            if topic.decode().startswith("eyetracking.mobile.gaze"):
-                sample = payload[b"norm_pos"]
-            elif topic == b"eyetracking.mobile.surfaces":
-                if len(payload[b"gaze_on_surfaces"]) > 0 and payload[b"gaze_on_surfaces"][-1][b"on_surf"]:
-                    sample = payload[b"gaze_on_surfaces"][-1]
-                else:
-                    continue
-            else:
-                continue
-
-            smooth_norm_pos = self._filter(sample)
-            if smooth_norm_pos is not None:
-                self._notify_all(topic, payload)
+    def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
+        if frame.topic.name == self._signal_topic_name:
+            smoothed_point = self._filter(frame[self._signal_key], frame.timestamp)
+            if smoothed_point is not None:
+                frame[self._signal_key] = smoothed_point
+                frame.topic = self._generate_topic(f"{frame.topic.name}.smoothed", frame.topic.dtype)
+                return frame
