@@ -2,6 +2,7 @@ from distutils.core import setup
 from setuptools import find_packages
 import setuptools
 
+
 setup(
     name='multisensor-pipeline',
     version='2.0.0',
@@ -15,14 +16,13 @@ setup(
     description="The core library of the DFKI multisensor pipeline framework.",
     python_requires='>=3.6.0',
     install_requires=[
-        'pyzmq',
-        'PyAudio',
-        'networkx',
-        'numpy',
-        'Pillow',
-        'pynput',
         'decorator<5.0.0',  # For networkx
+        'networkx',
         'numpy<1.20.0',     # For Python 3.6
+        'Pillow',
+        'PyAudio',
+        'pynput',
+        'pyzmq',
     ],
     keywords=[
         'multimodality', 'streaming', 'multisensor', 'sensors',
