@@ -1,10 +1,11 @@
-from multisensor_pipeline.modules.base import BaseSink, BaseSource
-from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
 from typing import Optional
 import zmq
 import logging
-# import msgpack
 import json
+
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
+from multisensor_pipeline.modules import BaseSink
+from multisensor_pipeline.modules.base.base import BaseSource
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,9 @@ class ZmqPublisher(BaseSink):
         self.port = port
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.PUB)
-        self.socket.bind("{}://{}:{}".format(self.protocol, self.url, self.port))
+        self.socket.bind(
+            "{}://{}:{}".format(self.protocol, self.url, self.port)
+        )
 
     def on_update(self, frame: MSPDataFrame):
         # payload = (frame.topic.name, msgpack.packb(frame, use_bin_type=True))
@@ -34,7 +37,13 @@ class ZmqPublisher(BaseSink):
 
 class ZmqSubscriber(BaseSource):
 
-    def __init__(self, topic_filter='', protocol='tcp', url='127.0.0.1', port=5000):
+    def __init__(
+        self,
+        topic_filter='',
+        protocol='tcp',
+        url='127.0.0.1',
+        port=5000,
+    ):
         super(ZmqSubscriber, self).__init__()
 
         self.protocol = protocol
@@ -42,16 +51,18 @@ class ZmqSubscriber(BaseSource):
         self.port = port
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.SUB)
-        self.socket.connect("{}://{}:{}".format(self.protocol, self.url, self.port))
+        self.socket.connect(
+            "{}://{}:{}".format(self.protocol, self.url, self.port)
+        )
 
         self.source_filter = topic_filter
         self.socket.setsockopt_string(zmq.SUBSCRIBE, self.source_filter)
 
     def on_update(self) -> Optional[MSPDataFrame]:
-        # packet = self.socket.recv_multipart()
-        # frame = msgpack.unpackb(packet[1], raw=False)
         payload = self.socket.recv_json()
-        frame = MSPDataFrame(**json.loads(s=payload, cls=MSPDataFrame.JsonDecoder))
+        frame = MSPDataFrame(
+            **json.loads(s=payload, cls=MSPDataFrame.JsonDecoder),
+        )
         return frame
 
     def on_stop(self):

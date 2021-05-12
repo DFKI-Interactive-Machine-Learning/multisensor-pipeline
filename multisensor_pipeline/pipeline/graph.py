@@ -1,9 +1,11 @@
-from .base import PipelineBase
-from multisensor_pipeline.modules.base import *
-import networkx as nx
 from typing import Union, List
 
-from ..dataframe import MSPDataFrame
+import networkx as nx
+
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
+from multisensor_pipeline.modules import BaseProcessor, BaseSink
+from multisensor_pipeline.modules.base.base import BaseModule, BaseSource
+from multisensor_pipeline.pipeline.base import PipelineBase
 
 
 class GraphPipeline(PipelineBase):
@@ -26,7 +28,10 @@ class GraphPipeline(PipelineBase):
         elif isinstance(modules, BaseSink):
             self.add_sink(modules)
         else:
-            raise TypeError("The parameter node must be an instance of BaseSource, BaseProcessor, or BaseSink.")
+            raise TypeError(
+                "The parameter node must be an instance of BaseSource, "
+                "BaseProcessor, or BaseSink."
+            )
 
     def add_source(self, source_module: BaseSource):
         assert isinstance(source_module, BaseSource)
@@ -41,11 +46,17 @@ class GraphPipeline(PipelineBase):
         self._graph.add_node(sink_module, role=self.ROLE_SINK)
 
     def connect(self, module, successor):
-        module.add_observer(successor)  # must be first, because it implicitly validates the connection
+        # must be first, because it implicitly validates the connection
+        module.add_observer(successor)
+
         self._graph.add_edge(module, successor)
 
     def get_nodes_with_attribute(self, attribute, value):
-        return [node[0] for node in self._graph.nodes(data=attribute) if node[1] == value]
+        return [
+            node[0]
+            for node in self._graph.nodes(data=attribute)
+            if node[1] == value
+        ]
 
     @property
     def source_nodes(self):
@@ -65,23 +76,29 @@ class GraphPipeline(PipelineBase):
 
     @property
     def active_modules(self):
-        """ Number of active modules. Not counting queues. """
+        """Return the number of active modules, not counting queues."""
         return [n for n in self.nodes if n.active]
 
     @property
     def size(self):
-        """ Returns the number of connections in the pipeline (edges in the underlying graph). """
+        """
+        Return the number of connections in the pipeline.
+
+        This counts the edges in the underlying graph.
+        """
         return self._graph.size()
 
     def check_pipeline(self):
-        """ The multisensor-pipeline must be a weakly connected directed graph. """
+        """Check that the pipeline is a weakly connected directed graph."""
         sources = self.source_nodes
         assert len(sources) > 0, "a valid pipeline requires at least a source"
         for node in sources:
             assert len(list(self._graph.successors(node))) > 0, node
             assert len(list(self._graph.predecessors(node))) == 0, node
 
-        for node in self.processor_nodes:  # this is a redundant check (never happens, if graph is weakly connected)
+        # this is a redundant check (never happens, if graph is weakly
+        # connected)
+        for node in self.processor_nodes:
             assert len(list(self._graph.successors(node))) > 0, node
             assert len(list(self._graph.predecessors(node))) > 0, node
 
@@ -92,7 +109,9 @@ class GraphPipeline(PipelineBase):
             assert len(list(self._graph.predecessors(node))) > 0, node
 
         # no unconnected nodes or subgraphs are allowed
-        assert nx.is_weakly_connected(self._graph), "all nodes in the pipeline have to be connected, they are not"
+        assert \
+            nx.is_weakly_connected(self._graph), \
+            "all nodes in the pipeline have to be connected, they are not"
 
         return True
 
@@ -100,7 +119,7 @@ class GraphPipeline(PipelineBase):
         return any([not n.active for n in self._graph.successors(node)])
 
     def _start_reversed(self, node):
-        """ Starts nodes in a depth first search. """
+        """Start nodes using a depth first search."""
         if isinstance(node, BaseModule):
             # start module (queues don't need to be started)
             node.start()
@@ -112,13 +131,13 @@ class GraphPipeline(PipelineBase):
             self._start_reversed(n)
 
     def start(self):
-        """ Start the pipeline. """
+        """Start the pipeline."""
         self.check_pipeline()
         for node in self.sink_nodes:
             self._start_reversed(node)
 
     def stop(self):
-        """ Stop the pipeline. """
+        """Stop the pipeline."""
         for node in self.source_nodes:
             node.stop(blocking=False)
 
@@ -128,7 +147,7 @@ class GraphPipeline(PipelineBase):
 
 
 class SubGraphPipeline(GraphPipeline, BaseProcessor):
-    """ A pipeline that can be used like a BaseProcessor """
+    """A pipeline that can be used like a BaseProcessor."""
 
     def __init__(self):
         super().__init__()

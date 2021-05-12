@@ -1,21 +1,38 @@
-from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, MSPEventFrame
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, \
+    MSPEventFrame
 
 
 class MSPGazeFrame(MSPDataFrame):
     """
-    Data structure for gaze data. It enforces
+    Data structure for gaze data.
+
+    This enforces:
     (1) that the origin of gaze coordinates is at the upper left, and
     (2) the gaze coordinates are normalized.
     """
 
-    # see also https://pillow.readthedocs.io/en/stable/handbook/concepts.html#coordinate-system
+    # See also:
+    # https://pillow.readthedocs.io/en/stable/handbook/concepts.html#coordinate-system  # NoQA
     ORIGIN_BOTTOM_LEFT = "bl"
     ORIGIN_TOP_LEFT = "tl"
     ORIGIN_CENTER = "c"
 
-    def __init__(self, gaze, max_width=1., max_height=1., normalized=True, origin="bl", **kwargs):
+    def __init__(
+        self,
+        gaze,
+        max_width=1.,
+        max_height=1.,
+        normalized=True,
+        origin="bl",
+        **kwargs,
+    ):
         scaled_gaze = self._scale_gaze(gaze, normalized, origin)
-        super(MSPGazeFrame, self).__init__(max_width=max_width, max_height=max_height, gaze=scaled_gaze, **kwargs)
+        super(MSPGazeFrame, self).__init__(
+            max_width=max_width,
+            max_height=max_height,
+            gaze=scaled_gaze,
+            **kwargs,
+        )
 
     def _scale_gaze(self, gaze, normalized, origin):
         if origin == self.ORIGIN_CENTER:
@@ -68,7 +85,10 @@ class MSPGazeFrame(MSPDataFrame):
 class MSPFixationFrame(MSPEventFrame):
 
     def __init__(self, fixation_position: MSPGazeFrame = None, **kwargs):
-        super(MSPFixationFrame, self).__init__(fixation_position=fixation_position, **kwargs)
+        super(MSPFixationFrame, self).__init__(
+            fixation_position=fixation_position,
+            **kwargs,
+        )
 
     @property
     def fixation_position(self) -> MSPGazeFrame:

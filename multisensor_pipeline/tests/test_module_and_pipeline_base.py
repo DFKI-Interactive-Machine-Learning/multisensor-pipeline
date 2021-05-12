@@ -1,22 +1,25 @@
 from unittest import TestCase
-from multisensor_pipeline.pipeline import GraphPipeline
 import numpy as np
 from time import sleep
-from multisensor_pipeline.dataframe import MSPDataFrame
-from multisensor_pipeline import BaseSource, BaseProcessor, BaseSink
-from multisensor_pipeline.modules.npy import RandomArraySource, ArrayManipulationProcessor
-from multisensor_pipeline.modules import QueueSink, ConsoleSink, SleepTrashSink, SleepPassthroughProcessor, ListSink
+
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
+from multisensor_pipeline.modules.base.base import BaseSource, BaseProcessor
+from multisensor_pipeline.modules.npy import RandomArraySource, \
+    ArrayManipulationProcessor
+from multisensor_pipeline.modules import QueueSink, ConsoleSink, \
+    SleepTrashSink, SleepPassthroughProcessor, ListSink
 import logging
 from typing import Optional
 from random import randint
 import math
 
+from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 logging.basicConfig(level=logging.DEBUG)
 
 
 class RandomIntSource(BaseSource):
-    """ Generate 50 random numbers per second. """
+    """Generate 50 random numbers per second."""
 
     def on_update(self) -> Optional[MSPDataFrame]:
         sleep(.02)
@@ -25,7 +28,7 @@ class RandomIntSource(BaseSource):
 
 
 class ConstraintCheckingProcessor(BaseProcessor):
-    """ Checks, if incoming values are greater than 50. """
+    """Checks, if incoming values are greater than 50."""
 
     def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
         topic = self._generate_topic(name='constraint_check', dtype=bool)
@@ -138,7 +141,10 @@ class MultiprocessingPipelineTest(TestCase):
 
         # source - sink pipeline
         source = RandomArraySource(sampling_rate=10)
-        sink = SleepTrashSink(sleep_time=dropout_threshold, dropout=dropout_threshold)
+        sink = SleepTrashSink(
+            sleep_time=dropout_threshold,
+            dropout=dropout_threshold,
+        )
 
         p = GraphPipeline()
         p.add([source, sink])
@@ -152,7 +158,10 @@ class MultiprocessingPipelineTest(TestCase):
 
         # source - processor - sink pipeline
         source = RandomArraySource(sampling_rate=10)
-        processor = SleepPassthroughProcessor(sleep_time=dropout_threshold, dropout=dropout_threshold)
+        processor = SleepPassthroughProcessor(
+            sleep_time=dropout_threshold,
+            dropout=dropout_threshold,
+        )
         sink = ListSink()
 
         p = GraphPipeline()
@@ -169,4 +178,3 @@ class MultiprocessingPipelineTest(TestCase):
         num_expected = math.ceil(1. / dropout_threshold * sleep_time)
 
         self.assertTrue(abs(num_received - num_expected) <= 2)
-

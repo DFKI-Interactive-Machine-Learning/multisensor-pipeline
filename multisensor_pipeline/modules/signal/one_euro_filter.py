@@ -10,36 +10,39 @@
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
-#  1. Redistributions of source code must retain the above copyright notice, this list of conditions
-# and the following disclaimer.
+#  1. Redistributions of source code must retain the above copyright notice,
+#  this list of conditions and the following disclaimer.
 #
-# 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions
-# and the following disclaimer in the documentation and/or other materials provided with the distribution.
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
 #
-# 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or
-# promote products derived from this software without specific prior written permission.
+# 3. Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software
+# without specific prior written permission.
 
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-# INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+# THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+# PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import math
 
 
-# ----------------------------------------------------------------------------
-
 class LowPassFilter(object):
 
     def __init__(self, alpha):
-        self.__setAlpha(alpha)
+        self._set_alpha(alpha)
         self.__y = self.__s = None
 
-    def __setAlpha(self, alpha):
+    def _set_alpha(self, alpha):
         alpha = float(alpha)
         if alpha <= 0 or alpha > 1.0:
             raise ValueError("alpha (%s) should be in (0.0, 1.0]" % alpha)
@@ -47,7 +50,7 @@ class LowPassFilter(object):
 
     def __call__(self, value, timestamp=None, alpha=None):
         if alpha is not None:
-            self.__setAlpha(alpha)
+            self._set_alpha(alpha)
         if self.__y is None:
             s = value
         else:
@@ -56,7 +59,7 @@ class LowPassFilter(object):
         self.__s = s
         return s
 
-    def lastValue(self):
+    def last_value(self):
         return self.__y
 
 
@@ -91,8 +94,11 @@ class OneEuroFilter(object):
             self.__freq = 1.0 / (timestamp - self.__lasttime)
         self.__lasttime = timestamp
         # ---- estimate the current variation per second
-        prev_x = self.__x.lastValue()
-        dx = 0.0 if prev_x is None else (x - prev_x) * self.__freq  # FIXME: 0.0 or value?
+        prev_x = self.__x.last_value()
+
+        # FIXME: 0.0 or value?
+        dx = 0.0 if prev_x is None else (x - prev_x) * self.__freq
+
         edx = self.__dx(dx, timestamp, alpha=self.__alpha(self.__dcutoff))
         # ---- use it to update the cutoff frequency
         cutoff = self.__mincutoff + self.__beta * math.fabs(edx)

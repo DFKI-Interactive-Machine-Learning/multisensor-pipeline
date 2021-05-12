@@ -1,19 +1,22 @@
 from abc import ABC
-from multisensor_pipeline.dataframe import MSPControlMessage, MSPDataFrame
-from multisensor_pipeline.modules import BaseSource
 from typing import Optional
 from time import time, sleep
 
+from multisensor_pipeline.dataframe.control import MSPControlMessage
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
+from multisensor_pipeline.modules.base.base import BaseSource
+
 
 class BaseDatasetSource(BaseSource, ABC):
-    """
-    Base Module for DatasetSources
-    """
+    """Base Module for DatasetSources."""
+
     def __init__(self, playback_speed: float = float("inf")):
         """
-        Initializes the BaseDatasetSource
+        Initialize the BaseDatasetSource.
+
         Args:
-            playback_speed: sets the playback speed. Default set to as fast as possible.
+            playback_speed: sets the playback speed.
+                            Default set to as fast as possible.
         """
         super(BaseDatasetSource, self).__init__()
         self._playback_speed = playback_speed
@@ -33,7 +36,11 @@ class BaseDatasetSource(BaseSource, ABC):
 
     def _notify(self, frame: Optional[MSPDataFrame]):
         """
-        If the frame is not null (End of Dataset) it notifies all observers that there's a new dataframe else it stops
+        Notify observers.
+
+        If the frame is not null (End of Dataset) it notifies all observers
+        that there's a new dataframe else it stops.
+
         Args:
             frame:  Dataframe
         """
@@ -45,8 +52,10 @@ class BaseDatasetSource(BaseSource, ABC):
 
     def _sleep(self, frame: MSPDataFrame):
         """
-        Modifies the dataframe timestamp corresponding the playback speed. Sleeps if necessary to achieve correct
-        playback speed
+        Modify the dataframe timestamp corresponding the playback speed.
+
+        Sleeps if necessary to achieve correct playback speed.
+
         Args:
             frame:  Dataframe
         """

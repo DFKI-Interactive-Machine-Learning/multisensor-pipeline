@@ -1,16 +1,21 @@
 import collections
-from pynput import mouse
-from multisensor_pipeline.modules.base import BaseSource
-from multisensor_pipeline.dataframe import MSPEventFrame, MSPDataFrame
 from typing import Optional
 import logging
+
+from pynput import mouse
+
+from multisensor_pipeline.dataframe.dataframe import MSPEventFrame, \
+    MSPDataFrame
+from multisensor_pipeline.modules.base.base import BaseSource
 
 logger = logging.getLogger(__name__)
 
 
 class Mouse(BaseSource):
     """
-    Source for mouse input. Can observe mouse movement, scroll and clicks.
+    Source for mouse input.
+
+    Can observe mouse movement, scroll and clicks.
     Sends MSPEventFrame when mouse changes are detected
     """
 
@@ -36,17 +41,24 @@ class Mouse(BaseSource):
         self.listener.start()
 
     def on_move(self, x, y):
-        frame = MSPEventFrame(topic=self._generate_topic(name="mouse.coordinates", dtype=float), chunk={"x": x, "y": y})
+        frame = MSPEventFrame(
+            topic=self._generate_topic(name="mouse.coordinates", dtype=float),
+            chunk={"x": x, "y": y},
+        )
         self.queue.append(frame)
 
     def on_click(self, x, y, button, pressed):
-        frame = MSPEventFrame(topic=self._generate_topic(name="mouse.click", dtype=float),
-                              chunk={"x": x, "y": y, "button": button, "pressed": pressed})
+        frame = MSPEventFrame(
+            topic=self._generate_topic(name="mouse.click", dtype=float),
+            chunk={"x": x, "y": y, "button": button, "pressed": pressed},
+        )
         self.queue.append(frame)
 
     def on_scroll(self, x, y, dx, dy):
-        frame = MSPEventFrame(topic=self._generate_topic(name="mouse.scroll", dtype=float),
-                              chunk={"x": x, "y": y, "scroll_x": dx, "scroll_y": dy})
+        frame = MSPEventFrame(
+            topic=self._generate_topic(name="mouse.scroll", dtype=float),
+            chunk={"x": x, "y": y, "scroll_x": dx, "scroll_y": dy},
+        )
         self.queue.append(frame)
 
     def on_update(self) -> Optional[MSPDataFrame]:

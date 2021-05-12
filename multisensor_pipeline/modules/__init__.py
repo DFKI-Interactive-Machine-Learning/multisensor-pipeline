@@ -1,8 +1,9 @@
-from .base import BaseProcessor, BaseSink, BaseSource
 from typing import Optional
 from queue import Queue
 from time import sleep
-from ..dataframe import MSPDataFrame
+
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
+from multisensor_pipeline.modules.base.base import BaseProcessor, BaseSink
 
 
 class PassthroughProcessor(BaseProcessor):
@@ -29,8 +30,12 @@ class AttributeExtractionProcessor(BaseProcessor):
         self._key = key
 
     def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
-        if (self._topic_name is None or frame.topic.name == self._topic_name) and self._key in frame:
-            _topic = self._generate_topic(name=f"{frame.topic.name}.{self._key}")
+        if (
+            self._topic_name is None or frame.topic.name == self._topic_name
+        ) and self._key in frame:
+            _topic = self._generate_topic(
+                name=f"{frame.topic.name}.{self._key}"
+            )
             return MSPDataFrame(topic=_topic, timestamp=frame['key'])
 
 
@@ -48,6 +53,7 @@ class ListSink(BaseSink):
         self._list.append(frame)
 
     def __len__(self):
+        """Return the length of this sink's list."""
         return len(self._list)
 
 
@@ -72,7 +78,7 @@ class QueueSink(BaseSink):
 
 
 class ConsoleSink(BaseSink):
-    """ Prints incoming frames to the console. """
+    """Prints incoming frames to the console."""
 
     def on_update(self, frame: MSPDataFrame):
         if frame is not None:

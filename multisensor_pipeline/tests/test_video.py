@@ -5,10 +5,10 @@ from time import sleep
 import av
 from PIL import Image
 
-from multisensor_pipeline import GraphPipeline
 from multisensor_pipeline.modules import ConsoleSink, QueueSink
 from multisensor_pipeline.modules.video.video import VideoSource, VideoSink
 from multisensor_pipeline.modules.video.webcam import WebCamSource
+from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 
 class VideoTesting(unittest.TestCase):
@@ -32,17 +32,17 @@ class VideoTesting(unittest.TestCase):
             self.assertEqual(True, True)
         try:
             pipeline.stop()
-        except AttributeError as e:
+        except AttributeError:
             self.assertEqual(True, True)
 
     def _test_short_video(self):
         # Create a video file with 24 PIL Images and export it
         img_sequence = []
-        for x in range(24):
+        for _ in range(24):
             img_sequence.append(Image.new('RGB', (300, 200), (228, 150, 150)))
         output = av.open('output_av.mp4', 'w')
         stream = output.add_stream('h264')
-        for i, img in enumerate(img_sequence):
+        for img in img_sequence:
             frame = av.VideoFrame.from_image(img)
             packet = stream.encode(frame)
             output.mux(packet)
@@ -70,11 +70,11 @@ class VideoTesting(unittest.TestCase):
     def _test_long_video(self):
         # Create a video file with 24 PIL Images and export it
         img_sequence = []
-        for x in range(500):
+        for _ in range(500):
             img_sequence.append(Image.new('RGB', (300, 200), (228, 150, 150)))
         output = av.open('output_av.mp4', 'w')
         stream = output.add_stream('h264', '24')
-        for i, img in enumerate(img_sequence):
+        for img in img_sequence:
             frame = av.VideoFrame.from_image(img)
             packet = stream.encode(frame)
             output.mux(packet)
@@ -103,11 +103,11 @@ class VideoTesting(unittest.TestCase):
     def test_video_sink(self):
         # Create a video file with 24 PIL Images and export it
         img_sequence = []
-        for x in range(10):
+        for _ in range(10):
             img_sequence.append(Image.new('RGB', (200, 300), (228, 150, 150)))
         output = av.open('input.mp4', 'w')
         stream = output.add_stream('h264')
-        for i, img in enumerate(img_sequence):
+        for img in img_sequence:
             frame = av.VideoFrame.from_image(img)
             packet = stream.encode(frame)
             output.mux(packet)
@@ -132,8 +132,8 @@ class VideoTesting(unittest.TestCase):
         video = av.open("output.mp4")
         count = 1
         stream = video.streams.video[0]
-        for frame in video.decode(stream):
-            count +=1
+        for _ in video.decode(stream):
+            count += 1
         self.assertEqual(10, count)
         os.remove("output.mp4")
         os.remove("input.mp4")
@@ -157,7 +157,7 @@ class WebCamTesting(unittest.TestCase):
             pipeline.start()
             sleep(5)
             pipeline.stop()
-        except ValueError as e:
+        except ValueError:
             self.assertEqual(True, True)
 
     def _test_mac_webcam(self):
@@ -178,7 +178,7 @@ class WebCamTesting(unittest.TestCase):
             sleep(2)
             pipeline.stop()
             self.assertGreater(sink.queue.qsize(), 5)
-        except ValueError as e:
+        except ValueError:
             self.assertEqual(True, True)
 
     def _test_linux_webcam(self):
@@ -199,7 +199,7 @@ class WebCamTesting(unittest.TestCase):
             sleep(2)
             pipeline.stop()
             self.assertGreater(sink.queue.qsize(), 5)
-        except ValueError as e:
+        except ValueError:
             self.assertEqual(True, True)
 
     def test_win_webcam(self):
@@ -220,5 +220,5 @@ class WebCamTesting(unittest.TestCase):
             sleep(2)
             pipeline.stop()
             self.assertGreater(sink.queue.qsize(), 5)
-        except ValueError as e:
+        except ValueError:
             self.assertEqual(True, True)

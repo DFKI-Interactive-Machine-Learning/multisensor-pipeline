@@ -2,10 +2,11 @@ from unittest import TestCase
 from multisensor_pipeline.modules.audio.microphone import Microphone
 from multisensor_pipeline.modules.audio.wave import WaveFile
 from multisensor_pipeline.modules import ListSink
-from multisensor_pipeline import GraphPipeline
 from time import sleep
 import logging
 import pathlib
+
+from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 
 class AudioTest(TestCase):
@@ -49,5 +50,6 @@ class AudioTest(TestCase):
         pipeline.join()
 
         self.assertTrue(
-            pathlib.Path(filename).exists() and pathlib.Path(filename).is_file()
+            pathlib.Path(filename).exists() and
+            pathlib.Path(filename).is_file()
         )

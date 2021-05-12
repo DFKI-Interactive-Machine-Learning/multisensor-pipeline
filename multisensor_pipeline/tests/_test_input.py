@@ -3,17 +3,17 @@ from time import sleep
 
 from pynput.keyboard import Controller, Key
 
-from multisensor_pipeline import GraphPipeline
 from multisensor_pipeline.modules import QueueSink, ListSink
 from multisensor_pipeline.modules.keyboard import Keyboard
 from multisensor_pipeline.modules.mouse import Mouse
+from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 
 class MouseInputTest(unittest.TestCase):
     def test_simple_mouse(self):
         # (1) define the modules
         source = Mouse(move=True, scroll=True, click=True)
-        sink = QueueSink()
+        sink: QueueSink = QueueSink()
 
         # (2) add module to a pipeline...
         pipeline = GraphPipeline()
@@ -69,10 +69,17 @@ class KeyboardInputTest(unittest.TestCase):
         sleep(.3)
         pipeline.stop()
         if "darwin" in keyboard.__str__():
-            # There seems te be a bug in pynput keyboard controller for Mac OSX:
+            # There seems te be a bug in pynput keyboard controller for MacOS:
             # Keypress is recognized as press and release
-            self.assertEqual(4, len(sink.list), "number of keyboard interactions are not correctly recognized or "
-                                                "permission to simulate a keyboard is not given")
+            self.assertEqual(
+                4, len(sink.list),
+                "number of keyboard interactions are not correctly recognized "
+                "or permission to simulate a keyboard is not given"
+            )
         else:
-            self.assertEqual(2, len(sink.list), "number of keyboard interactions are not correctly recognized or "
-                                                "permission to simulate a keyboard is not given")
+            self.assertEqual(
+                2,
+                len(sink.list),
+                "number of keyboard interactions are not correctly recognized "
+                "or permission to simulate a keyboard is not given"
+            )

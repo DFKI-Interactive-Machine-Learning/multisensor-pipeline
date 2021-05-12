@@ -2,24 +2,24 @@ from abc import ABC
 from threading import Thread
 from queue import Queue
 from multiprocessing.queues import Queue as MPQueue
-from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic
-from multisensor_pipeline.dataframe.control import MSPControlMessage
-from multisensor_pipeline.modules.base.profiling import MSPModuleStats
 from typing import Union, Optional
 import logging
 import uuid
+
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic
+from multisensor_pipeline.dataframe.control import MSPControlMessage
+from multisensor_pipeline.modules.base.profiling import MSPModuleStats
 
 logger = logging.getLogger(__name__)
 
 
 class BaseModule(object):
-    """
-    Base Class for all Modules
-    """
+    """Base Class for all Modules."""
 
     def __init__(self, profiling=False):
         """
-        Initialize the BaseModule
+        Initialize the BaseModule.
+
         Args:
            profiling: Option to enable profiling
         """
@@ -30,31 +30,46 @@ class BaseModule(object):
         self._active = False
 
     def start(self):
-        """
-        Starts the module.
-        """
+        """Start the module."""
         logger.debug("starting: {}".format(self.uuid))
         self._active = True
         self.on_start()
         self._thread.start()
 
     def _generate_topic(self, name: str, dtype: type = None):
-        return Topic(name=name, dtype=dtype, source_module=self.__class__, source_uuid=self.uuid)
+        return Topic(
+            name=name,
+            dtype=dtype,
+            source_module=self.__class__,
+            source_uuid=self.uuid,
+        )
 
     def on_start(self):
-        """ Custom initialization """
+        """
+        Handle a start call.
+
+        This is the custom initialization method of this module.
+        """
         pass
 
     def _worker(self):
-        """ Main worker function (async) """
+        """
+        Convert the input to the output in an asynchronous manner.
+
+        This is the main worker method of this module.
+        """
         raise NotImplementedError()
 
     def on_update(self):
-        """ Custom update routine. """
+        """
+        Handle an update.
+
+        This is the custom update routine of this module.
+        """
         raise NotImplementedError()
 
     def stop(self, blocking=True):
-        """ Stops the module. """
+        """Stop the module."""
         logger.debug("stopping: {}".format(self.uuid))
         self._active = False
         if blocking:
@@ -62,7 +77,11 @@ class BaseModule(object):
         self.on_stop()
 
     def on_stop(self):
-        """ Custom clean-up """
+        """
+        Handle a stop call.
+
+        This is the custom clean-up method of this module.
+        """
         pass
 
     def join(self):
@@ -70,42 +89,53 @@ class BaseModule(object):
 
     @property
     def active(self):
-        """ Returns if the module is activ """
+        """Return whether or not the module is active."""
         return self._active
 
     @property
     def name(self):
-        """ Returns the name of the actual subclass """
+        """Return the name of the actual subclass."""
         return self.__class__.__name__
 
     @property
     def uuid(self):
-        """ Returns the uuuid of the module """
+        """Return the uuid of the module."""
         return f"{self.name}:{self._uuid.int}"
 
     @property
     def stats(self) -> MSPModuleStats:
-        """ Returns real-time profiling information. """
+        """Return real-time profiling information."""
         return self._stats
 
 
 class BaseSource(BaseModule, ABC):
-    """ Base class for data sources. """
+    """Base class for data sources."""
 
     def __init__(self):
         """
-        Initializes the worker thread and a queue list for communication with observers that listen to that source.
+        Initialize the worker thread and a queue.
+
+        The queues in the list are used for communication with observers
+        that listen to that source.
         """
         super().__init__()
         self._sinks = []
 
     def _worker(self):
-        """ Source worker function: notify observer when source update function returns a DataFrame """
+        """
+        Notify observer when source update function returns a DataFrame.
+
+        This is the source worker function.
+        """
         while self._active:
             self._notify(self.on_update())
 
     def on_update(self) -> Optional[MSPDataFrame]:
-        """ Custom update routine. """
+        """
+        Handle an update.
+
+        This is the custom update routine of this module.
+        """
         raise NotImplementedError()
 
     def add_observer(self, sink):
@@ -113,7 +143,8 @@ class BaseSource(BaseModule, ABC):
         Register a Sink or Queue as an observer.
 
         Args:
-            sink: A thread-safe Queue object or Sink [or any class that implements put(tuple)]
+            sink: A thread-safe Queue object or Sink [or any class that
+                  implements put(tuple)]
         """
         if isinstance(sink, Queue) or isinstance(sink, MPQueue):
             self._sinks.append(sink)
@@ -126,7 +157,7 @@ class BaseSource(BaseModule, ABC):
 
     def _notify(self, frame: Optional[MSPDataFrame]):
         """
-        Notifies all observers that there's a new dataframe
+        Notify all observers that there's a new dataframe.
 
         Args:
             frame: the payload as an instance of MSPDataFrame
@@ -134,7 +165,8 @@ class BaseSource(BaseModule, ABC):
         if frame is None:
             return
 
-        assert isinstance(frame, MSPDataFrame), "You must use a MSPDataFrame instance to wrap your data."
+        assert isinstance(frame, MSPDataFrame),\
+            "You must use a MSPDataFrame instance to wrap your data."
 
         for sink in self._sinks:
             sink.put(frame)
@@ -144,21 +176,30 @@ class BaseSource(BaseModule, ABC):
 
     def stop(self, blocking: bool = True):
         """
-        Stops the source and sends a MSPControlMessage.END_OF_STREAM all observers it stopped
+        Stop the source and notify all observers it stopped.
+
+        The stop signal is an END_OF_STREAM MSPControlMessage.
 
         Args:
             blocking:
         """
-        self._notify(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM, source=self))
+        self._notify(
+            MSPControlMessage(
+                message=MSPControlMessage.END_OF_STREAM,
+                source=self,
+            )
+        )
         super(BaseSource, self).stop(blocking=blocking)
 
 
 class BaseSink(BaseModule, ABC):
-    """ Base class for data sinks. """
+    """Base class for data sinks."""
 
     def __init__(self, dropout: Union[bool, float] = False):
         """
-        Initializes the worker thread and a queue that will receive new samples from sources.
+        Initialize the worker thread and a queue.
+
+        The queue will receive new samples from sources.
 
         Args:
            dropout: Set the max age before elements of the queue are dropped
@@ -172,7 +213,7 @@ class BaseSink(BaseModule, ABC):
 
     def add_source(self, source: BaseModule):
         """
-        Add a source module to be observed
+        Add a source module to be observed.
 
         Args:
            source: Set the max age before elements of the queue are dropped
@@ -181,13 +222,19 @@ class BaseSink(BaseModule, ABC):
 
     def _handle_control_message(self, frame: MSPDataFrame):
         """
-        Handles incoming control messages from the observed sources (e.g. MSPControlMessage.END_OF_STREAM )
+        Handle incoming control messages from the observed sources.
+
+        One such MSPControlMessage might be END_OF_STREAM.
 
         Args:
            frame: frame containing MSPControlMessage
         """
         if isinstance(frame, MSPControlMessage):
-            logger.debug(f"[CONTROL] {frame.topic.source_uuid} -> {frame.message} -> {self.uuid}")
+            logger.debug(
+                f"[CONTROL] {frame.topic.source_uuid} -> "
+                f"{frame.message} -> "
+                f"{self.uuid}"
+            )
             if frame.message == MSPControlMessage.END_OF_STREAM:
                 if frame.topic.source_uuid in self._active_sources:
                     # set source to inactive
@@ -202,10 +249,12 @@ class BaseSink(BaseModule, ABC):
 
     def _worker(self):
         """
-        Sink worker function: handles the incoming Dataframes
+        Handle the incoming Dataframes.
+
+        This is the sink worker function.
         """
         while self._active:
-            frame = self._queue.get()
+            frame: MSPDataFrame = self._queue.get()
 
             if self._handle_control_message(frame):
                 continue
@@ -216,7 +265,7 @@ class BaseSink(BaseModule, ABC):
             self.on_update(frame)
 
     def on_update(self, frame: MSPDataFrame):
-        """ Custom update routine. """
+        """Handle frame update event."""
         raise NotImplementedError()
 
     def _perform_sample_dropout(self, frame_time) -> int:
@@ -238,15 +287,21 @@ class BaseSink(BaseModule, ABC):
         skipped_frames = self._perform_sample_dropout(frame.timestamp)
         self._queue.put(frame)
         if self._profiling:
-            self._stats.add_queue_state(qsize=self._queue.qsize(), skipped_frames=skipped_frames)
+            self._stats.add_queue_state(
+                qsize=self._queue.qsize(),
+                skipped_frames=skipped_frames,
+            )
 
 
 class BaseProcessor(BaseSink, BaseSource, ABC):
-    """ Base class for data processors. """
+    """Base class for data processors."""
 
     def _worker(self):
         """
-        Processor worker function: handles the incoming dataframe and sends the new processed frame to the observers
+        Process incoming to outgoing dataframes.
+
+        Processor worker function: Handles the incoming dataframe and sends
+        the new processed frame to the observers.
         """
         while self._active:
             # get incoming frame
@@ -262,5 +317,5 @@ class BaseProcessor(BaseSink, BaseSource, ABC):
             self._notify(new_frame)
 
     def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
-        """ Custom update routine. """
+        """Handle frame update event."""
         raise NotImplementedError()

@@ -1,16 +1,19 @@
-from multisensor_pipeline.dataframe import MSPDataFrame, MSPControlMessage
 from time import time
 from datetime import datetime
 from collections import deque
 
+from multisensor_pipeline.dataframe.control import MSPControlMessage
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
+
 
 class MSPModuleStats:
-    """
-    Profiling of the pipeline
-    """
+    """Profiling of the pipeline."""
+
     class MovingAverageStats(object):
         """
-          Implementation of MovingAverageStats see https://en.wikipedia.org/wiki/Moving_average
+        Implementation of MovingAverageStats.
+
+        See https://en.wikipedia.org/wiki/Moving_average
         """
 
         def __init__(self, k=20):
@@ -30,7 +33,9 @@ class MSPModuleStats:
 
         def _next_cma(self, rate: float):
             # see https://en.wikipedia.org/wiki/Moving_average
-            return (rate + self._num_samples * self._cma) / (self._num_samples + 1)
+            return \
+                (rate + self._num_samples * self._cma) / \
+                (self._num_samples + 1)
 
         def update(self, sample: float):
             self._cma = self._next_cma(sample)
@@ -38,9 +43,7 @@ class MSPModuleStats:
             self._num_samples += 1
 
     class FrequencyStats(MovingAverageStats):
-        """
-            Implementation of FrequencyStats
-        """
+        """Implementation of FrequencyStats."""
 
         _last_sample = None  # timestamp of last frame (time of being received)
 
@@ -51,13 +54,13 @@ class MSPModuleStats:
             self._last_sample = sample
 
     class Direction:
+        """Specify the input or output direction."""
+
         OUT = 0
         IN = 1
 
     def __init__(self):
-        """
-            Initialize the Profiling of the pipeline
-        """
+        """Initialize the Profiling of the pipeline."""
         self._start_time = datetime.now()
         self._stop_time = None
 

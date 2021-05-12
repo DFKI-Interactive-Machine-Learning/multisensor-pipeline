@@ -7,12 +7,20 @@ def scale_to_image_coordinate(norm_pos, width, height, flip_y=False):
 
 
 def roi_rect(width, height, center_x, center_y, size):
-    """Returns a tuple defining a box with edge size `size` around a center point"""
+    """
+    Return a tuple defining a box around a center point.
+
+    @param size: The size of the box's edges.
+    """
     s = int(.5 * size)
     x, y = int(center_x) - s, int(center_y) - s
 
     # filter gaze that is completely out of the frame
-    if x < -s or y < -s or x + size > width + s - 1 or y + size > height + s - 1:
+    if \
+            x < -s or \
+            y < -s or \
+            x + size > width + s - 1 or \
+            y + size > height + s - 1:
         return None
 
     # fit crop area for border regions

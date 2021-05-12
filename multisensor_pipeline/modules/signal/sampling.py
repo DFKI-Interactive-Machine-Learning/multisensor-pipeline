@@ -1,9 +1,9 @@
-from multisensor_pipeline import BaseProcessor
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
 from typing import Optional
 import logging
 import numpy as np
 
+from multisensor_pipeline.modules import BaseProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -11,12 +11,21 @@ logger = logging.getLogger(__name__)
 class DownsamplingProcessor(BaseProcessor):
 
     class DataFrameHistory:
+        """Organize the history of a set of data frames."""
 
-        def __init__(self, topic_uid, fps_out, window_size=5, interpolation=None):
+        def __init__(
+            self,
+            topic_uid, fps_out, window_size=5, interpolation=None
+        ):
             self.topic_uid = topic_uid
             self.target_fps = fps_out
-            self.window_size = window_size  # TODO: expose window_size, mainly for interpolation
-            self.interpolation = interpolation  # TODO: utilize interpolation for, e.g., averaging the data
+
+            # TODO: expose window_size, mainly for interpolation
+            self.window_size = window_size
+
+            # TODO: utilize interpolation for, e.g., averaging the data
+            self.interpolation = interpolation
+
             self.target_period_time = 1. / self.target_fps
             self.last_sent = None
             self.dataframes = []
@@ -39,26 +48,37 @@ class DownsamplingProcessor(BaseProcessor):
         def get_dataframe(self) -> Optional[MSPDataFrame]:
             assert len(self.dataframes) > 0, "there was no sample yet"
 
-            # if nothing was sent before take first=last sample and reset the list
+            # if nothing was sent before take first=last sample and reset the
+            # list
             if self.last_sent is None:
-                assert len(self.dataframes) == 1, "if nothing was sent, there should be only one sample in the list"
+                assert len(
+                    self.dataframes) == 1, \
+                    "if nothing was sent, there should be only one sample " \
+                    "in the list"
                 return self._update_and_get_last_sample(0)
             else:
                 # check whether current sample shall be sent
                 current_time = self.last_received.timestamp
                 last_sent_time = self.last_sent.timestamp
                 current_period_time = current_time - last_sent_time
-                if current_period_time >= self.target_period_time:  # - self.current_delay:
-                    # send sample that is closest to period time (+/- delay to keep up with target frame-rate)
-                    recent_timestamps = np.array([s.timestamp for s in self.dataframes])
-                    recent_time_diffs = np.fabs(recent_timestamps - last_sent_time - self.target_period_time)
+                if current_period_time >= self.target_period_time:
+                    # - self.current_delay:
+                    # send sample that is closest to period time
+                    # (+/- delay to keep up with target frame-rate)
+                    recent_timestamps = \
+                        np.array([s.timestamp for s in self.dataframes])
+                    recent_time_diffs = np.fabs(
+                        recent_timestamps -
+                        last_sent_time -
+                        self.target_period_time
+                    )
                     sample_id = np.argmin(recent_time_diffs)
                     return self._update_and_get_last_sample(sample_id)
             return None
 
         @property
         def current_delay(self):
-            """returns the deviation from the targeted period time"""
+            """Return the deviation from the targeted period time."""
             return self.period_time_out - self.target_period_time
 
         @property
@@ -70,8 +90,9 @@ class DownsamplingProcessor(BaseProcessor):
             if len(self._timestamps_out) < self.window_size:
                 return self.target_period_time
             else:
-                period_time_estimate = (self._timestamps_out[-1] - self._timestamps_out[0]) / \
-                                       (len(self._timestamps_out) - 1)
+                period_time_estimate = \
+                    (self._timestamps_out[-1] - self._timestamps_out[0]) / \
+                    (len(self._timestamps_out) - 1)
                 return period_time_estimate
 
         @property
@@ -84,14 +105,23 @@ class DownsamplingProcessor(BaseProcessor):
 
         @property
         def period_time_in(self):
-            return (self.dataframes[-1].timestamp - self.dataframes[0].timestamp) / len(self.dataframes)
+            return \
+                (
+                    self.dataframes[-1].timestamp -
+                    self.dataframes[0].timestamp
+                ) / len(self.dataframes)
 
     def __init__(self, topic_names=None, sampling_rate=5):
         """
-        Downsamples a signal to a given sampling_rate [Hz], if the original rate is higher.
-        Otherwise, the sampling rate stays the same (no upsampling).
-        @param topic_names: the dtype to be resampled; if None, all incoming dtypes are resampled
-        @param sampling_rate: the desired sampling rate [Hz]
+        Downsample a signal.
+
+        This respects the given sampling_rate [Hz], if the original rate is
+        higher. Otherwise, the sampling rate stays the same. There is no
+        upsampling happening in any case.
+
+        @param topic_names: The dtype to be resampled; if None, all incoming
+                            dtypes are resampled
+        @param sampling_rate: The desired sampling rate [Hz]
         """
         super(DownsamplingProcessor, self).__init__()
         self._topic_names = topic_names
@@ -104,7 +134,8 @@ class DownsamplingProcessor(BaseProcessor):
 
     def _get_history(self, uid) -> DataFrameHistory:
         if uid not in self._sample_hist:
-            self._sample_hist[uid] = self.DataFrameHistory(uid, fps_out=self._sampling_rate)
+            self._sample_hist[uid] = \
+                self.DataFrameHistory(uid, fps_out=self._sampling_rate)
         return self._sample_hist[uid]
 
     def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
@@ -113,8 +144,10 @@ class DownsamplingProcessor(BaseProcessor):
             hist.add(frame)
             _frame = hist.get_dataframe()
             if _frame is not None:
-                _topic = self._generate_topic(name=f"{frame.topic.name}.{self._sampling_rate}Hz",
-                                              dtype=frame.topic.dtype)
+                _topic = \
+                    self._generate_topic(
+                        name=f"{frame.topic.name}.{self._sampling_rate}Hz",
+                        dtype=frame.topic.dtype
+                    )
                 _frame.topic = _topic
                 return _frame
-

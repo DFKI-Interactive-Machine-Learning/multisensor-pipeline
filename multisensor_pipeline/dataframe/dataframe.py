@@ -9,8 +9,15 @@ logger = logging.getLogger(__name__)
 
 class Topic:
 
-    def __init__(self, name: str, source_uuid: str, dtype: type = None, source_module: type = None):
+    def __init__(
+        self,
+        name: str,
+        source_uuid: str,
+        dtype: type = None,
+        source_module: type = None,
+    ):
         """
+        Create a topic object instance of the Topic class.
 
         :param name:
         :param dtype:
@@ -42,19 +49,32 @@ class Topic:
         return f"{self.source_uuid}:{self.name}:{self.dtype.__name__}"
 
     def __eq__(self, other):
+        """Return weather or not this and the other object are equal."""
         if not isinstance(other, Topic):
             return False
-        return self.dtype == other.dtype and self.name == other.name and self.source_uuid == other.source_uuid
+        return \
+            self.dtype == other.dtype and \
+            self.name == other.name and \
+            self.source_uuid == other.source_uuid
 
     def __str__(self):
-        return f"{self.source_module.__name__}:{self.name}:{self.dtype.__name__}"
+        """Return a string representation of this object."""
+        return \
+            f"{self.source_module.__name__}:{self.name}:{self.dtype.__name__}"
 
     def __repr__(self):
-        return f"Topic(name={self.name}, dtype={self.dtype}, source_module={self.source_module})"
+        """Return a string representation of this object."""
+        return \
+            f"Topic(" \
+            f"name={self.name}, " \
+            f"dtype={self.dtype}, " \
+            f"source_module={self.source_module}" \
+            f")"
 
 
 class MSPDataFrame(dict):
     class JsonEncoder(json.JSONEncoder):
+        """Organize JSON Encoding."""
 
         def default(self, obj: Any) -> Any:
             if isinstance(obj, np.integer):
@@ -80,9 +100,12 @@ class MSPDataFrame(dict):
             return super(MSPDataFrame.JsonEncoder, self).default(obj)
 
     class JsonDecoder(json.JSONDecoder):
+        """Organize JSON Decoding."""
 
         def __init__(self, *args, **kwargs):
-            json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
+            json.JSONDecoder.__init__(
+                self, object_hook=self.object_hook, *args, **kwargs
+            )
 
         def object_hook(self, obj):
             if '_kind_' in obj:
@@ -125,7 +148,10 @@ class MSPDataFrame(dict):
 class MSPEventFrame(MSPDataFrame):
 
     def __init__(self, value=None, duration: float = 0, **kwargs):
-        super(MSPEventFrame, self).__init__(value=value, duration=duration, **kwargs)
+        super(MSPEventFrame, self).__init__(
+            value=value, duration=duration,
+            **kwargs,
+        )
 
     @property
     def duration(self) -> float:

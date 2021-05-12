@@ -1,15 +1,14 @@
 from abc import ABC
 from typing import List
-from multisensor_pipeline.modules.base import BaseSink
-from multisensor_pipeline.dataframe import MSPDataFrame
 from pathlib import Path
 import json
 
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
+from multisensor_pipeline.modules import BaseSink
+
 
 class RecordingSink(BaseSink, ABC):
-    """
-    RecordingSink replays a recorded json dataset
-    """
+    """RecordingSink replays a recorded json dataset."""
 
     @property
     def target(self) -> Path:
@@ -25,7 +24,8 @@ class RecordingSink(BaseSink, ABC):
 
     def __init__(self, target, topics: List = None, override=False):
         """
-        initializes RecordingSink
+        Initialize RecordingSink.
+
         Args:
             target: filepath
             topics: Filter which topics should be recorded
@@ -53,28 +53,30 @@ class RecordingSink(BaseSink, ABC):
             self.write(frame)
 
     def write(self, frame):
-        """ Custom write routine. """
+        """Write frame to medium."""
         raise NotImplementedError()
 
 
 class JsonRecordingSink(RecordingSink):
-    """
-    JsonReplaySource replays a recorded json dataset
-    """
+    """JsonReplaySource replays a recorded json dataset."""
 
     _json_file = None
 
     def on_start(self):
-        """ Checks if file and file path is correct and override if exists"""
-        assert self.target.suffix == ".json", f"The file extension must be json, but was {self.target.suffix}"
+        """Check if file and file path is correct and override if exists."""
+        assert self.target.suffix == ".json", \
+            f"The file extension must be json, but was {self.target.suffix}"
         if not self.override:
-            assert not self.target.exists(), f"The file existis, but override is disabled ({self.target})"
+            assert not self.target.exists(),\
+                f"The file existis, but override is disabled ({self.target})"
         self._json_file = self.target.open(mode="w")
 
     def write(self, frame):
-        """ Writes the json file """
-        self._json_file.write(json.dumps(obj=frame, cls=MSPDataFrame.JsonEncoder) + '\n')
+        """Write the json file."""
+        self._json_file.write(
+            json.dumps(obj=frame, cls=MSPDataFrame.JsonEncoder) + '\n'
+        )
 
     def on_stop(self):
-        """ Stops tne Sink and closes the json file """
+        """Stop the sink and closes the json file."""
         self._json_file.close()

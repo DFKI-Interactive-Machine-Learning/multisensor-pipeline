@@ -1,7 +1,9 @@
 from abc import ABC
-from multisensor_pipeline.modules import BaseSource
-from multisensor_pipeline.dataframe import MSPDataFrame, MSPControlMessage
 from time import time, sleep
+
+from multisensor_pipeline.dataframe.control import MSPControlMessage
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
+from multisensor_pipeline.modules.base.base import BaseSource
 
 
 class BaseFixedRateSource(BaseSource, ABC):
