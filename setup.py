@@ -20,7 +20,9 @@ setup(
         'networkx',
         'numpy',
         'Pillow',
-        'pynput'
+        'pynput',
+        'decorator<5.0.0',  # For networkx
+        'numpy<1.20.0',     # For Python 3.6
     ],
     keywords=[
         'multimodality', 'streaming', 'multisensor', 'sensors',
