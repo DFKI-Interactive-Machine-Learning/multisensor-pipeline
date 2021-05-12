@@ -48,4 +48,6 @@ class AudioTest(TestCase):
         pipeline.stop()
         pipeline.join()
 
-        self.assertTrue(pathlib.Path(filename).exists() and pathlib.Path(filename).is_file())
+        self.assertTrue(
+            pathlib.Path(filename).exists() and pathlib.Path(filename).is_file()
+        )
