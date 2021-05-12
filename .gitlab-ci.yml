@@ -1,5 +1,15 @@
 stages:
+    -   lint
     -   test
+
+flake8:
+    image: python:3.9.5-slim-buster
+    cache: {}
+    script:
+        -   python3.9 -m venv venv
+        -   venv/bin/python -m pip install --upgrade -r requirements.d/venv.txt
+        -   venv/bin/python -m tox -e flake8
+    stage: lint
 
 test-py36:
     image: python:3.6
