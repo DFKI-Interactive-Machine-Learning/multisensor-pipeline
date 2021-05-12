@@ -9,11 +9,11 @@ logger = logging.getLogger(__name__)
 
 class WaveFile(BaseSink):
     """
-    WaveFile Source for .wav files
+    WaveFile Sink for .wav files
     """
     def __init__(self, filename: str, channels: int = 2, format: int = pyaudio.paInt16, rate: int = 44100):
         """
-        Initialize the Source
+        Initialize the WaveFile Sink
         Args:
            filename: path of the wav file
            channels: Number of channels of the file
@@ -29,13 +29,13 @@ class WaveFile(BaseSink):
 
     def on_update(self, frame: MSPDataFrame):
         """
-        Sends chunks of the .wav file
+        Writes chunks of the .wav file
         """
         if frame.topic.name == "audio":
             self._wf.writeframes(frame["chunk"])
 
     def on_stop(self):
         """
-        Stops the WaveFile source and closes the filestream
+        Stops the WaveFileSink and closes the filestream
         """
         self._wf.close()
