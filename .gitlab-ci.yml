@@ -23,7 +23,7 @@ test-py37:
             libgl1-mesa-glx
             portaudio19-dev
         -   python3.7 -m venv venv
-        -   venv/bin/python -m pip install --upgrade tox wheel pip
+        -   venv/bin/python -m pip install --upgrade -r requirements.d/venv.txt
         -   venv/bin/python -m tox -e py37
     stage: test
 
@@ -36,7 +36,7 @@ test-py38:
             libgl1-mesa-glx
             portaudio19-dev
         -   python3.8 -m venv venv
-        -   venv/bin/python -m pip install --upgrade tox wheel pip
+        -   venv/bin/python -m pip install --upgrade -r requirements.d/venv.txt
         -   venv/bin/python -m tox -e py38
     stage: test
 
@@ -49,7 +49,7 @@ test-py39:
             libgl1-mesa-glx
             portaudio19-dev
         -   python3.9 -m venv venv
-        -   venv/bin/python -m pip install --upgrade tox wheel pip
+        -   venv/bin/python -m pip install --upgrade -r requirements.d/venv.txt
         -   venv/bin/python -m tox -e py39
     stage: test
 
@@ -98,6 +98,6 @@ test-py39:
 #            xvfb
 #            zlib1g-dev
 #        -   python3.10 -m venv venv
-#        -   venv/bin/python -m pip install --upgrade pip setuptools tox wheel
+#        -   venv/bin/python -m pip install --upgrade -r requirements.d/venv.txt
 #        -   venv/bin/python -m tox -e py310
 #    stage: test
