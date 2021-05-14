@@ -36,14 +36,14 @@ def test_zmq_pub_sub():
     pub_pipeline.connect(source, zmq_pub)
     pub_pipeline.connect(source, sink1)
 
-    logger.info("start pipelines in forward order.")
+    logger.info("Start pipelines in forward order ...")
     pub_pipeline.start()
     sub_pipeline.start()
 
-    logger.info("waiting for {}s.".format(wait_time))
+    logger.info("Waiting for {} seconds.".format(wait_time))
     sleep(wait_time)
 
-    logger.info("stop pipelines.")
+    logger.info("Stopping pipelines ...")
     pub_pipeline.stop()
     pub_pipeline.join()
     sub_pipeline.stop()
