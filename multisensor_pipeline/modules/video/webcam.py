@@ -40,7 +40,7 @@ class WebCamSource(BaseSource):
             options=self.options,
         )
 
-    def frame_gen(self):
+    def frame_generator(self):
         """Generate frames of the webcam input."""
         stream = self.video.streams.video[0]
         for frame in self.video.decode(stream):
