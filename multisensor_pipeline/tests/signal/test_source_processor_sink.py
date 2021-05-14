@@ -34,4 +34,4 @@ def test_down_sampling_processor_strong():
     pipeline.stop()
 
     # Assert
-    assert sink.queue.qsize() <= 2
+    assert sink.queue.qsize() <= 3
