@@ -1,6 +1,6 @@
-import unittest
 from random import randint
 from time import sleep
+from typing import List
 
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
 from multisensor_pipeline.modules.base.profiling import MSPModuleStats

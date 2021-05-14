@@ -1,6 +1,11 @@
-from unittest import TestCase
-import numpy as np
 from time import sleep
+import logging
+from typing import Optional
+from random import randint
+import math
+
+import numpy as np
+import pytest
 
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
 from multisensor_pipeline.modules.base.base import BaseSource, BaseProcessor
@@ -8,11 +13,6 @@ from multisensor_pipeline.modules.npy import RandomArraySource, \
     ArrayManipulationProcessor
 from multisensor_pipeline.modules import QueueSink, ConsoleSink, \
     SleepTrashSink, SleepPassthroughProcessor, ListSink
-import logging
-from typing import Optional
-from random import randint
-import math
-
 from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 logging.basicConfig(level=logging.DEBUG)

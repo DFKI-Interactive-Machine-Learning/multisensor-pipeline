@@ -1,11 +1,10 @@
-from unittest import TestCase
-from multisensor_pipeline.modules.audio.microphone import Microphone
-from multisensor_pipeline.modules.audio.wave import WaveFile
-from multisensor_pipeline.modules import ListSink
 from time import sleep
 import logging
 import pathlib
 
+from multisensor_pipeline.modules.audio.microphone import Microphone
+from multisensor_pipeline.modules.audio.wave import WaveFile
+from multisensor_pipeline.modules import ListSink
 from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 

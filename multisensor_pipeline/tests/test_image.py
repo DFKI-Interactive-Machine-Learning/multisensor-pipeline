@@ -1,14 +1,12 @@
-import unittest
+from typing import Optional
+from PIL import Image
+from time import sleep
 
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
 from multisensor_pipeline.modules.base.base import BaseSource
 from multisensor_pipeline.modules.image.pillow import CropByPointerProcessor
 from multisensor_pipeline.modules.npy import RandomArraySource
 from multisensor_pipeline.modules import TrashSink
-from typing import Optional
-from PIL import Image
-from time import sleep
-
 from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 

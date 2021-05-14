@@ -1,4 +1,8 @@
-from unittest import TestCase
+import time
+import logging
+
+import numpy as np
+
 from multisensor_pipeline.modules.multiprocess import \
     MultiprocessSourceWrapper, MultiprocessSinkWrapper, \
     MultiprocessProcessorWrapper
