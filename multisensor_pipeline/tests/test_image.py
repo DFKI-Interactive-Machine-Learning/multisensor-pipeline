@@ -43,4 +43,5 @@ def test_simple_cropping():
     p.stop()
     p.join()
 
+    # If we ever get here, we consider this test successful.
     assert True
