@@ -36,7 +36,8 @@ class WebCamSource(BaseSource):
         self.options = options
         self.video = av.open(
             format=self.web_cam_format,
-            file=self.web_cam_id, options=self.options,
+            file=self.web_cam_id,
+            options=self.options,
         )
 
     def frame_gen(self):
