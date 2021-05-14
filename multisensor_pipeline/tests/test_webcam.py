@@ -1,6 +1,7 @@
 import sys
 from time import sleep
 
+import av
 import pytest
 
 from multisensor_pipeline.modules import QueueSink
@@ -8,32 +9,59 @@ from multisensor_pipeline.modules.video.webcam import WebCamSource
 from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 
-def test_no_webcam():
-    # (1) define the modules
-    try:
-        source = WebCamSource(web_cam_format="random")
+def test_webcam_with_invalid_container_format():
+    with pytest.raises(ValueError):
+        # (1) define the modules
+        _ = WebCamSource(
+            web_cam_format="this_is_not_a_valid_container_format",
+        )
 
-        sink = QueueSink()
 
-        # (2) add module to a pipeline...
-        pipeline = GraphPipeline()
-        pipeline.add_source(source)
-        pipeline.add_sink(sink)
-        # (3) ...and connect the modules
-        pipeline.connect(source, sink)
-
-        pipeline.start()
-        sleep(5)
-        pipeline.stop()
-    except ValueError:
-        assert True
+@pytest.mark.skipif(
+    not sys.platform.startswith('linux'),
+    reason="Runs on Linux, only.",
+)
+def test_webcam_with_invalid_webcam_identifier_linux():
+    with pytest.raises(av.error.FileNotFoundError):
+        # (1) define the modules
+        _ = WebCamSource(
+            web_cam_format="video4linux2",
+            web_cam_id='this_is_not_a_valid_webcam_identifier',
+        )
 
 
 @pytest.mark.skipif(
     not sys.platform.startswith('darwin'),
     reason="Runs on MacOS, only.",
 )
-def test_mac_webcam():
+def test_webcam_with_invalid_webcam_identifier_mac_os():
+    with pytest.raises(av.error.FileNotFoundError):
+        # (1) define the modules
+        _ = WebCamSource(
+            web_cam_format="avfoundation",
+            web_cam_id='this_is_not_a_valid_webcam_identifier',
+        )
+
+
+@pytest.mark.skipif(
+    not sys.platform.startswith('win32') and
+    not sys.platform.startswith('cygwin'),
+    reason="Runs on Windows, only.",
+)
+def test_webcam_with_invalid_webcam_identifier_windows():
+    with pytest.raises(av.error.FileNotFoundError):
+        # (1) define the modules
+        _ = WebCamSource(
+            web_cam_format="vfwcap",
+            web_cam_id='this_is_not_a_valid_webcam_identifier',
+        )
+
+
+@pytest.mark.skipif(
+    not sys.platform.startswith('darwin'),
+    reason="Runs on MacOS, only.",
+)
+def test_webcam_on_mac_os():
     # (1) define the modules
     source = WebCamSource()
 
@@ -56,7 +84,7 @@ def test_mac_webcam():
     not sys.platform.startswith('linux'),
     reason="Runs on Linux, only.",
 )
-def test_linux_webcam():
+def test_webcam_on_linux():
     # (1) define the modules
     webcam_source = WebCamSource(
         web_cam_format="video4linux2",
@@ -86,7 +114,7 @@ def test_linux_webcam():
     not sys.platform.startswith('cygwin'),
     reason="Runs on Windows, only.",
 )
-def test_win_webcam():
+def test_webcam_on_windows():
     # (1) define the modules
     source = WebCamSource(web_cam_format="vfwcap")
 
