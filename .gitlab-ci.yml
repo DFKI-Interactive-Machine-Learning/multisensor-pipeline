@@ -19,6 +19,7 @@ test-py36:
             gcc
             libgl1-mesa-glx
             portaudio19-dev
+            xvfb
         -   python3.6 -m venv venv
         -   venv/bin/python -m pip install --upgrade -r requirements.d/venv.txt
         -   venv/bin/python -m tox -e py36
@@ -32,6 +33,7 @@ test-py37:
             gcc
             libgl1-mesa-glx
             portaudio19-dev
+            xvfb
         -   python3.7 -m venv venv
         -   venv/bin/python -m pip install --upgrade -r requirements.d/venv.txt
         -   venv/bin/python -m tox -e py37
@@ -45,6 +47,7 @@ test-py38:
             gcc
             libgl1-mesa-glx
             portaudio19-dev
+            xvfb
         -   python3.8 -m venv venv
         -   venv/bin/python -m pip install --upgrade -r requirements.d/venv.txt
         -   venv/bin/python -m tox -e py38
@@ -58,6 +61,7 @@ test-py39:
             gcc
             libgl1-mesa-glx
             portaudio19-dev
+            xvfb
         -   python3.9 -m venv venv
         -   venv/bin/python -m pip install --upgrade -r requirements.d/venv.txt
         -   venv/bin/python -m tox -e py39
