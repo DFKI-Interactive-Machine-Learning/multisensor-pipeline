@@ -1,4 +1,3 @@
-from unittest import TestCase
 from multisensor_pipeline.modules.network import ZmqPublisher, ZmqSubscriber
 from multisensor_pipeline.modules.npy import RandomArraySource
 from multisensor_pipeline.modules import ListSink
