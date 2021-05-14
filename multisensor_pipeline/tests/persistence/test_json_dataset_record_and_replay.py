@@ -4,6 +4,7 @@ import logging
 import numpy as np
 
 from multisensor_pipeline.modules.npy import RandomArraySource
+from multisensor_pipeline.modules.paths import DATA_PATH
 from multisensor_pipeline.modules.persistence.recording import \
     JsonRecordingSink
 from multisensor_pipeline.modules.persistence.replay import JsonReplaySource
@@ -14,7 +15,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 def test_record_and_replay():
-    filename = "json_test.json"
+    filename = DATA_PATH / "json_test.json"
 
     # --- perform a recording ---
     # create modules
