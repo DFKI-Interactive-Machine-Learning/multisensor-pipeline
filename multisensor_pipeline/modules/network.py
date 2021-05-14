@@ -59,9 +59,13 @@ class ZmqSubscriber(BaseSource):
         self.socket.setsockopt_string(zmq.SUBSCRIBE, self.source_filter)
 
     def on_update(self) -> Optional[MSPDataFrame]:
-        payload = self.socket.recv_json()
+        payload_str = self.socket.recv()
+        payload_dict = json.loads(
+            s=payload_str,
+            cls=MSPDataFrame.JsonDecoder,
+        )
         frame = MSPDataFrame(
-            **json.loads(s=payload, cls=MSPDataFrame.JsonDecoder),
+            **payload_dict,
         )
         return frame
 
