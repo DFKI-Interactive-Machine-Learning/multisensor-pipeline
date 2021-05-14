@@ -1,7 +1,7 @@
 from time import sleep
 
 
-def test_simple_mouse(xvfb):
+def _test_simple_mouse(xvfb):
     from multisensor_pipeline.modules import QueueSink
     from multisensor_pipeline.modules.input.mouse import Mouse
     from multisensor_pipeline.pipeline.graph import GraphPipeline
@@ -17,8 +17,10 @@ def test_simple_mouse(xvfb):
     # (3) ...and connect the modules
     pipeline.connect(source, sink)
 
+    # Test
     pipeline.start()
-
     sleep(.3)
     pipeline.stop()
+
+    # Assert
     assert True
