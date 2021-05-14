@@ -18,6 +18,17 @@ The multisensor pipeline (`msp`) package enables stream and event processing wit
 [![pipeline status](https://gitlab.com/bengt/multisensor-pipeline/badges/v2.0.0-bengt-active-reading/pipeline.svg)](https://gitlab.com/bengt/multisensor-pipeline/-/commits/v2.0.0-bengt-active-reading)
 [![coverage report](https://gitlab.com/bengt/multisensor-pipeline/badges/v2.0.0-bengt-active-reading/coverage.svg)](https://gitlab.com/bengt/multisensor-pipeline/-/commits/v2.0.0-bengt-active-reading)
 
+## Hardware Requirements
+
+This code requires a webcam to be present. To avoid using an actual device, it
+can also be emulated.
+
+Linux:
+
+    sudo apt install v4l2loopback-dkms
+    sudo modprobe v4l2loopback
+    ffmpeg -re -loop 1 -i IMG_20170818_135039_1_cut.png -filter:v format=yuv422p -r 30 -f v4l2 /dev/video0
+
 ## Operating Systems
 
 We currently support Linux, Windows and MacOS.
