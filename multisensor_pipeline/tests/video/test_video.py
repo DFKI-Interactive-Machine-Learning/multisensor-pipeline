@@ -146,10 +146,8 @@ def test_video_sink():
 
     # Assert
     video = av.open("output.mp4")
-    count = 1
     stream = video.streams.video[0]
-    for _ in video.decode(stream):
-        count += 1
+    count = 1 + sum(1 for _ in video.decode(stream))
     assert 10 == count
 
     # Cleanup
