@@ -1,4 +1,3 @@
-import unittest
 from time import sleep
 
 from multisensor_pipeline.modules import QueueSink
