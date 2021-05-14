@@ -32,7 +32,6 @@ class WebCamSource(BaseSource):
 
         self.web_cam_id = web_cam_id
         self.web_cam_format = web_cam_format
-        self.video = None
         self.queue = None
         self.options = options
         self.video = av.open(
