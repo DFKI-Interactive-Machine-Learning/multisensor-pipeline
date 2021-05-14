@@ -28,7 +28,7 @@ def _test_simple_keyboard(xvfb):
     assert True
 
 
-def test_simulated_keyboard_input(xvfb):
+def _test_simulated_keyboard_input(xvfb):
     from multisensor_pipeline.modules import ListSink
     from multisensor_pipeline.modules.input.keyboard import Keyboard
     from multisensor_pipeline.pipeline.graph import GraphPipeline
