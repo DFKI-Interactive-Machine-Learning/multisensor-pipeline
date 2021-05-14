@@ -68,9 +68,10 @@ def test_short_video():
 
 def test_long_video():
     # Create a video file with 24 PIL Images and export it
-    img_sequence = []
-    for _ in range(500):
-        img_sequence.append(Image.new('RGB', (300, 200), (228, 150, 150)))
+    img_sequence = [
+        Image.new('RGB', (300, 200), (228, 150, 150)) for _ in range(500)
+    ]
+
     output = av.open('output_av.mp4', 'w')
     stream = output.add_stream('h264', '24')
     for img in img_sequence:
