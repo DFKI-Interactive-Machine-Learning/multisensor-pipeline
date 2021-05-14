@@ -25,9 +25,9 @@ can also be emulated.
 
 Linux:
 
-    sudo apt install v4l2loopback-dkms
+    sudo apt install --yes v4l2loopback-dkms
     sudo modprobe v4l2loopback
-    ffmpeg -re -loop 1 -i IMG_20170818_135039_1_cut.png -filter:v format=yuv422p -r 30 -f v4l2 /dev/video0
+    ffmpeg -re -loop 1 -i data/test.png -filter:v format=yuv422p -r 30 -f v4l2 /dev/video2
 
 ## Operating Systems
 
