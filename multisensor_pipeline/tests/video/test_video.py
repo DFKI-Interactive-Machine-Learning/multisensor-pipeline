@@ -1,5 +1,6 @@
 import os
 from time import sleep
+from typing import List
 
 import av
 from PIL import Image
@@ -59,16 +60,21 @@ def test_short_video():
     # (3) ...and connect the modules
     pipeline.connect(source, sink)
 
+    # Test
     pipeline.start()
     sleep(3)
     pipeline.stop()
+
+    # Assert
     assert sink.queue.qsize() == 24
+
+    # Cleanup
     os.remove("output_av.mp4")
 
 
 def test_long_video():
-    # Create a video file with 24 PIL Images and export it
-    img_sequence = [
+    # Mock a video file with 24 PIL Images and export it
+    img_sequence: List[Image] = [
         Image.new('RGB', (300, 200), (228, 150, 150)) for _ in range(500)
     ]
 
@@ -94,18 +100,24 @@ def test_long_video():
     # (3) ...and connect the modules
     pipeline.connect(source, sink)
 
+    # Test
     pipeline.start()
     sleep(.3)
     pipeline.stop()
+
+    # Cleanup
     os.remove("output_av.mp4")
+
+    # Assert
     assert 498 > sink.queue.qsize()
 
 
 def test_video_sink():
-    # Create a video file with 24 PIL Images and export it
-    img_sequence = []
-    for _ in range(10):
-        img_sequence.append(Image.new('RGB', (200, 300), (228, 150, 150)))
+    # Mock a video file with 24 PIL Images and export it
+    img_sequence = [
+        Image.new('RGB', (200, 300), (228, 150, 150)) for _ in range(10)
+    ]
+
     output = av.open('input.mp4', 'w')
     stream = output.add_stream('h264')
     for img in img_sequence:
@@ -127,14 +139,19 @@ def test_video_sink():
     # (3) ...and connect the modules
     pipeline.connect(source, sink)
 
+    # Test
     pipeline.start()
     sleep(5)
     pipeline.stop()
+
+    # Assert
     video = av.open("output.mp4")
     count = 1
     stream = video.streams.video[0]
     for _ in video.decode(stream):
         count += 1
     assert 10 == count
+
+    # Cleanup
     os.remove("output.mp4")
     os.remove("input.mp4")
