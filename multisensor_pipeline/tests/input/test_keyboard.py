@@ -1,7 +1,10 @@
 from time import sleep
 
+import pytest
 
-def _test_simple_keyboard(xvfb):
+
+@pytest.mark.timeout(0.550 * 10)  # Kill run, if it takes 10x longer than local
+def test_simple_keyboard(xvfb):
     from multisensor_pipeline.modules import QueueSink
     from multisensor_pipeline.modules.input.keyboard import Keyboard
     from multisensor_pipeline.pipeline.graph import GraphPipeline
