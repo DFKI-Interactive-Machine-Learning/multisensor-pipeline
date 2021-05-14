@@ -3,7 +3,7 @@ from time import sleep
 
 def test_simple_mouse(xvfb):
     from multisensor_pipeline.modules import QueueSink
-    from multisensor_pipeline.modules.mouse import Mouse
+    from multisensor_pipeline.modules.input.mouse import Mouse
     from multisensor_pipeline.pipeline.graph import GraphPipeline
 
     # (1) define the modules
