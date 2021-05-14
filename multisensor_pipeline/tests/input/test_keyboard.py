@@ -1,7 +1,7 @@
 from time import sleep
 
 
-def test_simple_keyboard(xvfb):
+def _test_simple_keyboard(xvfb):
     from multisensor_pipeline.modules import QueueSink
     from multisensor_pipeline.modules.input.keyboard import Keyboard
     from multisensor_pipeline.pipeline.graph import GraphPipeline
