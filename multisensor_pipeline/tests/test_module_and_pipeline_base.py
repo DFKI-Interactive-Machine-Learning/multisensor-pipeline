@@ -35,146 +35,146 @@ class ConstraintCheckingProcessor(BaseProcessor):
         return MSPDataFrame(topic=topic, value=frame["value"] > 50)
 
 
-class MultiprocessingPipelineTest(TestCase):
+def test_pipeline_example():
+    pipeline = GraphPipeline()
+    source_vector = RandomArraySource(shape=(50,), sampling_rate=50)
+    source_scalar = RandomArraySource(sampling_rate=50)
+    processor_mean = ArrayManipulationProcessor(np.mean)
+    processor_std = ArrayManipulationProcessor(np.std)
+    sink = QueueSink()
 
-    def setUp(self) -> None:
-        self.pipeline = GraphPipeline()
-        self.src1 = RandomArraySource(shape=(50,), sampling_rate=50)
-        self.src2 = RandomArraySource(sampling_rate=50)
-        self.p1 = ArrayManipulationProcessor(np.mean)
-        self.p2 = ArrayManipulationProcessor(np.std)
-        self.sink = QueueSink()
+    assert len(pipeline.source_nodes) == 0
 
-    def test_pipeline(self):
-        self.assertEqual(len(self.pipeline.source_nodes), 0)
+    pipeline.add_source(source_vector)
 
-        self.pipeline.add_source(self.src1)
+    assert len(pipeline.source_nodes) == 1
+    assert len(pipeline.processor_nodes) == 0
+    assert len(pipeline.sink_nodes) == 0
 
-        self.assertEqual(len(self.pipeline.source_nodes), 1)
-        self.assertEqual(len(self.pipeline.processor_nodes), 0)
-        self.assertEqual(len(self.pipeline.sink_nodes), 0)
+    pipeline.add_source(source_scalar)
+    assert len(pipeline.source_nodes) == 2
+    assert len(pipeline.processor_nodes) == 0
+    assert len(pipeline.sink_nodes) == 0
 
-        self.pipeline.add_source(self.src2)
-        self.assertEqual(len(self.pipeline.source_nodes), 2)
-        self.assertEqual(len(self.pipeline.processor_nodes), 0)
-        self.assertEqual(len(self.pipeline.sink_nodes), 0)
+    pipeline.add_processor(processor_mean)
+    assert len(pipeline.source_nodes) == 2
+    assert len(pipeline.processor_nodes) == 1
+    assert len(pipeline.sink_nodes) == 0
 
-        self.pipeline.add_processor(self.p1)
-        self.assertEqual(len(self.pipeline.source_nodes), 2)
-        self.assertEqual(len(self.pipeline.processor_nodes), 1)
-        self.assertEqual(len(self.pipeline.sink_nodes), 0)
+    pipeline.add_processor(processor_std)
+    assert len(pipeline.source_nodes) == 2
+    assert len(pipeline.processor_nodes) == 2
+    assert len(pipeline.sink_nodes) == 0
 
-        self.pipeline.add_processor(self.p2)
-        self.assertEqual(len(self.pipeline.source_nodes), 2)
-        self.assertEqual(len(self.pipeline.processor_nodes), 2)
-        self.assertEqual(len(self.pipeline.sink_nodes), 0)
+    pipeline.add_sink(sink)
+    assert len(pipeline.source_nodes) == 2
+    assert len(pipeline.processor_nodes) == 2
+    assert len(pipeline.sink_nodes) == 1
 
-        self.pipeline.add_sink(self.sink)
-        self.assertEqual(len(self.pipeline.source_nodes), 2)
-        self.assertEqual(len(self.pipeline.processor_nodes), 2)
-        self.assertEqual(len(self.pipeline.sink_nodes), 1)
+    with pytest.raises(AssertionError):
+        pipeline.check_pipeline()
 
-        with self.assertRaises(AssertionError):
-            self.pipeline.check_pipeline()
+    pipeline.connect(source_vector, processor_mean)
+    pipeline.connect(source_vector, processor_std)
+    pipeline.connect(source_scalar, sink)
+    pipeline.connect(processor_mean, sink)
+    pipeline.connect(processor_std, sink)
+    assert pipeline.size == 5
 
-        self.pipeline.connect(self.src1, self.p1)
-        self.pipeline.connect(self.src1, self.p2)
-        self.pipeline.connect(self.src2, self.sink)
-        self.pipeline.connect(self.p1, self.sink)
-        self.pipeline.connect(self.p2, self.sink)
-        self.assertEqual(self.pipeline.size, 5)
+    pipeline.start()
+    assert len(pipeline.active_modules) == 5
 
-        self.pipeline.start()
-        self.assertEqual(len(self.pipeline.active_modules), 5)
+    sleep(1)
 
-        sleep(1)
+    pipeline.stop()
+    pipeline.join()
+    assert len(pipeline.active_modules) == 0
 
-        self.pipeline.stop()
-        self.pipeline.join()
-        self.assertEqual(len(self.pipeline.active_modules), 0)
+    assert not sink.empty()
 
-        self.assertFalse(self.sink.empty())
 
-    def test_minimal_example(self):
-        # define the modules
-        source = RandomArraySource(shape=(50,), sampling_rate=60)
-        processor = ArrayManipulationProcessor(numpy_operation=np.mean)
-        sink = ConsoleSink()
+def test_minimal_example():
+    # define the modules
+    source = RandomArraySource(shape=(50,), sampling_rate=60)
+    processor = ArrayManipulationProcessor(numpy_operation=np.mean)
+    sink = ConsoleSink()
 
-        # add module to a pipeline...
-        pipeline = GraphPipeline()
-        pipeline.add(modules=[source, processor, sink])
-        # ...and connect the modules
-        pipeline.connect(module=source, successor=processor)
-        pipeline.connect(module=processor, successor=sink)
-        # (optional) add another edge to print all random numbers
-        pipeline.connect(module=source, successor=sink)
+    # add module to a pipeline...
+    pipeline = GraphPipeline()
+    pipeline.add(modules=[source, processor, sink])
+    # ...and connect the modules
+    pipeline.connect(module=source, successor=processor)
+    pipeline.connect(module=processor, successor=sink)
+    # (optional) add another edge to print all random numbers
+    pipeline.connect(module=source, successor=sink)
 
-        # print mean of random numbers for 0.1 seconds
-        pipeline.start()
-        sleep(.1)
-        pipeline.stop()
-        pipeline.join()
+    # print mean of random numbers for 0.1 seconds
+    pipeline.start()
+    sleep(.1)
+    pipeline.stop()
+    pipeline.join()
 
-    def test_custom_modules_example(self):
-        # define the modules
-        source = RandomIntSource()
-        processor = ConstraintCheckingProcessor()
-        sink = ConsoleSink()
 
-        # add module to a pipeline...
-        pipeline = GraphPipeline()
-        pipeline.add(modules=[source, processor, sink])
-        # ...and connect the modules
-        pipeline.connect(module=source, successor=processor)
-        pipeline.connect(module=processor, successor=sink)
+def test_custom_modules_example():
+    # define the modules
+    source = RandomIntSource()
+    processor = ConstraintCheckingProcessor()
+    sink = ConsoleSink()
 
-        # print result of the constraint checker for 0.1 seconds
-        pipeline.start()
-        sleep(.1)
-        pipeline.stop()
-        pipeline.join()
+    # add module to a pipeline...
+    pipeline = GraphPipeline()
+    pipeline.add(modules=[source, processor, sink])
+    # ...and connect the modules
+    pipeline.connect(module=source, successor=processor)
+    pipeline.connect(module=processor, successor=sink)
 
-    def test_dropout(self):
-        dropout_threshold = .2
-        sleep_time = .5
+    # print result of the constraint checker for 0.1 seconds
+    pipeline.start()
+    sleep(.1)
+    pipeline.stop()
+    pipeline.join()
 
-        # source - sink pipeline
-        source = RandomArraySource(sampling_rate=10)
-        sink = SleepTrashSink(
-            sleep_time=dropout_threshold,
-            dropout=dropout_threshold,
-        )
 
-        p = GraphPipeline()
-        p.add([source, sink])
-        p.connect(source, sink)
-        p.start()
+def test_dropout_example():
+    dropout_threshold = .2
+    sleep_time = .5
 
-        sleep(sleep_time)
+    # source - sink pipeline
+    source = RandomArraySource(sampling_rate=10)
+    sink = SleepTrashSink(
+        sleep_time=dropout_threshold,
+        dropout=dropout_threshold,
+    )
 
-        p.stop()
-        p.join()
+    p = GraphPipeline()
+    p.add([source, sink])
+    p.connect(source, sink)
+    p.start()
 
-        # source - processor - sink pipeline
-        source = RandomArraySource(sampling_rate=10)
-        processor = SleepPassthroughProcessor(
-            sleep_time=dropout_threshold,
-            dropout=dropout_threshold,
-        )
-        sink = ListSink()
+    sleep(sleep_time)
 
-        p = GraphPipeline()
-        p.add([source, processor, sink])
-        p.connect(source, processor)
-        p.connect(processor, sink)
+    p.stop()
+    p.join()
 
-        p.start()
-        sleep(sleep_time)
-        p.stop()
-        p.join()
+    # source - processor - sink pipeline
+    source = RandomArraySource(sampling_rate=10)
+    processor = SleepPassthroughProcessor(
+        sleep_time=dropout_threshold,
+        dropout=dropout_threshold,
+    )
+    sink = ListSink()
 
-        num_received = len(sink.list)
-        num_expected = math.ceil(1. / dropout_threshold * sleep_time)
+    p = GraphPipeline()
+    p.add([source, processor, sink])
+    p.connect(source, processor)
+    p.connect(processor, sink)
 
-        self.assertTrue(abs(num_received - num_expected) <= 2)
+    p.start()
+    sleep(sleep_time)
+    p.stop()
+    p.join()
+
+    num_received = len(sink.list)
+    num_expected = math.ceil(1. / dropout_threshold * sleep_time)
+
+    assert abs(num_received - num_expected) <= 2

@@ -20,28 +20,27 @@ class EmptyImageSource(BaseSource):
         )
 
 
-class ImageCroppingTest(unittest.TestCase):
-    def test_simple_cropping(self):
-        img_source = EmptyImageSource()
-        pnt_source = RandomArraySource(
-            shape=(2,), min=0, max=255, sampling_rate=5
-        )
-        crop_processor = CropByPointerProcessor(
-            image_topic_name="empty_image",
-            image_key="image",
-            pointer_topic_names=["random"],
-            point_key="value",
-        )
-        sink = TrashSink()
+def test_simple_cropping():
+    img_source = EmptyImageSource()
+    pnt_source = RandomArraySource(
+        shape=(2,), min=0, max=255, sampling_rate=5
+    )
+    crop_processor = CropByPointerProcessor(
+        image_topic_name="empty_image",
+        image_key="image",
+        pointer_topic_names=["random"],
+        point_key="value",
+    )
+    sink = TrashSink()
 
-        p = GraphPipeline()
-        p.add([img_source, pnt_source, crop_processor, sink])
-        p.connect(img_source, crop_processor)
-        p.connect(pnt_source, crop_processor)
-        p.connect(crop_processor, sink)
-        p.start()
-        sleep(1)
-        p.stop()
-        p.join()
+    p = GraphPipeline()
+    p.add([img_source, pnt_source, crop_processor, sink])
+    p.connect(img_source, crop_processor)
+    p.connect(pnt_source, crop_processor)
+    p.connect(crop_processor, sink)
+    p.start()
+    sleep(1)
+    p.stop()
+    p.join()
 
-        self.assertEqual(True, True)
+    assert True
