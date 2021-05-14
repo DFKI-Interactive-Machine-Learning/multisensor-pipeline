@@ -3,6 +3,7 @@ from time import sleep
 
 import av
 import pytest
+from multisensor_pipeline.modules.paths import DATA_PATH
 
 from multisensor_pipeline.modules import QueueSink
 from multisensor_pipeline.modules.video.webcam import WebCamSource

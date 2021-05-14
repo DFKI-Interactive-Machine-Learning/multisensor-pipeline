@@ -3,6 +3,7 @@ import av
 import cv2
 import numpy as np
 
+from multisensor_pipeline.modules.paths import DATA_PATH
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
 from multisensor_pipeline.modules import BaseSink
 from multisensor_pipeline.modules.persistence.dataset import BaseDatasetSource
@@ -54,7 +55,7 @@ class VideoSink(BaseSink):
 
     def __init__(
         self,
-        file_path: str = "output.mp4",
+        file_path: str = str(DATA_PATH / "output.mp4"),
         live_preview: bool = True,
         topic_name: str = "frame",
         **kwargs,
