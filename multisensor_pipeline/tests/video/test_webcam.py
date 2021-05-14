@@ -1,4 +1,6 @@
+import subprocess
 import sys
+import shlex
 from time import sleep
 
 import av
@@ -75,17 +77,41 @@ def test_webcam_on_mac_os():
     # (3) ...and connect the modules
     pipeline.connect(source, sink)
 
+    # Test
     pipeline.start()
     sleep(2)
     pipeline.stop()
+
+    # Assert
     assert sink.queue.qsize() > 5
+
+
+@pytest.fixture()
+def virtual_webcam_linux_process():
+    """Start a virtual webcam using ffmpeg in a subprocess."""
+    command: str = \
+        'ffmpeg ' \
+        '-re ' \
+        '-loop 1 ' \
+        f'-i {DATA_PATH / "test.png"} ' \
+        '-filter:v ' \
+        'format=yuv422p ' \
+        '-r 30 ' \
+        '-f v4l2 ' \
+        '/dev/video2'
+    print(command)
+    print(shlex.split(command))
+    virtual_webcam_linux_process = subprocess.Popen(
+        args=shlex.split(command),
+    )
+    return virtual_webcam_linux_process
 
 
 @pytest.mark.skipif(
     not sys.platform.startswith('linux'),
     reason="Runs on Linux, only.",
 )
-def test_webcam_on_linux():
+def test_webcam_on_linux(virtual_webcam_linux_process):
     # (1) define the modules
     webcam_source = None
     webcam_identifiers = (
@@ -95,6 +121,7 @@ def test_webcam_on_linux():
     )
     for webcam_identifier in webcam_identifiers:
         try:
+            print(f'Trying webcam at {webcam_identifier} ...')
             webcam_source = WebCamSource(
                 web_cam_format="video4linux2",
                 web_cam_id=webcam_identifier,
@@ -122,10 +149,16 @@ def test_webcam_on_linux():
     # (3) ...and connect the modules
     pipeline.connect(webcam_source, sink)
 
+    # Test
     pipeline.start()
     sleep(2)
     pipeline.stop()
+
+    # Assert
     assert sink.queue.qsize() > 5
+
+    # Cleanup
+    virtual_webcam_linux_process.kill()
 
 
 @pytest.mark.skipif(

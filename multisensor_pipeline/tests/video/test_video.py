@@ -3,6 +3,7 @@ from time import sleep
 from typing import List
 
 import av
+import pytest
 from PIL import Image
 
 from multisensor_pipeline.modules.paths import DATA_PATH
