@@ -86,13 +86,27 @@ def test_webcam_on_mac_os():
 )
 def test_webcam_on_linux():
     # (1) define the modules
-    webcam_source = WebCamSource(
-        web_cam_format="video4linux2",
-        web_cam_id="/dev/video2",
-        options={
-            'framerate': '30',
-        }
+    webcam_source = None
+    webcam_identifiers = (
+        '/dev/video0',
+        '/dev/video1',
+        '/dev/video2',
     )
+    for webcam_identifier in webcam_identifiers:
+        try:
+            webcam_source = WebCamSource(
+                web_cam_format="video4linux2",
+                web_cam_id=webcam_identifier,
+                options={
+                    'framerate': '30',
+                }
+            )
+        except (av.error.FileNotFoundError, av.error.OSError):
+            pass
+    if webcam_source is None:
+        raise IOError(
+            f'Could not find a webcam. Tried: {webcam_identifiers}'
+        )
 
     sink = QueueSink()
 
