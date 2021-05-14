@@ -13,7 +13,7 @@ from multisensor_pipeline.pipeline.graph import GraphPipeline
 logging.basicConfig(level=logging.DEBUG)
 
 
-def test_rec_and_replay():
+def test_record_and_replay():
     filename = "json_test.json"
 
     # --- perform a recording ---
