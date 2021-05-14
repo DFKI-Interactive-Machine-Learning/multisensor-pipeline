@@ -16,6 +16,7 @@ test-py36:
     script:
         -   apt update
         -   apt install --yes --no-install-recommends
+            ffmpeg
             gcc
             libgl1-mesa-glx
             portaudio19-dev
@@ -30,6 +31,7 @@ test-py37:
     script:
         -   apt update
         -   apt install --yes --no-install-recommends
+            ffmpeg
             gcc
             libgl1-mesa-glx
             portaudio19-dev
@@ -44,6 +46,7 @@ test-py38:
     script:
         -   apt update
         -   apt install --yes --no-install-recommends
+            ffmpeg
             gcc
             libgl1-mesa-glx
             portaudio19-dev
@@ -58,6 +61,7 @@ test-py39:
     script:
         -   apt update
         -   apt install --yes --no-install-recommends
+            ffmpeg
             gcc
             libgl1-mesa-glx
             portaudio19-dev
