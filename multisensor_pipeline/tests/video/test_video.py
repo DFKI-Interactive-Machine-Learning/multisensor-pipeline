@@ -3,6 +3,7 @@ import unittest
 from time import sleep
 
 import av
+import pytest
 from PIL import Image
 
 from multisensor_pipeline import GraphPipeline
