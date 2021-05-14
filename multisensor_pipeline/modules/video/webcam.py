@@ -49,11 +49,12 @@ class WebCamSource(BaseSource):
 
     def on_update(self) -> Optional[MSPDataFrame]:
         try:
-            frame = next(self.frame_gen())
-            return MSPDataFrame(
+            frame = next(self.frame_generator())
+            msp_data_frame: MSPDataFrame = MSPDataFrame(
                 topic=self._generate_topic(name="frame", dtype=str),
                 chunk={"frame": frame},
             )
+            return msp_data_frame
         except av.error.BlockingIOError:
             return
 
