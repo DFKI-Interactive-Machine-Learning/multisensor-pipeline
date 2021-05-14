@@ -55,7 +55,7 @@ class VideoSink(BaseSink):
 
     def __init__(
         self,
-        file_path: str = str(DATA_PATH / "output.mp4"),
+        file_path: str = None,
         live_preview: bool = True,
         topic_name: str = "frame",
         **kwargs,
@@ -70,6 +70,11 @@ class VideoSink(BaseSink):
             topic_name: name of the frame topic
         """
         super(VideoSink, self).__init__(**kwargs)
+
+        # Handle parameter values
+        if file_path is None:
+            file_path = str(DATA_PATH / "output.mp4")
+
         self.file_path = file_path
         self.live_preview = live_preview
         self.topic_name = topic_name
