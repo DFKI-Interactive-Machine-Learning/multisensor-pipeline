@@ -87,7 +87,7 @@ jobs:
         id: test-attempt-1
         run: |
           venv/bin/python -m tox -e $TOXENV
-      - name: retry
+      - name: Test Attempt 2
         continue-on-error: true
         id: test-attempt-2
         if: steps.test-attempt-1.outcome=='failure'
@@ -96,7 +96,7 @@ jobs:
       - name: Check for Success
         if: always()
         run: |
-          if ${{ steps.test-attempt-1.outcome=='success' || \
+          if ${{ steps.test-attempt-1.outcome=='success' ||
                  steps.test-attempt-2.outcome=='success' }}; then
              echo "At least one attempt was successful!"
           else
