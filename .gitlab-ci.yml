@@ -13,6 +13,7 @@ flake8:
 
 test-py36:
     image: python:3.6
+    retry: 2
     script:
         -   apt update
         -   apt install --yes --no-install-recommends
@@ -28,6 +29,7 @@ test-py36:
 
 test-py37:
     image: python:3.7
+    retry: 2
     script:
         -   apt update
         -   apt install --yes --no-install-recommends
@@ -43,6 +45,7 @@ test-py37:
 
 test-py38:
     image: python:3.8
+    retry: 2
     script:
         -   apt update
         -   apt install --yes --no-install-recommends
@@ -58,6 +61,7 @@ test-py38:
 
 test-py39:
     image: python:3.9
+    retry: 2
     script:
         -   apt update
         -   apt install --yes --no-install-recommends
