@@ -1,0 +1,159 @@
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Checkout Working Copy
+        uses: actions/checkout@master
+        with:
+          fetch-depth: 1
+
+      - name: Setup Virtual Environment
+        run: |
+          python${{ matrix.py }} -m venv venv
+          venv/bin/python -m pip install --upgrade -r requirements.d/venv.txt
+
+      - name: Lint
+        run: |
+          venv/bin/python -m tox -e flake8
+
+  test:
+    name: Test Python ${{ matrix.py }} on ${{ matrix.os }}
+    needs: lint
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          # - windows-latest
+          - macos-latest
+        py:
+          - 3.6
+          - 3.7
+          - 3.8
+          - 3.9
+    timeout-minutes: 30
+
+    steps:
+      - name: Set up Python ${{ matrix.py }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.py }}
+
+      - name: Get pip cache directory
+        id: pip-cache
+        run: |
+          echo "::set-output name=dir::$(pip cache dir)"
+
+      - name: Cache pip packages
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.pip-cache.outputs.dir }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.d/*') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Pick environment to run (Ubuntu)
+        if: startsWith( matrix.os, 'ubuntu' )
+        run: |
+          python${{ matrix.py }} -c """
+          import platform; import os; import sys; import codecs
+          cpy = platform.python_implementation() == 'CPython'
+          base =('{}{}{}' if cpy else '{}{}').format('py' if cpy else 'pypy', *sys.version_info[0:2])
+          env = f'TOXENV={base}-ubuntu'
+          print('Picked {} for {}'.format(env, sys.version))
+          with codecs.open(os.environ['GITHUB_ENV'], 'a', 'utf-8') as file_handler:
+               file_handler.write(f'{env}\n')
+          """
+        shell: bash
+
+      - name: Pick environment to run (macOS)
+        if: startsWith( matrix.os, 'macos' )
+        run: |
+          python${{ matrix.py }} -c """
+          import platform; import os; import sys; import codecs
+          cpy = platform.python_implementation() == 'CPython'
+          base =('{}{}{}' if cpy else '{}{}').format('py' if cpy else 'pypy', *sys.version_info[0:2])
+          env = f'TOXENV={base}-macos'
+          print('Picked {} for {}'.format(env, sys.version))
+          with codecs.open(os.environ['GITHUB_ENV'], 'a', 'utf-8') as file_handler:
+               file_handler.write(f'{env}\n')
+          """
+        shell: bash
+
+      - name: Install OS dependencies (macOS)
+        if: startsWith( matrix.os, 'macos-' )
+        run: |
+          brew install portaudio
+
+      - name: Install OS dependencies (Ubuntu)
+        if: startsWith( matrix.os, 'ubuntu-' )
+        run: |
+          sudo apt update
+          sudo apt install --yes --no-install-recommends \
+            ffmpeg \
+            gcc \
+            libgl1-mesa-glx \
+            portaudio19-dev \
+            xvfb
+
+      - name: Install OS dependencies (Windows)
+        if: startsWith( matrix.os, 'windows-' )
+        run: |
+          vcpkg update
+          vcpkg install portaudio
+
+      - name: Checkout Working Copy
+        uses: actions/checkout@master
+        with:
+          fetch-depth: 1
+
+      - name: Setup Virtual Environment
+        run: |
+          python${{ matrix.py }} -m venv venv
+          venv/bin/python -m pip install --upgrade -r requirements.d/venv.txt
+
+      # Take multiple attempts at running the tests
+      - name: Test Attempt 1
+        continue-on-error: true
+        id: test-attempt-1
+        run: |
+          venv/bin/python -m tox -e $TOXENV
+        timeout-minutes: 2  # About twice the time of a successful step
+      - name: Test Attempt 2
+        continue-on-error: true
+        id: test-attempt-2
+        if: steps.test-attempt-1.outcome=='failure'
+        run: |
+          venv/bin/python -m tox -e $TOXENV
+        timeout-minutes: 2  # About twice the time of a successful step
+      - name: Test Attempt 3
+        continue-on-error: true
+        id: test-attempt-3
+        if: steps.test-attempt-2.outcome=='failure'
+        run: |
+          venv/bin/python -m tox -e $TOXENV
+        timeout-minutes: 2  # About twice the time of a successful step
+      - name: Check for Success
+        if: always()
+        run: |
+          if ${{
+              steps.test-attempt-1.outcome=='success' ||
+              steps.test-attempt-2.outcome=='success' ||
+              steps.test-attempt-3.outcome=='success'
+          }}; then
+             echo "At least one attempt was successful!"
+          else
+             exit 1
+          fi
+        shell: bash

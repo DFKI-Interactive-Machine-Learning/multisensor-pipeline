@@ -1,7 +1,7 @@
 attrs==21.2.0
 av==8.0.3
 coverage==5.5
-decorator==4.4.2
+decorator==5.0.7
 EasyProcess==0.3
 evdev==1.4.0
 iniconfig==1.1.1
