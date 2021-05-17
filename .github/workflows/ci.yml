@@ -81,7 +81,7 @@ jobs:
           python${{ matrix.py }} -m venv venv
           venv/bin/python -m pip install --upgrade -r requirements.d/venv.txt
 
-      # Two attempts at running the tests
+      # Multiple attempts at running the tests
       - name: Test Attempt 1
         continue-on-error: true
         id: test-attempt-1
@@ -93,11 +93,20 @@ jobs:
         if: steps.test-attempt-1.outcome=='failure'
         run: |
           venv/bin/python -m tox -e $TOXENV
+      - name: Test Attempt 3
+        continue-on-error: true
+        id: test-attempt-3
+        if: steps.test-attempt-2.outcome=='failure'
+        run: |
+          venv/bin/python -m tox -e $TOXENV
       - name: Check for Success
         if: always()
         run: |
-          if ${{ steps.test-attempt-1.outcome=='success' ||
-                 steps.test-attempt-2.outcome=='success' }}; then
+          if ${{
+              steps.test-attempt-1.outcome=='success' ||
+              steps.test-attempt-2.outcome=='success' ||
+              steps.test-attempt-3.outcome=='success'
+          }}; then
              echo "At least one attempt was successful!"
           else
              exit 1
