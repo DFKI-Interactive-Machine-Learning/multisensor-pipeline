@@ -63,8 +63,8 @@ jobs:
 
       - name: Install OS dependencies
         run: |
-          apt update
-          apt install --yes --no-install-recommends \
+          sudo apt update
+          sudo apt install --yes --no-install-recommends \
             ffmpeg \
             gcc \
             libgl1-mesa-glx \
