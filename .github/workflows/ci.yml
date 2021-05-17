@@ -83,4 +83,6 @@ jobs:
 
       - name: Tests
         run: |
+          # Retry before declaring a failure
+          venv/bin/python -m tox -e $TOXENV || \
           venv/bin/python -m tox -e $TOXENV
