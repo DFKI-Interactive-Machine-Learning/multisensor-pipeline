@@ -31,7 +31,7 @@ Linux:
 
 ## Operating Systems
 
-We currently support Linux, Windows and MacOS.
+We currently support Linux, Windows and macOS.
 
 ## Desktop Environments
 
@@ -63,7 +63,7 @@ pip install multisensor-pipeline
 
 **System Requirements & Prerequisites**
 
-* Operating System: We currently support Linux, Windows and MacOS.
+* Operating System: We currently support Linux, Windows and macOS.
 * Desktop Environments: Under Linux, we currently support the X Window System (X11), only.
 * Python Versions: We currently support Python 3.6, 3.7, 3.8, and 3.9.
 * Linux dependency: This package depends on PyAudio, which are bindings for portaudio19 and their 

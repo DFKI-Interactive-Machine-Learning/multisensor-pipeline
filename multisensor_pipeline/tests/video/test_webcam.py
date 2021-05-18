@@ -35,7 +35,7 @@ def test_webcam_with_invalid_webcam_identifier_linux():
 
 @pytest.mark.skipif(
     not sys.platform.startswith('darwin'),
-    reason="Runs on MacOS, only.",
+    reason="Runs on macOS, only.",
 )
 def test_webcam_with_invalid_webcam_identifier_mac_os():
     with pytest.raises(av.error.OSError):
@@ -83,7 +83,7 @@ def virtual_webcam_macos_process():
 
 @pytest.mark.skipif(
     not sys.platform.startswith('darwin'),
-    reason="Runs on MacOS, only.",
+    reason="Runs on macOS, only.",
 )
 def _test_webcam_on_mac_os(virtual_webcam_macos_process):
     # (1) define the modules
