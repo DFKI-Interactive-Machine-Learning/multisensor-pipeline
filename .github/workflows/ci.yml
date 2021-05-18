@@ -72,9 +72,10 @@ jobs:
             portaudio19-dev \
             xvfb
 
-#      - name: Install OS dependencies (macOS)
-#        if: startsWith( matrix.os, 'macos-' )
-#        run: |
+      - name: Install OS dependencies (macOS)
+        if: startsWith( matrix.os, 'macos-' )
+        run: |
+          brew install portaudio
 #          sudo apt update
 #          sudo apt install --yes --no-install-recommends \
 #            ffmpeg \
