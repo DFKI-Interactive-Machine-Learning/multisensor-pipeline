@@ -85,7 +85,10 @@ def virtual_webcam_macos_process():
     not sys.platform.startswith('darwin'),
     reason="Runs on macOS, only.",
 )
-def _test_webcam_on_mac_os(virtual_webcam_macos_process):
+# This can work on client machines, but will fail on servers.
+# So attempt to run it, but allow for it to fail
+@pytest.mark.xfail(strict=False)
+def test_webcam_on_mac_os(virtual_webcam_macos_process):
     # (1) define the modules
     source = WebCamSource()
 
