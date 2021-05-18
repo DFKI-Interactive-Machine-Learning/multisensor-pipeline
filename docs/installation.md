@@ -9,7 +9,7 @@ We recommend to use an Anaconda environment with Python 3.7 (x64). To install th
 ### Windows
 TODO: Further installation information (Portaudio)
 
-### MacOS
+### macOS
 TODO: Further installation information (Portaudio)
 
 ### Linux

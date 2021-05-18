@@ -66,7 +66,7 @@ class VideoSink(BaseSink):
         Args:
             file_path: path of the export video
             live_preview: if a live preview should be shown
-                          (does not run on MacOS)
+                          (does not run on macOS)
             topic_name: name of the frame topic
         """
         super(VideoSink, self).__init__(**kwargs)

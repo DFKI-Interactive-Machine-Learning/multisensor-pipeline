@@ -61,7 +61,7 @@ def _test_simulated_keyboard_input(xvfb):
     # Assert
     expected_events = 2
     if "darwin" in keyboard.__str__():
-        # There seems te be a bug in pynput keyboard controller for MacOS:
+        # There seems te be a bug in pynput keyboard controller for macOS:
         # Keypress is recognized as press and release
         expected_events *= 2
     assert \
