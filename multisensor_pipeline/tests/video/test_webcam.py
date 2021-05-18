@@ -85,7 +85,7 @@ def virtual_webcam_macos_process():
     not sys.platform.startswith('darwin'),
     reason="Runs on MacOS, only.",
 )
-def test_webcam_on_mac_os(virtual_webcam_macos_process):
+def _test_webcam_on_mac_os(virtual_webcam_macos_process):
     # (1) define the modules
     source = WebCamSource()
 
@@ -107,7 +107,7 @@ def test_webcam_on_mac_os(virtual_webcam_macos_process):
     assert sink.queue.qsize() > 5
 
     # Cleanup
-    virtual_webcam_linux_process.kill()
+    virtual_webcam_macos_process.kill()
 
 
 @pytest.fixture()
