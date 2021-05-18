@@ -87,7 +87,7 @@ jobs:
           python${{ matrix.py }} -m venv venv
           venv/bin/python -m pip install --upgrade -r requirements.d/venv.txt
 
-      # Multiple attempts at running the tests
+      # Take multiple attempts at running the tests
       - name: Test Attempt 1
         continue-on-error: true
         id: test-attempt-1
