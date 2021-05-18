@@ -31,7 +31,7 @@ jobs:
     needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os:
           - ubuntu-latest
@@ -62,16 +62,16 @@ jobs:
           """
         shell: bash
 
-      - name: Install OS dependencies (macOS)
-        if: startsWith( matrix.os, 'macos-' )
-        run: |
-          sudo apt update
-          sudo apt install --yes --no-install-recommends \
-            ffmpeg \
-            gcc \
-            libgl1-mesa-glx \
-            portaudio19-dev \
-            xvfb
+#      - name: Install OS dependencies (macOS)
+#        if: startsWith( matrix.os, 'macos-' )
+#        run: |
+#          sudo apt update
+#          sudo apt install --yes --no-install-recommends \
+#            ffmpeg \
+#            gcc \
+#            libgl1-mesa-glx \
+#            portaudio19-dev \
+#            xvfb
 
       - name: Checkout Working Copy
         uses: actions/checkout@master
