@@ -69,7 +69,7 @@ def test_short_video():
     pipeline.stop()
 
     # Assert
-    assert 21 < sink.queue.qsize() < 24
+    assert 21 < sink.queue.qsize() <= 24
 
     # Cleanup
     os.remove(str(DATA_PATH / "output_av.mp4"))
