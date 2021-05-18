@@ -48,8 +48,7 @@ jobs:
         with:
           python-version: ${{ matrix.py }}
 
-      - name: Pick environment to run (Ubuntu)
-        if: startsWith( matrix.os, 'ubuntu-' )
+      - name: Pick environment to run
         run: |
           python${{ matrix.py }} -c """
           import platform; import os; import sys; import codecs
@@ -61,6 +60,17 @@ jobs:
                file_handler.write(f'{env}\n')
           """
         shell: bash
+
+      - name: Install OS dependencies (Ubuntu)
+        if: startsWith( matrix.os, 'ubuntu-' )
+        run: |
+          sudo apt update
+          sudo apt install --yes --no-install-recommends \
+            ffmpeg \
+            gcc \
+            libgl1-mesa-glx \
+            portaudio19-dev \
+            xvfb
 
 #      - name: Install OS dependencies (macOS)
 #        if: startsWith( matrix.os, 'macos-' )
