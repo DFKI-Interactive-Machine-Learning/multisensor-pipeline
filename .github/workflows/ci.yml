@@ -49,7 +49,7 @@ jobs:
           python-version: ${{ matrix.py }}
 
       - name: Pick environment to run (Ubuntu)
-        if: startsWith( matrix.os, 'ubuntu-' )
+        if: startsWith( matrix.os, 'ubuntu' )
         run: |
           python${{ matrix.py }} -c """
           import platform; import os; import sys; import codecs
@@ -63,7 +63,7 @@ jobs:
         shell: bash
 
       - name: Pick environment to run (macOS)
-        if: startsWith( matrix.os, 'macos-' )
+        if: startsWith( matrix.os, 'macos' )
         run: |
           python${{ matrix.py }} -c """
           import platform; import os; import sys; import codecs
