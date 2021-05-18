@@ -42,4 +42,4 @@ def test_down_sampling_processor_no_downsampling():
     assert not sink_1.queue.empty()
     assert 10 <= sink_1.queue.qsize()
     # No sink should not have received much more messages than the other
-    assert abs(sink_0.queue.qsize() - sink_1.queue.qsize()) <= 3
+    assert abs(sink_0.queue.qsize() - sink_1.queue.qsize()) <= 4
