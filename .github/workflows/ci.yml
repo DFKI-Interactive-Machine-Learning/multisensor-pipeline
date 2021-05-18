@@ -76,13 +76,6 @@ jobs:
         if: startsWith( matrix.os, 'macos-' )
         run: |
           brew install portaudio
-#          sudo apt update
-#          sudo apt install --yes --no-install-recommends \
-#            ffmpeg \
-#            gcc \
-#            libgl1-mesa-glx \
-#            portaudio19-dev \
-#            xvfb
 
       - name: Checkout Working Copy
         uses: actions/checkout@master
