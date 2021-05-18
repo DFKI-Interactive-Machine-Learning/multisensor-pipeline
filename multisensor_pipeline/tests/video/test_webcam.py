@@ -60,11 +60,32 @@ def test_webcam_with_invalid_webcam_identifier_windows():
         )
 
 
+@pytest.fixture()
+def virtual_webcam_macos_process():
+    """Start a virtual webcam using ffmpeg in a subprocess."""
+    command: str = \
+        'ffmpeg ' \
+        '-re ' \
+        '-loop 1 ' \
+        f'-i {DATA_PATH / "test.png"} ' \
+        '-filter:v ' \
+        'format=yuv422p ' \
+        '-r 30 ' \
+        '-f avfoundation ' \
+        '/dev/video2'
+    print(command)
+    print(shlex.split(command))
+    virtual_webcam_macos_process = subprocess.Popen(
+        args=shlex.split(command),
+    )
+    return virtual_webcam_macos_process
+
+
 @pytest.mark.skipif(
     not sys.platform.startswith('darwin'),
     reason="Runs on MacOS, only.",
 )
-def test_webcam_on_mac_os():
+def test_webcam_on_mac_os(virtual_webcam_macos_process):
     # (1) define the modules
     source = WebCamSource()
 
@@ -84,6 +105,9 @@ def test_webcam_on_mac_os():
 
     # Assert
     assert sink.queue.qsize() > 5
+
+    # Cleanup
+    virtual_webcam_linux_process.kill()
 
 
 @pytest.fixture()
