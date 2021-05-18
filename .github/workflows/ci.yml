@@ -48,13 +48,28 @@ jobs:
         with:
           python-version: ${{ matrix.py }}
 
-      - name: Pick environment to run
+      - name: Pick environment to run (Ubuntu)
+        if: startsWith( matrix.os, 'ubuntu-' )
         run: |
           python${{ matrix.py }} -c """
           import platform; import os; import sys; import codecs
           cpy = platform.python_implementation() == 'CPython'
           base =('{}{}{}' if cpy else '{}{}').format('py' if cpy else 'pypy', *sys.version_info[0:2])
-          env = f'TOXENV={base}'
+          env = f'TOXENV={base}-ubuntu'
+          print('Picked {} for {}'.format(env, sys.version))
+          with codecs.open(os.environ['GITHUB_ENV'], 'a', 'utf-8') as file_handler:
+               file_handler.write(f'{env}\n')
+          """
+        shell: bash
+
+      - name: Pick environment to run (macOS)
+        if: startsWith( matrix.os, 'macos-' )
+        run: |
+          python${{ matrix.py }} -c """
+          import platform; import os; import sys; import codecs
+          cpy = platform.python_implementation() == 'CPython'
+          base =('{}{}{}' if cpy else '{}{}').format('py' if cpy else 'pypy', *sys.version_info[0:2])
+          env = f'TOXENV={base}-macos'
           print('Picked {} for {}'.format(env, sys.version))
           with codecs.open(os.environ['GITHUB_ENV'], 'a', 'utf-8') as file_handler:
                file_handler.write(f'{env}\n')
