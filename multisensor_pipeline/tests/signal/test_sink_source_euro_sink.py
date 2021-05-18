@@ -40,4 +40,4 @@ def test_one_euro_filter():
     pipeline.stop()
 
     # Assert
-    assert sink_1.queue.qsize() <= sink_0.queue.qsize()
+    assert abs(sink_1.queue.qsize() - sink_0.queue.qsize()) < 2
