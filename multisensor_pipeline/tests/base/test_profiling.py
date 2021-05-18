@@ -18,7 +18,7 @@ def test_frequency_stats():
 
     stats = msp_stats.get_stats(direction=MSPModuleStats.Direction.IN)
     assert 13 < stats["test"]._cma <= 20
-    assert 14 < stats["test"]._sma <= 20
+    assert 13 < stats["test"]._sma <= 20
 
 
 def _test_frequency_stats_again():
