@@ -55,20 +55,20 @@ class QueueSink(BaseSink):
 
     def __init__(self):
         super(QueueSink, self).__init__()
-        self._queue = Queue()
+        self._q = Queue()
 
     @property
     def queue(self):
-        return self._queue
+        return self._q
 
     def on_update(self, frame: MSPDataFrame):
-        self._queue.put(frame)
+        self._q.put(frame)
 
     def get(self):
-        self._queue.get()
+        self._q.get()
 
     def empty(self):
-        self._queue.empty()
+        self._q.empty()
 
 
 class ConsoleSink(BaseSink):
