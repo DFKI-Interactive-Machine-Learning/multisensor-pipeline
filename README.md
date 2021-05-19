@@ -18,41 +18,6 @@ The multisensor pipeline (`msp`) package enables stream and event processing wit
 [![pipeline status](https://gitlab.com/bengt/multisensor-pipeline/badges/v2.0.0-bengt-active-reading/pipeline.svg)](https://gitlab.com/bengt/multisensor-pipeline/-/commits/v2.0.0-bengt-active-reading)
 [![coverage report](https://gitlab.com/bengt/multisensor-pipeline/badges/v2.0.0-bengt-active-reading/coverage.svg)](https://gitlab.com/bengt/multisensor-pipeline/-/commits/v2.0.0-bengt-active-reading)
 
-## Hardware Requirements
-
-This code requires a webcam to be present. To avoid using an actual device, it
-can also be emulated.
-
-Linux:
-
-    sudo apt install --yes v4l2loopback-dkms
-    sudo modprobe v4l2loopback
-    ffmpeg -re -loop 1 -i data/test.png -filter:v format=yuv422p -r 30 -f v4l2 /dev/video2
-
-## Operating Systems
-
-We currently support Linux, Windows and macOS.
-
-## Desktop Environments
-
-Under Linux, we currently support the X Window System (X11), only.
-
-## Python Versions
-
-We currently support Python 3.6, 3.7, 3.8, and 3.9. This information might
-become outdated. To be sure, check the continuous integration:
-
-https://gitlab.com/bengt/multisensor-pipeline/-/pipelines
-
-## Prerequisites
-
-This package depends on PyAudio, which are bindings for portaudio19 and their 
-development headers:
-
-```shell
-sudo apt install --yes --no-install-recommends gcc portaudio19-dev
-```
-
 ## Installation
 
 We recommend using an Anaconda environment with Python 3.6 (x64) or greater. To install the `multisensor_pipeline`, activate your environment of choice and run the following command:
@@ -66,11 +31,28 @@ pip install multisensor-pipeline
 * Operating System: We currently support Linux, Windows and macOS.
 * Desktop Environments: Under Linux, we currently support the X Window System (X11), only.
 * Python Versions: We currently support Python 3.6, 3.7, 3.8, and 3.9.
-* Linux dependency: This package depends on PyAudio, which are bindings for portaudio19 and their 
+* Library dependency: This package depends on PyAudio, which are bindings for portaudio19 and their 
 development headers:
-    ```shell
-    sudo apt install --yes --no-install-recommends gcc portaudio19-dev
-    ```
+
+Under Linux:
+
+```shell
+sudo apt install --yes --no-install-recommends gcc portaudio19-dev
+```
+
+Under macOS:
+
+```shell
+brew install portaudio
+```
+
+Under Windows:
+
+```shell
+vcpkg update
+vcpkg install portaudio  # Currently defunct
+```
+
 
 ## Quick Start Example
 
