@@ -50,11 +50,13 @@ def test_zmq_pub_sub():
     sub_pipeline.join()
 
     sink1_values = {
-        (f.timestamp, f['value'].flatten().tolist()[0]) for f in sink1.list
+        (frame.timestamp, frame['value'].flatten().tolist()[0])
+        for frame in sink1.list
     }
 
     sink2_values = {
-        (f.timestamp, f['value'].flatten().tolist()[0]) for f in sink2.list
+        (frame.timestamp, frame['value'].flatten().tolist()[0])
+        for frame in sink2.list
     }
 
     assert \
