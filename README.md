@@ -15,8 +15,7 @@ The multisensor pipeline (`msp`) package enables stream and event processing wit
 
 # Status
 
-[![pipeline status](https://gitlab.com/bengt/multisensor-pipeline/badges/v2.0.0-bengt-active-reading/pipeline.svg)](https://gitlab.com/bengt/multisensor-pipeline/-/commits/v2.0.0-bengt-active-reading)
-[![coverage report](https://gitlab.com/bengt/multisensor-pipeline/badges/v2.0.0-bengt-active-reading/coverage.svg)](https://gitlab.com/bengt/multisensor-pipeline/-/commits/v2.0.0-bengt-active-reading)
+[![.github/workflows/ci.yml](https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline/actions/workflows/ci.yml)
 
 ## Installation
 
