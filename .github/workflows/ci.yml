@@ -31,7 +31,7 @@ jobs:
     needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os:
           - ubuntu-latest
@@ -76,6 +76,11 @@ jobs:
           """
         shell: bash
 
+      - name: Install OS dependencies (macOS)
+        if: startsWith( matrix.os, 'macos-' )
+        run: |
+          brew install portaudio
+
       - name: Install OS dependencies (Ubuntu)
         if: startsWith( matrix.os, 'ubuntu-' )
         run: |
@@ -87,14 +92,10 @@ jobs:
             portaudio19-dev \
             xvfb
 
-      - name: Install OS dependencies (macOS)
-        if: startsWith( matrix.os, 'macos-' )
-        run: |
-          brew install portaudio
-
       - name: Install OS dependencies (Windows)
         if: startsWith( matrix.os, 'windows-' )
         run: |
+          vcpkg update
           vcpkg install portaudio
 
       - name: Checkout Working Copy
