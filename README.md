@@ -53,7 +53,6 @@ vcpkg update
 vcpkg install portaudio  # Currently defunct
 ```
 
-
 ## Quick Start Example
 
 ```python
