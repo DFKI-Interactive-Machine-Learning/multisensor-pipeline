@@ -130,9 +130,7 @@ You can easily create custom modules by inheriting from one of the abstract modu
 
 ```python
 class RandomIntSource(BaseSource):
-    """
-    Generate 50 random numbers per second.
-"""
+    """Generate 50 random numbers per second."""
        
     def on_update(self) -> Optional[MSPDataFrame]:
         sleep(.02)
@@ -144,9 +142,7 @@ class RandomIntSource(BaseSource):
 
 ```python
 class ConstraintCheckingProcessor(BaseProcessor):
-    """
-    Checks, if incoming values are greater than 50.
-    """
+    """Check, if incoming values are greater than 50."""
 
     def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
         topic = self._generate_topic(name="constraint_check", dtype=bool)
@@ -157,9 +153,7 @@ class ConstraintCheckingProcessor(BaseProcessor):
 
 ```python
 class ConsoleSink(BaseSink):
-    """
-    Prints incoming frames to the console.
-    """
+    """Print incoming frames to the console."""
 
     def on_update(self, frame: MSPDataFrame):
         print(frame)
