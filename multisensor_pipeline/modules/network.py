@@ -1,9 +1,7 @@
-from typing import Optional, ByteString, Union
+from typing import Optional
 import zmq
 import logging
 import json
-
-from zmq import Frame
 
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
 from multisensor_pipeline.modules import BaseSink
