@@ -1,19 +1,20 @@
 import os
 import unittest
 from time import sleep
+from typing import List
 
 import av
 import pytest
 from PIL import Image
 
-from multisensor_pipeline import GraphPipeline
+from multisensor_pipeline.modules.paths import DATA_PATH
 from multisensor_pipeline.modules import ConsoleSink, QueueSink
 from multisensor_pipeline.modules.video.video import VideoSource, VideoSink
-from multisensor_pipeline.modules.video.webcam import WebCamSource
+from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 
-class VideoTesting(unittest.TestCase):
-    def _test_no_video_file(self):
+class VideoTestCase(unittest.TestCase):
+    def test_no_video_file(self):
         # (1) define the modules
         source = VideoSource(playback_speed=1)
         sink = ConsoleSink()
@@ -30,20 +31,21 @@ class VideoTesting(unittest.TestCase):
             pipeline.start()
             sleep(2)
         except av.error.FileNotFoundError:
-            self.assertEqual(True, True)
+            assert True
         try:
             pipeline.stop()
-        except AttributeError as e:
-            self.assertEqual(True, True)
+        except AttributeError:
+            assert True
 
-    def _test_short_video(self):
+    def test_short_video(self):
         # Create a video file with 24 PIL Images and export it
-        img_sequence = []
-        for x in range(24):
-            img_sequence.append(Image.new('RGB', (300, 200), (228, 150, 150)))
-        output = av.open('output_av.mp4', 'w')
+        img_sequence = [
+            Image.new('RGB', (300, 200), (228, 150, 150)) for _ in range(24)
+        ]
+
+        output = av.open(str(DATA_PATH / 'output_av.mp4'), 'w')
         stream = output.add_stream('h264')
-        for i, img in enumerate(img_sequence):
+        for img in img_sequence:
             frame = av.VideoFrame.from_image(img)
             packet = stream.encode(frame)
             output.mux(packet)
@@ -52,7 +54,7 @@ class VideoTesting(unittest.TestCase):
         output.close()
 
         # (1) define the modules
-        source = VideoSource(file_path="output_av.mp4")
+        source = VideoSource(file_path=str(DATA_PATH / "output_av.mp4"))
         sink = QueueSink()
 
         # (2) add module to a pipeline...
@@ -62,20 +64,27 @@ class VideoTesting(unittest.TestCase):
         # (3) ...and connect the modules
         pipeline.connect(source, sink)
 
+        # Test
         pipeline.start()
-        sleep(2)
+        sleep(3)
         pipeline.stop()
-        self.assertEqual(sink.queue.qsize(), 23)
-        os.remove("output_av.mp4")
 
-    def _test_long_video(self):
-        # Create a video file with 24 PIL Images and export it
-        img_sequence = []
-        for x in range(500):
-            img_sequence.append(Image.new('RGB', (300, 200), (228, 150, 150)))
-        output = av.open('output_av.mp4', 'w')
+        # Assert
+        assert 16 < sink.queue.qsize() <= 24
+
+        # Cleanup
+        os.remove(str(DATA_PATH / "output_av.mp4"))
+
+    @pytest.mark.timeout(0.420 * 10)  # Kill run, if it takes 10x longer than local
+    def test_long_video(self):
+        # Mock a video file with 24 PIL Images and export it
+        img_sequence: List[Image] = [
+            Image.new('RGB', (300, 200), (228, 150, 150)) for _ in range(500)
+        ]
+
+        output = av.open(str(DATA_PATH / 'output_av.mp4'), 'w')
         stream = output.add_stream('h264', '24')
-        for i, img in enumerate(img_sequence):
+        for img in img_sequence:
             frame = av.VideoFrame.from_image(img)
             packet = stream.encode(frame)
             output.mux(packet)
@@ -85,7 +94,7 @@ class VideoTesting(unittest.TestCase):
         output.close()
 
         # (1) define the modules
-        source = VideoSource(file_path="output_av.mp4")
+        source = VideoSource(file_path=str(DATA_PATH / "output_av.mp4"))
         sink = QueueSink()
 
         # (2) add module to a pipeline...
@@ -95,20 +104,26 @@ class VideoTesting(unittest.TestCase):
         # (3) ...and connect the modules
         pipeline.connect(source, sink)
 
+        # Test
         pipeline.start()
         sleep(.3)
         pipeline.stop()
-        os.remove("output_av.mp4")
-        self.assertGreater(498, sink.queue.qsize())
+
+        # Cleanup
+        os.remove(str(DATA_PATH / "output_av.mp4"))
+
+        # Assert
+        assert 498 > sink.queue.qsize()
 
     def test_video_sink(self):
-        # Create a video file with 24 PIL Images and export it
-        img_sequence = []
-        for x in range(10):
-            img_sequence.append(Image.new('RGB', (200, 300), (228, 150, 150)))
-        output = av.open('input.mp4', 'w')
+        # Mock a video file with 24 PIL Images and export it
+        img_sequence = [
+            Image.new('RGB', (200, 300), (228, 150, 150)) for _ in range(10)
+        ]
+
+        output = av.open(str(DATA_PATH / 'input.mp4'), 'w')
         stream = output.add_stream('h264')
-        for i, img in enumerate(img_sequence):
+        for img in img_sequence:
             frame = av.VideoFrame.from_image(img)
             packet = stream.encode(frame)
             output.mux(packet)
@@ -117,8 +132,11 @@ class VideoTesting(unittest.TestCase):
         output.close()
 
         # (1) define the modules
-        source = VideoSource(file_path="input.mp4")
-        sink = VideoSink(live_preview=False, file_path="output.mp4")
+        source = VideoSource(file_path=str(DATA_PATH / "input.mp4"))
+        sink = VideoSink(
+            file_path=str(DATA_PATH / "output.mp4"),
+            live_preview=False,
+        )
 
         # (2) add module to a pipeline...
         pipeline = GraphPipeline()
@@ -127,99 +145,17 @@ class VideoTesting(unittest.TestCase):
         # (3) ...and connect the modules
         pipeline.connect(source, sink)
 
+        # Test
         pipeline.start()
         sleep(5)
         pipeline.stop()
-        video = av.open("output.mp4")
-        count = 1
+
+        # Assert
+        video = av.open(str(DATA_PATH / "output.mp4"))
         stream = video.streams.video[0]
-        for frame in video.decode(stream):
-            count +=1
-        self.assertEqual(10, count)
-        os.remove("output.mp4")
-        os.remove("input.mp4")
+        count = 1 + sum(1 for _ in video.decode(stream))
+        assert 10 == count
 
-
-class WebCamTesting(unittest.TestCase):
-    def _test_no_webcam(self):
-        # (1) define the modules
-        try:
-            source = WebCamSource(web_cam_format="random")
-
-            sink = QueueSink()
-
-            # (2) add module to a pipeline...
-            pipeline = GraphPipeline()
-            pipeline.add_source(source)
-            pipeline.add_sink(sink)
-            # (3) ...and connect the modules
-            pipeline.connect(source, sink)
-
-            pipeline.start()
-            sleep(5)
-            pipeline.stop()
-        except ValueError as e:
-            self.assertEqual(True, True)
-
-    def _test_mac_webcam(self):
-        try:
-            # (1) define the modules
-            source = WebCamSource()
-
-            sink = QueueSink()
-
-            # (2) add module to a pipeline...
-            pipeline = GraphPipeline()
-            pipeline.add_source(source)
-            pipeline.add_sink(sink)
-            # (3) ...and connect the modules
-            pipeline.connect(source, sink)
-
-            pipeline.start()
-            sleep(2)
-            pipeline.stop()
-            self.assertGreater(sink.queue.qsize(), 5)
-        except ValueError as e:
-            self.assertEqual(True, True)
-
-    def _test_linux_webcam(self):
-        try:
-            # (1) define the modules
-            source = WebCamSource(web_cam_format="video4linux2")
-
-            sink = QueueSink()
-
-            # (2) add module to a pipeline...
-            pipeline = GraphPipeline()
-            pipeline.add_source(source)
-            pipeline.add_sink(sink)
-            # (3) ...and connect the modules
-            pipeline.connect(source, sink)
-
-            pipeline.start()
-            sleep(2)
-            pipeline.stop()
-            self.assertGreater(sink.queue.qsize(), 5)
-        except ValueError as e:
-            self.assertEqual(True, True)
-
-    def test_win_webcam(self):
-        try:
-            # (1) define the modules
-            source = WebCamSource(web_cam_format="vfwcap")
-
-            sink = QueueSink()
-
-            # (2) add module to a pipeline...
-            pipeline = GraphPipeline()
-            pipeline.add_source(source)
-            pipeline.add_sink(sink)
-            # (3) ...and connect the modules
-            pipeline.connect(source, sink)
-
-            pipeline.start()
-            sleep(2)
-            pipeline.stop()
-            self.assertGreater(sink.queue.qsize(), 5)
-        except ValueError as e:
-            self.assertEqual(True, True)
+        # Cleanup
+        os.remove(str(DATA_PATH / "output.mp4"))
+        os.remove(str(DATA_PATH / "input.mp4"))

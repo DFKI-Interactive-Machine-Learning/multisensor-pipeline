@@ -1,15 +1,15 @@
-from unittest import TestCase
-from multisensor_pipeline.modules.audio.microphone import Microphone
-from multisensor_pipeline.modules.audio.wave import WaveFile
-from multisensor_pipeline.modules import ListSink
-from multisensor_pipeline import GraphPipeline
-from time import sleep
 import logging
+import unittest
+from time import sleep
 import pathlib
 
+from multisensor_pipeline.modules import ListSink
+from multisensor_pipeline.modules.audio.microphone import Microphone
+from multisensor_pipeline.modules.audio.wave import WaveFile
+from multisensor_pipeline.pipeline.graph import GraphPipeline
 
-class AudioTest(TestCase):
 
+class AudioTestCase(unittest.TestCase):
     def _test_microphone_input(self):
         sink = ListSink()
         try:
@@ -27,7 +27,8 @@ class AudioTest(TestCase):
             logging.info("recording stopped")
 
         chunks = [f["chunk"] for f in sink.list]
-        self.assertGreater(len(chunks), 0)
+
+        assert len(chunks) > 0
 
     def _test_mic_to_wave_pipeline(self):
         filename = 'test_mic_to_wave_pipeline.wav'
@@ -48,6 +49,5 @@ class AudioTest(TestCase):
         pipeline.stop()
         pipeline.join()
 
-        self.assertTrue(
-            pathlib.Path(filename).exists() and pathlib.Path(filename).is_file()
-        )
+        assert pathlib.Path(filename).exists()
+        assert pathlib.Path(filename).is_file()
