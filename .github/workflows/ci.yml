@@ -27,7 +27,7 @@ jobs:
           venv/bin/python -m tox -e flake8
 
   test:
-    name: test ${{ matrix.py }} on ${{ matrix.os }}
+    name: Test on Python ${{ matrix.py }} under ${{ matrix.os }}
     needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
@@ -35,7 +35,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - windows-latest
+          # - windows-latest
           - macos-latest
         py:
           - 3.6
