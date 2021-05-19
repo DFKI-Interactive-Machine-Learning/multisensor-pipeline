@@ -1,7 +1,7 @@
+"""Packaging logic for Multisensor Pipeline."""
+
 from distutils.core import setup
 from setuptools import find_packages
-import setuptools
-
 
 setup(
     name='multisensor-pipeline',
@@ -12,7 +12,8 @@ setup(
     packages=find_packages(
         include=('multisensor_pipeline.*', 'multisensor_pipeline')
     ),
-    url="https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline",
+    url="https://github.com/" +
+        "DFKI-Interactive-Machine-Learning/multisensor-pipeline",
     description="The core library of the DFKI multisensor pipeline framework.",
     python_requires='>=3.6.0',
     install_requires=[

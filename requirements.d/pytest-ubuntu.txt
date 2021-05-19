@@ -1,7 +1,8 @@
 attrs==21.2.0
 av==8.0.3
 coverage==5.5
-decorator==5.0.7
+decorator==4.4.2
+EasyProcess==0.3
 evdev==1.4.0
 iniconfig==1.1.1
 networkx==2.5.1
@@ -17,7 +18,10 @@ pynput==1.7.3
 pyparsing==2.4.7
 pytest==6.2.4
 pytest-cov==2.11.1
+pytest-timeout==1.4.2
+pytest-xvfb==2.0.0
 python-xlib==0.29
+PyVirtualDisplay==2.1
 pyzmq==22.0.3
 setuptools==56.2.0
 six==1.16.0
