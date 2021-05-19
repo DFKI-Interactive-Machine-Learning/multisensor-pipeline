@@ -97,6 +97,9 @@ jobs:
         run: |
           vcpkg update
           vcpkg install portaudio
+
+      - name: Store vcpkg Artifacts
+        uses: actions/upload-artifact@v2
         with:
           name: git-init-x86-windows-out.log
           path: C:/vcpkg/buildtrees/portaudio/git-init-x86-windows-out.log
