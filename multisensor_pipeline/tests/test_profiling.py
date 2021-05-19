@@ -7,7 +7,7 @@ from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
 from multisensor_pipeline.modules.base.profiling import MSPModuleStats
 
 
-class ProfilingTestCase(unittest.TestCase):
+class ProfilingTest(unittest.TestCase):
     def test_frequency_stats(self):
         msp_stats = MSPModuleStats()
         frames: List = []

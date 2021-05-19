@@ -9,7 +9,8 @@ from multisensor_pipeline.modules.audio.wave import WaveFile
 from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 
-class AudioTestCase(unittest.TestCase):
+class AudioTest(unittest.TestCase):
+
     def _test_microphone_input(self):
         sink = ListSink()
         try:

@@ -8,7 +8,7 @@ from multisensor_pipeline.modules.signal.sampling import DownsamplingProcessor
 from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 
-class SignalTestCase(unittest.TestCase):
+class DownsamplingProcessorTest(unittest.TestCase):
     def test_down_sampling_processor_no_downsampling(self):
         # Mock a setup like so:
         # sink_0 <- source -> processor -> sink_1

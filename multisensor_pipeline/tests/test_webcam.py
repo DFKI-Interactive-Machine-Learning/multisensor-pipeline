@@ -141,7 +141,7 @@ def test_webcam_on_linux(virtual_webcam_linux_process):
     virtual_webcam_linux_process.kill()
 
 
-class WebcamTestCase(unittest.TestCase):
+class WebCamTesting(unittest.TestCase):
     def test_webcam_with_invalid_container_format(self):
         with pytest.raises(ValueError):
             # (1) define the modules

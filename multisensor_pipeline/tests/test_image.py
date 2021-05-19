@@ -21,7 +21,7 @@ class EmptyImageSource(BaseSource):
         )
 
 
-class ImageTestCase(unittest.TestCase):
+class ImageCroppingTest(unittest.TestCase):
     def test_simple_cropping(self):
         img_source = EmptyImageSource()
         pnt_source = RandomArraySource(
