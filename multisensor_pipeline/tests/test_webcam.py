@@ -38,7 +38,7 @@ def test_webcam_with_invalid_webcam_identifier_linux():
     reason="Runs on MacOS, only.",
 )
 def test_webcam_with_invalid_webcam_identifier_mac_os():
-    with pytest.raises(av.error.FileNotFoundError):
+    with pytest.raises(av.error.OSError):
         # (1) define the modules
         _ = WebCamSource(
             web_cam_format="avfoundation",
