@@ -44,6 +44,7 @@ nav:
       - Creating Custom Modules: 'custom_modules.md'
       - Existing Extensions: 'existing_modules.md'
 
+
 markdown_extensions:
   - toc:
       slugify: !!python/name:pymdownx.slugs.uslugify
@@ -68,3 +69,6 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline
+
+
+
