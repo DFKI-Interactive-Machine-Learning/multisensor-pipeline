@@ -77,4 +77,4 @@ def test_record_and_replay():
         f"Recording at {sampling_rate} Hz (actual: {rec_fps} Hz)\t"
         f"Playback ({playback_speed}x) at {playback_fps} Hz"
     )
-    assert float(mean_frame_time_diff) <= .03
+    assert float(mean_frame_time_diff) <= .08
