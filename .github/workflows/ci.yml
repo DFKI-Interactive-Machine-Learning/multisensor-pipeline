@@ -97,6 +97,10 @@ jobs:
         run: |
           vcpkg update
           vcpkg install portaudio
+        with:
+          name: git-init-x86-windows-out.log
+          path: |
+            C:/vcpkg/buildtrees/portaudio/git-init-x86-windows-out.log
 
       - name: Checkout Working Copy
         uses: actions/checkout@master
