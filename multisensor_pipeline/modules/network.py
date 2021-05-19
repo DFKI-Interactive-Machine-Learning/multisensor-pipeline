@@ -1,7 +1,9 @@
-from typing import Optional
+from typing import Optional, ByteString, Union
 import zmq
 import logging
 import json
+
+from zmq import Frame
 
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
 from multisensor_pipeline.modules import BaseSink
@@ -64,7 +66,7 @@ class ZmqSubscriber(BaseSource):
             s=payload_str,
             cls=MSPDataFrame.JsonDecoder,
         )
-        frame = MSPDataFrame(
+        frame: MSPDataFrame = MSPDataFrame(
             **payload_dict,
         )
         return frame
