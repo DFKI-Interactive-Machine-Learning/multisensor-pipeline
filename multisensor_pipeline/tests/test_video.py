@@ -13,7 +13,7 @@ from multisensor_pipeline.modules.video.video import VideoSource, VideoSink
 from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 
-class VideoTestCase(unittest.TestCase):
+class VideoTesting(unittest.TestCase):
     def test_no_video_file(self):
         # (1) define the modules
         source = VideoSource(playback_speed=1)

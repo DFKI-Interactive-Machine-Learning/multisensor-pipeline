@@ -23,6 +23,7 @@ class WebCamSource(BaseSource):
         super(WebCamSource, self).__init__()
         self.web_cam_id = web_cam_id
         self.web_cam_format = web_cam_format
+        self.video = None
         self.queue = None
         self.options = options
         self.video = av.open(format=self.web_cam_format, file=self.web_cam_id, options=self.options)

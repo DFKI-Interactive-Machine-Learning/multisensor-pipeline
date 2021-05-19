@@ -15,7 +15,8 @@ from multisensor_pipeline.pipeline.graph import GraphPipeline
 logging.basicConfig(level=logging.DEBUG)
 
 
-class InputTestCase(unittest.TestCase):
+class JsonSerializationTest(unittest.TestCase):
+
     def test_record_and_replay(self):
         filename = DATA_PATH / "json_test.json"
 

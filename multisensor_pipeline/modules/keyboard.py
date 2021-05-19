@@ -22,10 +22,13 @@ class Keyboard(BaseSource):
         self.queue = collections.deque()
 
     def on_start(self):
-        self.listener = keyboard.Listener(
-            on_press=self.on_press if self.press else None,
-            on_release=self.on_release if self.release else None,
-        )
+        args = {}
+        if self.press:
+            args["on_press"] = self.on_press
+        if self.release:
+            args["on_release"] = self.on_release
+
+        self.listener = keyboard.Listener(**args)
         self.listener.start()
 
     def on_press(self, key):
