@@ -99,6 +99,7 @@ jobs:
           vcpkg install portaudio
 
       - name: Store vcpkg Artifacts
+        if: always()
         uses: actions/upload-artifact@v2
         with:
           name: git-init-x86-windows-out.log
@@ -144,3 +145,4 @@ jobs:
           else
              exit 1
           fi
+        shell: bash
