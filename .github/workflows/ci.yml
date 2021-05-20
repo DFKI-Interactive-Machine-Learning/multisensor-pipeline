@@ -129,35 +129,35 @@ jobs:
         id: test-attempt-1
         run: |
           venv/bin/python -m tox -e $TOXENV
-        timeout-minutes: 2  # About twice the time of a successful step
+        timeout-minutes: 3  # About twice the time of a successful step
       - name: Test Attempt 2
         continue-on-error: true
         id: test-attempt-2
         if: steps.test-attempt-1.outcome=='failure'
         run: |
           venv/bin/python -m tox -e $TOXENV
-        timeout-minutes: 2  # About twice the time of a successful step
+        timeout-minutes: 3  # About twice the time of a successful step
       - name: Test Attempt 3
         continue-on-error: true
         id: test-attempt-3
         if: steps.test-attempt-2.outcome=='failure'
         run: |
           venv/bin/python -m tox -e $TOXENV
-        timeout-minutes: 2  # About twice the time of a successful step
+        timeout-minutes: 3  # About twice the time of a successful step
       - name: Test Attempt 4
         continue-on-error: true
         id: test-attempt-4
         if: steps.test-attempt-3.outcome=='failure'
         run: |
           venv/bin/python -m tox -e $TOXENV
-        timeout-minutes: 2  # About twice the time of a successful step
+        timeout-minutes: 3  # About twice the time of a successful step
       - name: Test Attempt 5
         continue-on-error: true
         id: test-attempt-5
         if: steps.test-attempt-4.outcome=='failure'
         run: |
           venv/bin/python -m tox -e $TOXENV
-        timeout-minutes: 2  # About twice the time of a successful step
+        timeout-minutes: 3  # About twice the time of a successful step
       - name: Check for Success
         if: always()
         run: |
