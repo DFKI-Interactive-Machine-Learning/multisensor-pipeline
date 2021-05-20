@@ -19,8 +19,8 @@ class ProfilingTest(unittest.TestCase):
             sleep(0.05)
 
         stats = msp_stats.get_stats(direction=MSPModuleStats.Direction.IN)
-        assert 11 < stats["test"]._cma <= 20
-        assert 11 < stats["test"]._sma <= 20
+        assert 9 < stats["test"]._cma <= 20
+        assert 9 < stats["test"]._sma <= 20
 
     def _test_frequency_stats_again(self):
         msp_stats = MSPModuleStats()
