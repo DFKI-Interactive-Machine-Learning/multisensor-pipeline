@@ -164,7 +164,9 @@ jobs:
           if ${{
               steps.test-attempt-1.outcome=='success' ||
               steps.test-attempt-2.outcome=='success' ||
-              steps.test-attempt-3.outcome=='success'
+              steps.test-attempt-3.outcome=='success' ||
+              steps.test-attempt-4.outcome=='success' ||
+              steps.test-attempt-5.outcome=='success'
           }}; then
              echo "At least one attempt was successful!"
           else
