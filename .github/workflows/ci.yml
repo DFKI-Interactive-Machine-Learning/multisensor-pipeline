@@ -107,7 +107,7 @@ jobs:
         if: startsWith( matrix.os, 'windows-' )
         run: |
           vcpkg update
-          vcpkg install portaudio
+          vcpkg install portaudio[asio]
         shell: powershell
 
       - name: Store vcpkg Artifacts
