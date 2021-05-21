@@ -21,11 +21,9 @@ jobs:
         run: |
           python${{ matrix.py }} -m venv venv
           venv/bin/python -m pip install --upgrade -r requirements.d/venv.txt
-
       - name: Lint
         run: |
           venv/bin/python -m tox -e flake8
-
   test:
     name: Test Python ${{ matrix.py }} on ${{ matrix.os }}
     needs: lint
@@ -35,15 +33,13 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          # - windows-latest
+          - windows-latest
           - macos-latest
         py:
           - 3.6
           - 3.7
           - 3.8
           - 3.9
-    timeout-minutes: 30
-
     steps:
       - name: Set up Python ${{ matrix.py }}
         uses: actions/setup-python@v2
@@ -112,6 +108,14 @@ jobs:
         run: |
           vcpkg update
           vcpkg install portaudio
+        shell: powershell
+
+      - name: Store vcpkg Artifacts
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: git-init-x86-windows-out.log
+          path: C:/vcpkg/buildtrees/portaudio/git-init-x86-windows-out.log
 
       - name: Checkout Working Copy
         uses: actions/checkout@master
