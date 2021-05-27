@@ -1,10 +1,30 @@
+import sys
 from time import sleep
 
 import pytest
 
 
+@pytest.mark.skipif(
+    sys.platform.startswith('win32') or
+    sys.platform.startswith('cygwin'),
+    reason="Does not run under Windows.",
+)
 @pytest.mark.timeout(0.320 * 10)  # Kill runs taking 10x longer than local
-def test_simple_mouse(xvfb):
+def test_simple_mouse_not_windows(xvfb):
+    __test_simple_mouse()
+
+
+@pytest.mark.skipif(
+    not sys.platform.startswith('win32') and
+    not sys.platform.startswith('cygwin'),
+    reason="Does run only under Windows.",
+)
+@pytest.mark.timeout(0.320 * 10)  # Kill runs taking 10x longer than local
+def test_simple_mouse_windows():
+    __test_simple_mouse()
+
+
+def __test_simple_mouse():
     from multisensor_pipeline.modules import QueueSink
     from multisensor_pipeline.modules.mouse import Mouse
     from multisensor_pipeline.pipeline.graph import GraphPipeline
@@ -17,6 +37,7 @@ def test_simple_mouse(xvfb):
     pipeline = GraphPipeline()
     pipeline.add_source(source)
     pipeline.add_sink(sink)
+
     # (3) ...and connect the modules
     pipeline.connect(source, sink)
 
@@ -26,11 +47,31 @@ def test_simple_mouse(xvfb):
     pipeline.stop()
 
     # Assert
+    # If we ever get here, we consider this test successful.
     assert True
 
 
+@pytest.mark.skipif(
+    sys.platform.startswith('win32') or
+    sys.platform.startswith('cygwin'),
+    reason="Does not run under Windows.",
+)
 @pytest.mark.timeout(0.420 * 10)  # Kill runs taking 10x longer than local
-def test_simple_keyboard(xvfb):
+def test_simple_keyboard_not_windows(xvfb):
+    __test_simple_keyboard()
+
+
+@pytest.mark.skipif(
+    not sys.platform.startswith('win32') and
+    not sys.platform.startswith('cygwin'),
+    reason="Does run only under Windows.",
+)
+@pytest.mark.timeout(0.420 * 10)  # Kill runs taking 10x longer than local
+def test_simple_keyboard_windows():
+    __test_simple_keyboard()
+
+
+def __test_simple_keyboard():
     from multisensor_pipeline.modules import QueueSink
     from multisensor_pipeline.modules.keyboard import Keyboard
     from multisensor_pipeline.pipeline.graph import GraphPipeline
@@ -44,6 +85,7 @@ def test_simple_keyboard(xvfb):
     pipeline = GraphPipeline()
     pipeline.add_source(source)
     pipeline.add_sink(sink)
+
     # (3) ...and connect the modules
     pipeline.connect(source, sink)
 
