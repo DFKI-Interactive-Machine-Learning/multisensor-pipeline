@@ -18,7 +18,7 @@ class ProfilingTest(unittest.TestCase):
         for frame in frames:
             msp_stats.add_frame(frame, direction=MSPModuleStats.Direction.IN)
             sleep(1. / frequency)
-        sleep(0.1)  # To make this work under macOS in the cloud
+        sleep(1)  # To make this work under macOS in the cloud
 
         stats = msp_stats.get_stats(direction=MSPModuleStats.Direction.IN)
         self.assertAlmostEqual(frequency, stats["test"]._cma, delta=1)
