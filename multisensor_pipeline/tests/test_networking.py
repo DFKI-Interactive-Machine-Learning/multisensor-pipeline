@@ -1,4 +1,5 @@
-from unittest import TestCase
+import unittest
+
 from multisensor_pipeline.modules.network import ZmqPublisher, ZmqSubscriber
 from multisensor_pipeline.modules.npy import RandomArraySource
 from multisensor_pipeline.modules import ListSink
@@ -10,13 +11,13 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-class NetworkingTest(TestCase):
-
-    def setUp(self) -> None:
-        self.wait_time = .5
-
+class NetworkingTestCase(unittest.TestCase):
     def test_zmq_pub_sub(self):
-        logger.info("initialize pipelines: [mic -> pub] ->TCP-> [sub -> final_sink].")
+        wait_time = .5
+
+        logger.info(
+            "initialize pipelines: [mic -> pub] ->TCP-> [sub -> final_sink]."
+        )
 
         # initialize subscriber pipeline
         zmq_sub = ZmqSubscriber()
@@ -37,21 +38,29 @@ class NetworkingTest(TestCase):
         pub_pipeline.connect(source, zmq_pub)
         pub_pipeline.connect(source, sink1)
 
-        logger.info("start pipelines in forward order.")
+        logger.info("Start pipelines in forward order ...")
         pub_pipeline.start()
         sub_pipeline.start()
 
-        logger.info("waiting for {}s.".format(self.wait_time))
-        sleep(self.wait_time)
+        logger.info("Waiting for {} seconds.".format(wait_time))
+        sleep(wait_time)
 
-        logger.info("stop pipelines.")
+        logger.info("Stopping pipelines ...")
         pub_pipeline.stop()
         pub_pipeline.join()
         sub_pipeline.stop()
         sub_pipeline.join()
 
-        sink1_values = set([(f.timestamp, f['value'].flatten().tolist()[0]) for f in sink1.list])
-        sink2_values = set([(f.timestamp, f['value'].flatten().tolist()[0]) for f in sink2.list])
+        sink1_values = {
+            (frame.timestamp, frame['value'].flatten().tolist()[0])
+            for frame in sink1.list
+        }
 
-        self.assertEqual(len(list(sink1_values - sink2_values)), len(sink1.list) - len(sink2.list))
+        sink2_values = {
+            (frame.timestamp, frame['value'].flatten().tolist()[0])
+            for frame in sink2.list
+        }
 
+        assert \
+            len(list(sink1_values - sink2_values)) == \
+            len(sink1.list) - len(sink2.list)

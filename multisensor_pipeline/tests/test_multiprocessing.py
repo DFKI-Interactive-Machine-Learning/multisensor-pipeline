@@ -1,22 +1,29 @@
-from unittest import TestCase
-from multisensor_pipeline.modules.multiprocess import MultiprocessSourceWrapper, MultiprocessSinkWrapper, \
-    MultiprocessProcessorWrapper
-from multisensor_pipeline.modules.npy import RandomArraySource, ArrayManipulationProcessor
-from multisensor_pipeline.modules import PassthroughProcessor, QueueSink, ConsoleSink
-from multisensor_pipeline.pipeline import GraphPipeline
-import numpy as np
 import time
 import logging
+import unittest
 
+import numpy as np
+
+from multisensor_pipeline.modules.multiprocess import \
+    MultiprocessSourceWrapper, MultiprocessSinkWrapper, \
+    MultiprocessProcessorWrapper
+from multisensor_pipeline.modules.npy import RandomArraySource, \
+    ArrayManipulationProcessor
+from multisensor_pipeline.modules import PassthroughProcessor, QueueSink, \
+    ConsoleSink
+from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 logging.basicConfig(level=logging.DEBUG)
 
 
-class PipelineTest(TestCase):
-
+class MultiprocessingTestCase(unittest.TestCase):
     def test_source_sink_wrapper(self):
         # create nodes
-        source = MultiprocessSourceWrapper(module_cls=RandomArraySource, shape=(5,), sampling_rate=50)
+        source = MultiprocessSourceWrapper(
+            module_cls=RandomArraySource,
+            shape=(5,),
+            sampling_rate=50,
+        )
         sink = MultiprocessSinkWrapper(module_cls=ConsoleSink)
         queue = QueueSink()
 
@@ -34,19 +41,26 @@ class PipelineTest(TestCase):
         source.stop(blocking=False)
         sink.join()
 
-        self.assertFalse(source._process.is_alive())
-        self.assertFalse(source._thread.is_alive())
-        self.assertFalse(sink._process.is_alive())
-        self.assertFalse(sink._thread.is_alive())
+        assert not source._process.is_alive()
+        assert not source._thread.is_alive()
+        assert not sink._process.is_alive()
+        assert not sink._thread.is_alive()
 
         queue.join()
 
-        self.assertFalse(queue.empty())
+        assert not queue.empty()
 
     def test_processor_wrapper(self):
         # create nodes
-        source = MultiprocessSourceWrapper(module_cls=RandomArraySource, shape=(50,), sampling_rate=50)
-        processor = MultiprocessProcessorWrapper(module_cls=ArrayManipulationProcessor, numpy_operation=np.mean)
+        source = MultiprocessSourceWrapper(
+            module_cls=RandomArraySource,
+            shape=(50,),
+            sampling_rate=50,
+        )
+        processor = MultiprocessProcessorWrapper(
+            module_cls=ArrayManipulationProcessor,
+            numpy_operation=np.mean,
+        )
         sink = MultiprocessSinkWrapper(module_cls=ConsoleSink)
         queue = QueueSink()
 
@@ -67,13 +81,20 @@ class PipelineTest(TestCase):
         sink.join()
         queue.join()
 
-        self.assertFalse(queue.empty())
+        assert not queue.empty()
 
     def test_parallelized_pipeline(self):
         # create modules
-        source = MultiprocessSourceWrapper(module_cls=RandomArraySource, shape=(50,), sampling_rate=50)
+        source = MultiprocessSourceWrapper(
+            module_cls=RandomArraySource,
+            shape=(50,),
+            sampling_rate=50,
+        )
         processor1 = PassthroughProcessor()
-        processor2 = MultiprocessProcessorWrapper(module_cls=ArrayManipulationProcessor, numpy_operation=np.mean)
+        processor2 = MultiprocessProcessorWrapper(
+            module_cls=ArrayManipulationProcessor,
+            numpy_operation=np.mean,
+        )
         queue = QueueSink()
 
         # add modules to a pipeline
@@ -92,4 +113,4 @@ class PipelineTest(TestCase):
         time.sleep(.25)
         pipeline.stop()
 
-        self.assertFalse(queue.empty())
+        assert not queue.empty()
