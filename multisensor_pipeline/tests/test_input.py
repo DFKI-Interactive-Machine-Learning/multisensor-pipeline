@@ -90,7 +90,5 @@ def _test_simulated_keyboard_input(xvfb):
         # There seems te be a bug in pynput keyboard controller for macOS:
         # Keypress is recognized as press and release
         expected_events *= 2
-    assert \
-        len(sink.list) == expected_events, \
-        "number of keyboard interactions are not correctly recognized " + \
-        "or permission to simulate a keyboard is not given"
+    assert len(sink.list) == expected_events, \
+        "number of keyboard interactions are not correctly recognized or permission to simulate a keyboard is not given"

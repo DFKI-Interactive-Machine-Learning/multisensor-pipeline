@@ -10,10 +10,8 @@ import pytest
 
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
 from multisensor_pipeline.modules.base.base import BaseSource, BaseProcessor
-from multisensor_pipeline.modules.npy import RandomArraySource, \
-    ArrayManipulationProcessor
-from multisensor_pipeline.modules import QueueSink, ConsoleSink, \
-    SleepTrashSink, SleepPassthroughProcessor, ListSink
+from multisensor_pipeline.modules.npy import RandomArraySource, ArrayManipulationProcessor
+from multisensor_pipeline.modules import QueueSink, ConsoleSink, SleepTrashSink, SleepPassthroughProcessor, ListSink
 from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 logging.basicConfig(level=logging.DEBUG)
