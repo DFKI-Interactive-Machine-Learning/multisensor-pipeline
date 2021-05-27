@@ -5,7 +5,7 @@ import logging
 import numpy as np
 
 from multisensor_pipeline.modules.npy import RandomArraySource
-from multisensor_pipeline.modules.paths import DATA_PATH
+from multisensor_pipeline.tests.paths import DATA_PATH
 from multisensor_pipeline.modules.persistence.recording import \
     JsonRecordingSink
 from multisensor_pipeline.modules.persistence.replay import JsonReplaySource
