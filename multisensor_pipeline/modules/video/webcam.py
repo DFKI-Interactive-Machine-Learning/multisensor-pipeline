@@ -12,7 +12,7 @@ class WebCamSource(BaseSource):
     Source for webcam. Sends PIL frames.
     """
 
-    def __init__(self, web_cam_format="avfoundation", web_cam_id:str = "0", options={'framerate': '30'}):
+    def __init__(self, web_cam_format="avfoundation", web_cam_id: str = "0", options={'framerate': '30'}):
         """
         Initialize the Source
         Args:

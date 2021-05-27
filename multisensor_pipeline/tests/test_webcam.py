@@ -52,7 +52,7 @@ def test_webcam_with_invalid_webcam_identifier_mac_os():
     reason="Runs on Windows, only.",
 )
 def test_webcam_with_invalid_webcam_identifier_windows():
-    with pytest.raises(av.error.FileNotFoundError):
+    with pytest.raises(av.error.OSError):
         # (1) define the modules
         _ = WebCamSource(
             web_cam_format="vfwcap",
@@ -123,6 +123,7 @@ def _test_webcam_on_mac_os(virtual_webcam_macos_process):
     pipeline.start()
     sleep(2)
     pipeline.stop()
+    pipeline.join()
 
     # Assert
     assert sink.queue.qsize() > 5
@@ -177,6 +178,7 @@ def test_webcam_on_linux(virtual_webcam_linux_process):
     pipeline.start()
     sleep(2)
     pipeline.stop()
+    pipeline.join()
 
     # Assert
     assert sink.queue.qsize() > 5
@@ -206,4 +208,6 @@ def test_webcam_on_windows():
     pipeline.start()
     sleep(2)
     pipeline.stop()
+    pipeline.join()
+
     assert sink.queue.qsize() > 5
