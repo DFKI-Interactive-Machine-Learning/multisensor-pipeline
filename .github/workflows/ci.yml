@@ -106,16 +106,8 @@ jobs:
       - name: Install OS dependencies (Windows)
         if: startsWith( matrix.os, 'windows-' )
         run: |
-          vcpkg update
-          vcpkg install --debug portaudio
+          conda install -c conda-forge portaudio
         shell: powershell
-
-      - name: Store vcpkg Artifacts
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: git-init-x86-windows-out.log
-          path: C:/vcpkg/buildtrees/portaudio/git-init-x86-windows-out.log
 
       - name: Checkout Working Copy
         uses: actions/checkout@master
