@@ -107,7 +107,7 @@ jobs:
         if: startsWith( matrix.os, 'windows-' )
         run: |
           conda install -c conda-forge portaudio
-        shell: powershell
+        shell: bash
 
       - name: Checkout Working Copy
         uses: actions/checkout@master
