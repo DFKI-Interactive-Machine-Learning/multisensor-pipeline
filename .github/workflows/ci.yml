@@ -107,7 +107,7 @@ jobs:
         uses: s-weigand/setup-conda@v1
         if: startsWith( matrix.os, 'windows-' )
         with:
-          activate-conda: false
+          activate-conda: true
           auto-update-conda: true
           python-version: ${{ matrix.py }}
 
