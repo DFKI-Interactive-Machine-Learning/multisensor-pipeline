@@ -129,7 +129,7 @@ jobs:
           fetch-depth: 1
 
       - name: Setup Virtual Environment (Non-Windows)
-        if: startsWith( matrix.os, 'linux-' ) ||
+        if: startsWith( matrix.os, 'linux-' ) &&
             startsWith( matrix.os, 'macos-' )
         run: |
           python${{ matrix.py }} -m venv venv
@@ -139,7 +139,7 @@ jobs:
         if: startsWith( matrix.os, 'windows-' )
         run: |
           python -m venv venv
-          venv/bin/python -m pip install --upgrade -r requirements.d/venv.txt
+          venv\bin\python -m pip install --upgrade -r requirements.d\venv.txt
 
       # Take multiple attempts at running the tests
       - name: Test Attempt 1
