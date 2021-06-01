@@ -103,10 +103,13 @@ jobs:
             portaudio19-dev \
             xvfb
 
-      - uses: s-weigand/setup-conda@v1
+      - name: setup-conda
+        uses: s-weigand/setup-conda@v1
         if: startsWith( matrix.os, 'windows-' )
         with:
           activate-conda: false
+          auto-update-conda: true
+          python-version: ${{ matrix.py }}
 
       - run: conda --version
         if: startsWith( matrix.os, 'windows-' )
