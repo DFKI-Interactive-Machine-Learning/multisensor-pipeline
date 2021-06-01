@@ -22,10 +22,10 @@ class MSPModuleStats:
 
         def _next_sma(self, rate: float):
             # see https://en.wikipedia.org/wiki/Moving_average
-            if self._num_samples >= self._k:
-                return self._sma + (rate - self._samples.popleft()) / self._k
+            self._samples.append(rate)
+            if self._num_samples >= self._k - 1:
+                return  self._sma + (rate - self._samples.popleft()) / self._k
             else:
-                self._samples.append(rate)
                 return self._cma
 
         def _next_cma(self, rate: float):
