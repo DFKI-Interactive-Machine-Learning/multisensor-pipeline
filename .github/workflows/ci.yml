@@ -103,6 +103,14 @@ jobs:
             portaudio19-dev \
             xvfb
 
+      - uses: s-weigand/setup-conda@v1
+        if: startsWith( matrix.os, 'windows-' )
+        with:
+          activate-conda: false
+
+      - run: conda --version
+        if: startsWith( matrix.os, 'windows-' )
+
       - name: Install OS dependencies (Windows)
         if: startsWith( matrix.os, 'windows-' )
         run: |
