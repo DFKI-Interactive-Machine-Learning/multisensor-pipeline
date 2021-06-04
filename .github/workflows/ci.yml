@@ -118,10 +118,12 @@ jobs:
 
       - name: Setup Virtual Environment (Windows)
         if: startsWith( matrix.os, 'windows-' )
+        # There seems to be no clean way to create a venv under windows.
+        # So, do not actually install a virtual environment.
+        # Instead, install the venv requirements to the system python.
         run: |
           python --version
-          python -m venv venv
-          venv\bin\python -m pip install --upgrade -r requirements.d\venv.txt
+          python -m pip install --upgrade -r requirements.d\venv.txt
 
       - name: setup-conda
         uses: s-weigand/setup-conda@v1
