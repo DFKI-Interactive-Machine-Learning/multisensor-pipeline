@@ -90,7 +90,7 @@ jobs:
       - name: Pick environment to run (Windows)
         if: startsWith( matrix.os, 'windows' )
         run: |
-          python${{ matrix.py }} -c """
+          python -c """
           import platform; import os; import sys; import codecs
           cpy = platform.python_implementation() == 'CPython'
           base =('{}{}{}' if cpy else '{}{}').format('py' if cpy else 'pypy', *sys.version_info[0:2])
