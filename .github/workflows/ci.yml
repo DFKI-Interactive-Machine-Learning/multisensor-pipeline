@@ -107,14 +107,11 @@ jobs:
         uses: s-weigand/setup-conda@v1
         if: startsWith( matrix.os, 'windows-' )
         with:
-          activate-conda: true
+          activate-conda: false
           auto-update-conda: true
           python-version: ${{ matrix.py }}
 
       - run: conda --version
-        if: startsWith( matrix.os, 'windows-' )
-
-      - run: python --version
         if: startsWith( matrix.os, 'windows-' )
 
       - name: Install OS dependencies (Windows)
@@ -128,17 +125,18 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setup Virtual Environment (Non-Windows)
+      - name: Setup Virtual Environment (Ubuntu | macOS)
         if: startsWith( matrix.os, 'ubuntu-' ) ||
             startsWith( matrix.os, 'macos-' )
         run: |
+          python --version
           python${{ matrix.py }} -m venv venv
           venv/bin/python -m pip install --upgrade -r requirements.d/venv.txt
 
       - name: Setup Virtual Environment (Windows)
         if: startsWith( matrix.os, 'windows-' )
         run: |
-          Import-Module venv
+          python --version
           python -m venv venv
           venv\bin\python -m pip install --upgrade -r requirements.d\venv.txt
 
