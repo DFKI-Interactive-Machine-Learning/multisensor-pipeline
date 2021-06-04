@@ -103,23 +103,6 @@ jobs:
             portaudio19-dev \
             xvfb
 
-      - name: setup-conda
-        uses: s-weigand/setup-conda@v1
-        if: startsWith( matrix.os, 'windows-' )
-        with:
-          activate-conda: false
-          auto-update-conda: true
-          python-version: ${{ matrix.py }}
-
-      - run: conda --version
-        if: startsWith( matrix.os, 'windows-' )
-
-      - name: Install OS dependencies (Windows)
-        if: startsWith( matrix.os, 'windows-' )
-        run: |
-          conda install -c conda-forge portaudio
-        shell: cmd
-
       - name: Checkout Working Copy
         uses: actions/checkout@master
         with:
@@ -139,6 +122,23 @@ jobs:
           python --version
           python -m venv venv
           venv\bin\python -m pip install --upgrade -r requirements.d\venv.txt
+
+      - name: setup-conda
+        uses: s-weigand/setup-conda@v1
+        if: startsWith( matrix.os, 'windows-' )
+        with:
+          activate-conda: false
+          auto-update-conda: true
+          python-version: ${{ matrix.py }}
+
+      - run: conda --version
+        if: startsWith( matrix.os, 'windows-' )
+
+      - name: Install OS dependencies (Windows)
+        if: startsWith( matrix.os, 'windows-' )
+        run: |
+          conda install -c conda-forge portaudio
+        shell: cmd
 
       # Take multiple attempts at running the tests
       - name: Test Attempt 1
