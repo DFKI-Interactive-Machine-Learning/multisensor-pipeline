@@ -154,6 +154,8 @@ class VideoTesting(unittest.TestCase):
         video = av.open(str(DATA_PATH / "output.mp4"))
         stream = video.streams.video[0]
         count = 1 + sum(1 for _ in video.decode(stream))
+        video.close()
+
         assert 10 == count
 
         # Cleanup
