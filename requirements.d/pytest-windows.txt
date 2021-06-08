@@ -11,7 +11,7 @@ Pillow==8.2.0
 pip==21.1.2
 pluggy==0.13.1
 py==1.10.0
-PyAudio==0.2.11
+pyaudio-wheels==0.1.0
 pynput==1.7.3
 pyparsing==2.4.7
 pytest==6.2.4
