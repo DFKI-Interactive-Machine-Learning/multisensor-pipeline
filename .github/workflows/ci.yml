@@ -88,7 +88,8 @@ jobs:
         shell: bash
 
       - name: Pick environment to run (Windows)
-        if: startsWith( matrix.os, 'windows' )
+        if: startsWith( matrix.os, 'windows' ) &&
+            startsWith( matrix.py, '3.6')
         run: |
           python -c """
           import platform; import os; import sys; import codecs
@@ -131,7 +132,8 @@ jobs:
           venv/bin/python -m pip install --upgrade -r requirements.d/venv.txt
 
       - name: Setup Virtual Environment (Windows)
-        if: startsWith( matrix.os, 'windows-' )
+        if: startsWith( matrix.os, 'windows-' ) &&
+            startsWith( matrix.py, '3.6')
         # There seems to be no clean way to create a venv under windows.
         # So, do not actually install a virtual environment.
         # Instead, install the venv requirements to the system python.
@@ -148,10 +150,12 @@ jobs:
           python-version: ${{ matrix.py }}
 
       - run: conda --version
-        if: startsWith( matrix.os, 'windows-' )
+        if: startsWith( matrix.os, 'windows-' ) &&
+            startsWith( matrix.py, '3.6')
 
       - name: Install OS dependencies (Windows)
-        if: startsWith( matrix.os, 'windows-' )
+        if: startsWith( matrix.os, 'windows-' ) &&
+            startsWith( matrix.py, '3.6')
         run: |
           conda install -c conda-forge portaudio
         shell: cmd
@@ -233,7 +237,8 @@ jobs:
 
       # Take multiple attempts at running the tests
       - name: Test Attempt 1 (Windows)
-        if: startsWith( matrix.os, 'windows-' )
+        if: startsWith( matrix.os, 'windows-' ) &&
+            startsWith( matrix.py, '3.6')
         continue-on-error: true
         id: test-attempt-1-windows
         run: |
@@ -244,7 +249,8 @@ jobs:
         continue-on-error: true
         id: test-attempt-2-windows
         if: startsWith( matrix.os, 'windows-' ) &&
-            steps.test-attempt-1-windows.outcome=='failure'
+            steps.test-attempt-1-windows.outcome=='failure' &&
+            startsWith( matrix.py, '3.6')
         run: |
           python -m tox -e $TOXENV
         timeout-minutes: 3  # About twice the time of a successful step
@@ -253,7 +259,8 @@ jobs:
         continue-on-error: true
         id: test-attempt-3-windows
         if: startsWith( matrix.os, 'windows-' ) &&
-            steps.test-attempt-2-windows.outcome=='failure'
+            steps.test-attempt-2-windows.outcome=='failure' &&
+            startsWith( matrix.py, '3.6')
         run: |
           python -m tox -e $TOXENV
         timeout-minutes: 3  # About twice the time of a successful step
@@ -262,7 +269,8 @@ jobs:
         continue-on-error: true
         id: test-attempt-4-windows
         if: startsWith( matrix.os, 'windows-' ) &&
-            steps.test-attempt-3-windows.outcome=='failure'
+            steps.test-attempt-3-windows.outcome=='failure' &&
+            startsWith( matrix.py, '3.6')
         run: |
           python -m tox -e $TOXENV
         timeout-minutes: 3  # About twice the time of a successful step
@@ -271,13 +279,15 @@ jobs:
         continue-on-error: true
         id: test-attempt-5-windows
         if: startsWith( matrix.os, 'windows-' ) &&
-            steps.test-attempt-4-windows.outcome=='failure'
+            steps.test-attempt-4-windows.outcome=='failure' &&
+            startsWith( matrix.py, '3.6')
         run: |
           python -m tox -e $TOXENV
         timeout-minutes: 3  # About twice the time of a successful step
         shell: bash
       - name: Check for Success (Windows)
-        if: startsWith( matrix.os, 'windows-' )
+        if: startsWith( matrix.os, 'windows-' ) &&
+            startsWith( matrix.py, '3.6')
         run: |
           if ${{
               steps.test-attempt-1-windows.outcome=='success' ||
