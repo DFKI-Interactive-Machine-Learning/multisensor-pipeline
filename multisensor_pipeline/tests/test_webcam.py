@@ -55,6 +55,27 @@ def virtual_webcam_macos_process():
     return virtual_webcam_macos_process
 
 
+@pytest.fixture()
+def virtual_webcam_windows_process():
+    """Start a virtual webcam using ffmpeg in a subprocess."""
+    command: str = \
+        'ffmpeg ' \
+        '-re ' \
+        '-loop 1 ' \
+        f'-i {DATA_PATH / "test.png"} ' \
+        '-filter:v ' \
+        'format=yuv422p ' \
+        '-r 30 ' \
+        '-f dshow ' \
+        '"HD WebCam"'
+    print(command)
+    print(shlex.split(command))
+    virtual_webcam_macos_process = subprocess.Popen(
+        args=shlex.split(command),
+    )
+    return virtual_webcam_macos_process
+
+
 @pytest.mark.skipif(
     not sys.platform.startswith('darwin'),
     reason="Runs on macOS, only.",
@@ -141,6 +162,36 @@ def test_webcam_on_linux(virtual_webcam_linux_process):
     virtual_webcam_linux_process.kill()
 
 
+@pytest.mark.skipif(
+    not sys.platform.startswith('win32') and
+    not sys.platform.startswith('cygwin'),
+    reason="Runs on Windows, only.",
+)
+def test_webcam_on_windows(virtual_webcam_windows_process):
+    # (1) define the modules
+    source = WebCamSource(web_cam_format="vfwcap")
+
+    sink = QueueSink()
+
+    # (2) add module to a pipeline...
+    pipeline = GraphPipeline()
+    pipeline.add_source(source)
+    pipeline.add_sink(sink)
+    # (3) ...and connect the modules
+    pipeline.connect(source, sink)
+
+    # Test
+    pipeline.start()
+    sleep(2)
+    pipeline.stop()
+
+    # Assert
+    assert sink.queue.qsize() > 5
+
+    # Cleanup
+    virtual_webcam_windows_process.kill()
+
+
 class WebCamTesting(unittest.TestCase):
     def test_webcam_with_invalid_container_format(self):
         with pytest.raises(ValueError):
@@ -178,11 +229,11 @@ class WebCamTesting(unittest.TestCase):
         not sys.platform.startswith('cygwin'),
         reason="Runs on Windows, only.",
     )
-    def test_webcam_with_invalid_webcam_identifier_windows(self):
+    def test_webcam_with_invalid_webcam_identifier_windows_dshow(self):
         with pytest.raises(av.error.FileNotFoundError):
             # (1) define the modules
             _ = WebCamSource(
-                web_cam_format="vfwcap",
+                web_cam_format="dshow",
                 web_cam_id='this_is_not_a_valid_webcam_identifier',
             )
 
@@ -191,20 +242,10 @@ class WebCamTesting(unittest.TestCase):
         not sys.platform.startswith('cygwin'),
         reason="Runs on Windows, only.",
     )
-    def test_webcam_on_windows(self):
-        # (1) define the modules
-        source = WebCamSource(web_cam_format="vfwcap")
-
-        sink = QueueSink()
-
-        # (2) add module to a pipeline...
-        pipeline = GraphPipeline()
-        pipeline.add_source(source)
-        pipeline.add_sink(sink)
-        # (3) ...and connect the modules
-        pipeline.connect(source, sink)
-
-        pipeline.start()
-        sleep(2)
-        pipeline.stop()
-        assert sink.queue.qsize() > 5
+    def test_webcam_with_invalid_webcam_identifier_windows_vfwcap(self):
+        with pytest.raises(av.error.FileNotFoundError):
+            # (1) define the modules
+            _ = WebCamSource(
+                web_cam_format="vfwcap",
+                web_cam_id='this_is_not_a_valid_webcam_identifier',
+            )
