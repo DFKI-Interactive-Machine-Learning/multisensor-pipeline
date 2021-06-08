@@ -163,7 +163,7 @@ def test_webcam_on_linux(virtual_webcam_linux_process):
     not sys.platform.startswith('cygwin'),
     reason="Runs on Windows, only.",
 )
-def test_webcam_on_windows(virtual_webcam_windows_process):
+def _test_webcam_on_windows(virtual_webcam_windows_process):
     # (1) define the modules
     source = WebCamSource(web_cam_format="vfwcap")
 
