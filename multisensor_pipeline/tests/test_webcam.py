@@ -26,8 +26,6 @@ def virtual_webcam_linux_process():
         '-r 30 ' \
         '-f v4l2 ' \
         '/dev/video2'
-    print(command)
-    print(shlex.split(command))
     virtual_webcam_linux_process = subprocess.Popen(
         args=shlex.split(command),
     )
@@ -47,8 +45,6 @@ def virtual_webcam_macos_process():
         '-r 30 ' \
         '-f avfoundation ' \
         '/dev/video2'
-    print(command)
-    print(shlex.split(command))
     virtual_webcam_macos_process = subprocess.Popen(
         args=shlex.split(command),
     )
