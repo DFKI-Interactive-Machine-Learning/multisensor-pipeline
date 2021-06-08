@@ -7,7 +7,7 @@ import av
 import pytest
 from PIL import Image
 
-from multisensor_pipeline.modules.paths import DATA_PATH
+from multisensor_pipeline.tests.paths import DATA_PATH
 from multisensor_pipeline.modules import ConsoleSink, QueueSink
 from multisensor_pipeline.modules.video.video import VideoSource, VideoSink
 from multisensor_pipeline.pipeline.graph import GraphPipeline
