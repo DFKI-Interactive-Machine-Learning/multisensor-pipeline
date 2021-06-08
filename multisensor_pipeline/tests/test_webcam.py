@@ -226,7 +226,7 @@ class WebCamTesting(unittest.TestCase):
         reason="Runs on Windows, only.",
     )
     def test_webcam_with_invalid_webcam_identifier_windows_dshow(self):
-        with pytest.raises(av.error.FileNotFoundError):
+        with pytest.raises(av.error.OSError):
             # (1) define the modules
             _ = WebCamSource(
                 web_cam_format="dshow",
@@ -239,7 +239,7 @@ class WebCamTesting(unittest.TestCase):
         reason="Runs on Windows, only.",
     )
     def test_webcam_with_invalid_webcam_identifier_windows_vfwcap(self):
-        with pytest.raises(av.error.FileNotFoundError):
+        with pytest.raises(av.error.OSError):
             # (1) define the modules
             _ = WebCamSource(
                 web_cam_format="vfwcap",
