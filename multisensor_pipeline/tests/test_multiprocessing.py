@@ -4,7 +4,8 @@ import unittest
 
 import numpy as np
 
-from multisensor_pipeline.modules.multiprocess import MultiprocessSourceWrapper, MultiprocessSinkWrapper, MultiprocessProcessorWrapper
+from multisensor_pipeline.modules.multiprocess import MultiprocessSourceWrapper, MultiprocessSinkWrapper, \
+    MultiprocessProcessorWrapper
 from multisensor_pipeline.modules.npy import RandomArraySource, ArrayManipulationProcessor
 from multisensor_pipeline.modules import PassthroughProcessor, QueueSink, ConsoleSink
 from multisensor_pipeline.pipeline.graph import GraphPipeline
