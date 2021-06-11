@@ -21,9 +21,11 @@ jobs:
         run: |
           python${{ matrix.py }} -m venv venv
           venv/bin/python -m pip install --upgrade -r requirements.d/venv.txt
+
       - name: Lint
         run: |
           venv/bin/python -m tox -e flake8
+
   test:
     name: Test Python ${{ matrix.py }} on ${{ matrix.os }}
     needs: lint
@@ -40,6 +42,8 @@ jobs:
           - 3.7
           - 3.8
           - 3.9
+    timeout-minutes: 30
+
     steps:
       - name: Set up Python ${{ matrix.py }}
         uses: actions/setup-python@v2
