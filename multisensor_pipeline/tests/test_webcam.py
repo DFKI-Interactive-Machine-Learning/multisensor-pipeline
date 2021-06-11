@@ -96,6 +96,7 @@ def test_webcam_on_mac_os(virtual_webcam_macos_process):
     pipeline.start()
     sleep(2)
     pipeline.stop()
+    pipeline.join()
 
     # Assert
     assert sink.queue.qsize() > 5
@@ -150,6 +151,7 @@ def test_webcam_on_linux(virtual_webcam_linux_process):
     pipeline.start()
     sleep(2)
     pipeline.stop()
+    pipeline.join()
 
     # Assert
     assert sink.queue.qsize() > 5
@@ -180,6 +182,7 @@ def _test_webcam_on_windows(virtual_webcam_windows_process):
     pipeline.start()
     sleep(2)
     pipeline.stop()
+    pipeline.join()
 
     # Assert
     assert sink.queue.qsize() > 5
