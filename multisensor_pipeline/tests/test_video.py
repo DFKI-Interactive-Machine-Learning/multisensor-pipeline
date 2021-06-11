@@ -68,7 +68,6 @@ class VideoTesting(unittest.TestCase):
         pipeline.start()
         sleep(3)
         pipeline.stop()
-
         pipeline.join()
 
         # Assert
