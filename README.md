@@ -45,6 +45,7 @@ Under macOS:
 brew install portaudio
 ```
 
+
 ## Quick Start Example
 
 ```python
