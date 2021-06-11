@@ -13,6 +13,7 @@ class DownsamplingProcessorTest(unittest.TestCase):
         # Mock a setup like so:
         # sink_0 <- source -> processor -> sink_1
         num_samples = 100
+
         # (1) define the modules
         source = RandomArraySource(
             shape=None,
@@ -29,6 +30,7 @@ class DownsamplingProcessorTest(unittest.TestCase):
         pipeline.add_source(source)
         pipeline.add_processor(processor)
         pipeline.add_sink(sink_1)
+
         # (3) ...and connect the modules
         pipeline.connect(source, sink_0)
         pipeline.connect(source, processor)
