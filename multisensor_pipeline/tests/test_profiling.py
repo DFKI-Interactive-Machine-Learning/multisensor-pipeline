@@ -12,7 +12,7 @@ class ProfilingTest(unittest.TestCase):
         msp_stats = MSPModuleStats()
         frames: List = []
         for _ in range(20):
-            frames.append(MSPDataFrame(topic="test",  value=randint(0, 20)))
+            frames.append(MSPDataFrame(topic="test", value=randint(0, 20)))
 
         for frame in frames:
             msp_stats.add_frame(frame, direction=MSPModuleStats.Direction.IN)
@@ -27,7 +27,7 @@ class ProfilingTest(unittest.TestCase):
         frames = []
         # FIXME: error with more than 20 samples
         for _ in range(0, 100):
-            frames.append(MSPDataFrame(topic="test",  value=randint(0, 20)))
+            frames.append(MSPDataFrame(topic="test", value=randint(0, 20)))
 
         for frame in frames:
             msp_stats.add_frame(
