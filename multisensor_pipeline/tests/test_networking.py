@@ -62,6 +62,4 @@ class NetworkingTestCase(unittest.TestCase):
             for frame in sink2.list
         }
 
-        assert \
-            len(list(sink1_values - sink2_values)) == \
-            len(sink1.list) - len(sink2.list)
+        assert len(list(sink1_values - sink2_values)) == len(sink1.list) - len(sink2.list)
