@@ -69,8 +69,10 @@ class VideoTesting(unittest.TestCase):
         sleep(3)
         pipeline.stop()
 
+        pipeline.join()
+
         # Assert
-        assert 16 < sink.queue.qsize() <= 24
+        assert 23 <= sink.queue.qsize() <= 24
 
         # Cleanup
         os.remove(str(DATA_PATH / "output_av.mp4"))
@@ -108,6 +110,7 @@ class VideoTesting(unittest.TestCase):
         pipeline.start()
         sleep(.3)
         pipeline.stop()
+        pipeline.join()
 
         # Cleanup
         os.remove(str(DATA_PATH / "output_av.mp4"))
@@ -149,14 +152,14 @@ class VideoTesting(unittest.TestCase):
         pipeline.start()
         sleep(5)
         pipeline.stop()
+        pipeline.join()
 
         # Assert
         video = av.open(str(DATA_PATH / "output.mp4"))
         stream = video.streams.video[0]
         count = 1 + sum(1 for _ in video.decode(stream))
-        video.close()
-
         assert 10 == count
+        video.close()
 
         # Cleanup
         os.remove(str(DATA_PATH / "output.mp4"))
