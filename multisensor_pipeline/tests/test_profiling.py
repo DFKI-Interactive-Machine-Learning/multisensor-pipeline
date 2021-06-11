@@ -19,14 +19,14 @@ class ProfilingTest(unittest.TestCase):
             sleep(0.05)
 
         stats = msp_stats.get_stats(direction=MSPModuleStats.Direction.IN)
-        assert 9 < stats["test"]._cma <= 20
-        assert 9 < stats["test"]._sma <= 20
+        self.assertAlmostEqual(10, stats["test"]._cma, delta=1)
+        self.assertAlmostEqual(10, stats["test"]._sma, delta=1)
 
-    def _test_frequency_stats_again(self):
+    def test_frequency_stats_again(self):
         msp_stats = MSPModuleStats()
         frames = []
-        # FIXME: error with more than 20 samples
-        for _ in range(0, 100):
+        # FIXME: does not work with higher frame rate because of sleep
+        for _ in range(0, 50):
             frames.append(MSPDataFrame(topic="test", value=randint(0, 20)))
 
         for frame in frames:
