@@ -12,14 +12,14 @@ class DownsamplingProcessorTest(unittest.TestCase):
     def test_down_sampling_processor_no_downsampling(self):
         # Mock a setup like so:
         # sink_0 <- source -> processor -> sink_1
-
+        num_samples = 100
         # (1) define the modules
         source = RandomArraySource(
             shape=None,
-            sampling_rate=100,
-            max_count=100,
+            sampling_rate=num_samples,
+            max_count=num_samples,
         )
-        processor = DownsamplingProcessor(sampling_rate=150)
+        processor = DownsamplingProcessor(sampling_rate=num_samples * 2)
         sink_0 = QueueSink()
         sink_1 = QueueSink()
 
@@ -38,14 +38,13 @@ class DownsamplingProcessorTest(unittest.TestCase):
         pipeline.start()
         sleep(2)
         pipeline.stop()
+        pipeline.join()
+
+        sleep(0.1)  # To make this work under macOS in the cloud
 
         # Assert
-        assert not sink_0.queue.empty()
-        assert 10 <= sink_0.queue.qsize()
-        assert not sink_1.queue.empty()
-        assert 10 <= sink_1.queue.qsize()
-        # No sink should not have received much more messages than the other
-        assert abs(sink_0.queue.qsize() - sink_1.queue.qsize()) <= 6
+        self.assertEqual(num_samples, sink_0.queue.qsize())
+        self.assertEqual(num_samples, sink_1.queue.qsize())
 
     def test_down_sampling_processor_strong(self):
         # Mock a setup like so:
@@ -73,9 +72,12 @@ class DownsamplingProcessorTest(unittest.TestCase):
         pipeline.start()
         sleep(1)
         pipeline.stop()
+        pipeline.join()
+
+        sleep(0.1)  # To make this work under macOS in the cloud
 
         # Assert
-        assert sink.queue.qsize() <= 3
+        assert sink.queue.qsize() <= 2
 
     def test_one_euro_filter(self):
         # Mock a setup like so:
@@ -100,6 +102,7 @@ class DownsamplingProcessorTest(unittest.TestCase):
         pipeline.add_processor(processor)
         pipeline.add_sink(sink_1)
         pipeline.add_sink(sink_0)
+
         # (3) ...and connect the modules
         pipeline.connect(source, sink_0)
         pipeline.connect(source, processor)
@@ -109,6 +112,10 @@ class DownsamplingProcessorTest(unittest.TestCase):
         pipeline.start()
         sleep(2)
         pipeline.stop()
+        pipeline.join()
+
+        sleep(0.1)  # To make this work under macOS in the cloud
 
         # Assert
-        assert abs(sink_1.queue.qsize() - sink_0.queue.qsize()) <= 2
+        self.assertEqual(sink_0.queue.qsize(), 10)
+        self.assertEqual(sink_1.queue.qsize(), 10)
