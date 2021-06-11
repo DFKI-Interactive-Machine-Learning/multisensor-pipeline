@@ -45,13 +45,6 @@ Under macOS:
 brew install portaudio
 ```
 
-Under Windows:
-
-```shell
-vcpkg update
-vcpkg install portaudio  # Currently defunct
-```
-
 ## Quick Start Example
 
 ```python
