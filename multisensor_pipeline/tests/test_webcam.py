@@ -55,7 +55,6 @@ def virtual_webcam_process_macos():
 @pytest.fixture()
 def virtual_webcam_process_windows():
     """Start a virtual webcam using ffmpeg in a subprocess under Windows."""
-
     # command: str = \
     #     'ffmpeg ' \
     #     '-re ' \
