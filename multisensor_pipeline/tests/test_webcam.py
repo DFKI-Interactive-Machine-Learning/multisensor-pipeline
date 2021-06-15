@@ -1,7 +1,8 @@
-import subprocess
+import os
 import sys
 import shlex
 import unittest
+from subprocess import Popen
 from time import sleep
 
 import av
@@ -14,8 +15,8 @@ from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 
 @pytest.fixture()
-def virtual_webcam_linux_process():
-    """Start a virtual webcam using ffmpeg in a subprocess."""
+def virtual_webcam_process_linux():
+    """Start a virtual webcam using ffmpeg in a subprocess under linux."""
     command: str = \
         'ffmpeg ' \
         '-re ' \
@@ -26,15 +27,15 @@ def virtual_webcam_linux_process():
         '-r 30 ' \
         '-f v4l2 ' \
         '/dev/video2'
-    virtual_webcam_linux_process = subprocess.Popen(
+    virtual_webcam_linux_process: Popen = Popen(
         args=shlex.split(command),
     )
     return virtual_webcam_linux_process
 
 
 @pytest.fixture()
-def virtual_webcam_macos_process():
-    """Start a virtual webcam using ffmpeg in a subprocess."""
+def virtual_webcam_process_macos():
+    """Start a virtual webcam using ffmpeg in a subprocess under macOS."""
     command: str = \
         'ffmpeg ' \
         '-re ' \
@@ -45,31 +46,38 @@ def virtual_webcam_macos_process():
         '-r 30 ' \
         '-f avfoundation ' \
         '/dev/video2'
-    virtual_webcam_macos_process = subprocess.Popen(
+    virtual_webcam_process_macos: Popen = Popen(
         args=shlex.split(command),
     )
-    return virtual_webcam_macos_process
+    return virtual_webcam_process_macos
 
 
 @pytest.fixture()
-def virtual_webcam_windows_process():
-    """Start a virtual webcam using ffmpeg in a subprocess."""
-    command: str = \
-        'ffmpeg ' \
-        '-re ' \
-        '-loop 1 ' \
-        f'-i {DATA_PATH / "test.png"} ' \
-        '-filter:v ' \
-        'format=yuv422p ' \
-        '-r 30 ' \
-        '-f dshow ' \
-        '"HD WebCam"'
-    print(command)
-    print(shlex.split(command))
-    virtual_webcam_macos_process = subprocess.Popen(
-        args=shlex.split(command),
-    )
-    return virtual_webcam_macos_process
+def virtual_webcam_process_windows():
+    """Start a virtual webcam using ffmpeg in a subprocess under Windows."""
+
+    # command: str = \
+    #     'ffmpeg ' \
+    #     '-re ' \
+    #     '-loop 1 ' \
+    #     f'-i {DATA_PATH / "test.png"} ' \
+    #     '-filter:v ' \
+    #     'format=yuv422p ' \
+    #     '-r 30 ' \
+    #     '-f dshow ' \
+    #     '"HD WebCam"'
+    # print(command)
+    # print(shlex.split(command))
+    # virtual_webcam_process_windows = subprocess.Popen(
+    #     args=shlex.split(command),
+    # )
+
+    # TODO This only works with a physical webcam.
+    # TODO Implement a virtual webcam for machines without a physical one.
+    # TODO Only then delete this comment.
+
+    virtual_webcam_process_windows: Popen = Popen(args=['echo', ])
+    return virtual_webcam_process_windows
 
 
 @pytest.mark.skipif(
@@ -79,7 +87,7 @@ def virtual_webcam_windows_process():
 # This can work on client machines, but will fail on servers.
 # So attempt to run it, but allow for it to fail
 @pytest.mark.xfail(strict=False)
-def test_webcam_on_mac_os(virtual_webcam_macos_process):
+def test_webcam_on_macos(virtual_webcam_process_macos):
     # (1) define the modules
     source = WebCamSource()
 
@@ -102,14 +110,14 @@ def test_webcam_on_mac_os(virtual_webcam_macos_process):
     assert sink.queue.qsize() > 5
 
     # Cleanup
-    virtual_webcam_macos_process.kill()
+    virtual_webcam_process_macos.kill()
 
 
 @pytest.mark.skipif(
     not sys.platform.startswith('linux'),
     reason="Runs on Linux, only.",
 )
-def test_webcam_on_linux(virtual_webcam_linux_process):
+def test_webcam_on_linux(virtual_webcam_process_linux):
     # (1) define the modules
     webcam_source = None
     webcam_identifiers = (
@@ -157,18 +165,20 @@ def test_webcam_on_linux(virtual_webcam_linux_process):
     assert sink.queue.qsize() > 5
 
     # Cleanup
-    virtual_webcam_linux_process.kill()
+    virtual_webcam_process_linux.kill()
 
 
 @pytest.mark.skipif(
-    not sys.platform.startswith('win32') and
-    not sys.platform.startswith('cygwin'),
-    reason="Runs on Windows, only.",
+    # Skip, if we are not under Windows
+    (
+        not sys.platform.startswith('win32') and
+        not sys.platform.startswith('cygwin')
+    )
+    # Skip, if we are in continuous integration
+    or os.getenv('CI', default=False),
+    reason="Runs on Windows locally, only.",
 )
-# TODO Deactivating a test just like that is not a proper fix.
-# TODO Add an equivalent test that works under Windows.
-# TODO See also the equivalent tests for macOS and Linux.
-def _test_webcam_on_windows(virtual_webcam_windows_process):
+def test_webcam_on_windows(virtual_webcam_process_windows):
     # (1) define the modules
     source = WebCamSource(web_cam_format="vfwcap")
 
@@ -191,7 +201,7 @@ def _test_webcam_on_windows(virtual_webcam_windows_process):
     assert sink.queue.qsize() > 5
 
     # Cleanup
-    virtual_webcam_windows_process.kill()
+    virtual_webcam_process_windows.kill()
 
 
 class WebCamTesting(unittest.TestCase):
@@ -218,7 +228,7 @@ class WebCamTesting(unittest.TestCase):
         not sys.platform.startswith('darwin'),
         reason="Runs on macOS, only.",
     )
-    def test_webcam_with_invalid_webcam_identifier_mac_os(self):
+    def test_webcam_with_invalid_webcam_identifier_macos(self):
         with pytest.raises(av.error.OSError):
             # (1) define the modules
             _ = WebCamSource(
