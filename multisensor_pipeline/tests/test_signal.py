@@ -40,6 +40,7 @@ class DownsamplingProcessorTest(unittest.TestCase):
         pipeline.start()
         sleep(5)
         pipeline.stop()
+        sleep(5)
         pipeline.join()
 
         sleep(0.8)  # To make this work under macOS in the cloud
@@ -74,6 +75,7 @@ class DownsamplingProcessorTest(unittest.TestCase):
         pipeline.start()
         sleep(5)
         pipeline.stop()
+        sleep(5)
         pipeline.join()
 
         sleep(0.8)  # To make this work under macOS in the cloud
@@ -114,6 +116,7 @@ class DownsamplingProcessorTest(unittest.TestCase):
         pipeline.start()
         sleep(5)
         pipeline.stop()
+        sleep(5)
         pipeline.join()
 
         sleep(0.8)  # To make this work under macOS in the cloud
