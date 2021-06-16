@@ -172,14 +172,50 @@ def test_webcam_on_linux(virtual_webcam_process_linux):
     (
         not sys.platform.startswith('win32') and
         not sys.platform.startswith('cygwin')
-    )
+    ) or
     # Skip, if we are in continuous integration
-    or os.getenv('CI', default=False),
+    bool(os.getenv('CI', default=str(False))),
     reason="Runs on Windows locally, only.",
 )
-def test_webcam_on_windows(virtual_webcam_process_windows):
+def test_webcam_on_windows_in_vfwcap(virtual_webcam_process_windows):
     # (1) define the modules
     source = WebCamSource(web_cam_format="vfwcap")
+
+    sink = QueueSink()
+
+    # (2) add module to a pipeline...
+    pipeline = GraphPipeline()
+    pipeline.add_source(source)
+    pipeline.add_sink(sink)
+    # (3) ...and connect the modules
+    pipeline.connect(source, sink)
+
+    # Test
+    pipeline.start()
+    sleep(2)
+    pipeline.stop()
+    pipeline.join()
+
+    # Assert
+    assert sink.queue.qsize() > 5
+
+    # Cleanup
+    virtual_webcam_process_windows.kill()
+
+
+@pytest.mark.skipif(
+    # Skip, if we are not under Windows
+    (
+        not sys.platform.startswith('win32') and
+        not sys.platform.startswith('cygwin')
+    ) or
+    # Skip, if we are in continuous integration
+    bool(os.getenv('CI', default=str(False))),
+    reason="Runs on Windows locally, only.",
+)
+def test_webcam_on_windows_in_dshow(virtual_webcam_process_windows):
+    # (1) define the modules
+    source = WebCamSource(web_cam_format="dshow")
 
     sink = QueueSink()
 
