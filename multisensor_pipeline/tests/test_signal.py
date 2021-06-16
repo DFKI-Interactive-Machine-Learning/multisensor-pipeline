@@ -38,7 +38,7 @@ class DownsamplingProcessorTest(unittest.TestCase):
 
         # Test
         pipeline.start()
-        sleep(2)
+        sleep(3)
         pipeline.stop()
         pipeline.join()
 
@@ -72,7 +72,7 @@ class DownsamplingProcessorTest(unittest.TestCase):
 
         # Test
         pipeline.start()
-        sleep(2)
+        sleep(3)
         pipeline.stop()
         pipeline.join()
 
@@ -112,7 +112,7 @@ class DownsamplingProcessorTest(unittest.TestCase):
 
         # Test
         pipeline.start()
-        sleep(2)
+        sleep(3)
         pipeline.stop()
         pipeline.join()
 
