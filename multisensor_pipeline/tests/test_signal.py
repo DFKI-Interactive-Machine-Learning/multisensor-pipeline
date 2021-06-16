@@ -43,7 +43,7 @@ class DownsamplingProcessorTest(unittest.TestCase):
         sleep(5)
         pipeline.join()
 
-        sleep(3.2)  # To make this work under macOS in the cloud
+        sleep(6.4)  # To make this work under macOS in the cloud
 
         # Assert
         self.assertEqual(num_samples, sink_0.queue.qsize())
@@ -78,7 +78,7 @@ class DownsamplingProcessorTest(unittest.TestCase):
         sleep(5)
         pipeline.join()
 
-        sleep(3.2)  # To make this work under macOS in the cloud
+        sleep(6.4)  # To make this work under macOS in the cloud
 
         # Assert
         assert sink.queue.qsize() <= 2
@@ -119,7 +119,7 @@ class DownsamplingProcessorTest(unittest.TestCase):
         sleep(5)
         pipeline.join()
 
-        sleep(3.2)  # To make this work under macOS in the cloud
+        sleep(6.4)  # To make this work under macOS in the cloud
 
         # Assert
         self.assertEqual(sink_0.queue.qsize(), 10)
