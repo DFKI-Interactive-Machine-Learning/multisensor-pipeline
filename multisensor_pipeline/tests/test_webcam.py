@@ -8,7 +8,9 @@ from time import sleep
 import av
 import pytest
 
-from multisensor_pipeline.tests.environment_properties import is_running_in_ci
+from multisensor_pipeline.tests.environment_properties import \
+    is_running_in_ci, is_running_on_macos, is_running_on_windows, \
+    is_running_on_linux
 from multisensor_pipeline.tests.paths import DATA_PATH
 
 from multisensor_pipeline.modules import QueueSink
@@ -82,7 +84,7 @@ def virtual_webcam_process_windows():
 
 
 @pytest.mark.skipif(
-    not sys.platform.startswith('darwin'),
+    not is_running_on_macos(),
     reason="Runs on macOS, only.",
 )
 # This can work on client machines, but will fail on servers.
@@ -115,7 +117,7 @@ def test_webcam_on_macos(virtual_webcam_process_macos):
 
 
 @pytest.mark.skipif(
-    not sys.platform.startswith('linux'),
+    not is_running_on_linux(),
     reason="Runs on Linux, only.",
 )
 def test_webcam_on_linux(virtual_webcam_process_linux):
@@ -262,7 +264,7 @@ class WebCamTesting(unittest.TestCase):
             )
 
     @pytest.mark.skipif(
-        not sys.platform.startswith('darwin'),
+        not is_running_on_macos(),
         reason="Runs on macOS, only.",
     )
     def test_webcam_with_invalid_webcam_identifier_macos(self):
@@ -274,8 +276,7 @@ class WebCamTesting(unittest.TestCase):
             )
 
     @pytest.mark.skipif(
-        not sys.platform.startswith('win32') and
-        not sys.platform.startswith('cygwin'),
+        not is_running_on_windows(),
         reason="Runs on Windows, only.",
     )
     def test_webcam_with_invalid_webcam_identifier_windows_dshow(self):
