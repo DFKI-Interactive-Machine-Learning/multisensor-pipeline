@@ -7,6 +7,8 @@ from time import sleep
 
 import av
 import pytest
+
+from multisensor_pipeline.tests.environment_properties import is_running_in_ci
 from multisensor_pipeline.tests.paths import DATA_PATH
 
 from multisensor_pipeline.modules import QueueSink
@@ -174,7 +176,7 @@ def test_webcam_on_linux(virtual_webcam_process_linux):
         not sys.platform.startswith('cygwin')
     ) or
     # Skip, if we are in continuous integration
-    bool(os.getenv('CI', default=str(False))),
+    is_running_in_ci(),
     reason="Runs on Windows locally, only.",
 )
 def test_webcam_on_windows_in_vfwcap(virtual_webcam_process_windows):
@@ -210,7 +212,7 @@ def test_webcam_on_windows_in_vfwcap(virtual_webcam_process_windows):
         not sys.platform.startswith('cygwin')
     ) or
     # Skip, if we are in continuous integration
-    bool(os.getenv('CI', default=str(False))),
+    is_running_in_ci(),
     reason="Runs on Windows locally, only.",
 )
 def test_webcam_on_windows_in_dshow(virtual_webcam_process_windows):
