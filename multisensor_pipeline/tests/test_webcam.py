@@ -88,10 +88,10 @@ def virtual_webcam_process_linux():
         '-r 30 ' \
         '-f v4l2 ' \
         '/dev/video2'
-    virtual_webcam_linux_process: Popen = Popen(
+    virtual_webcam_process_linux: Popen = Popen(
         args=shlex.split(command),
     )
-    return virtual_webcam_linux_process
+    return virtual_webcam_process_linux
 
 
 @pytest.fixture()
