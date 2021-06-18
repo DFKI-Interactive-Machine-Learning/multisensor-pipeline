@@ -1,5 +1,4 @@
 import shlex
-import unittest
 from subprocess import Popen
 from time import sleep
 
@@ -14,6 +13,66 @@ from multisensor_pipeline.tests.paths import DATA_PATH
 from multisensor_pipeline.modules import QueueSink
 from multisensor_pipeline.modules.video.webcam import WebCamSource
 from multisensor_pipeline.pipeline.graph import GraphPipeline
+
+
+def test_webcam_with_invalid_container_format():
+    with pytest.raises(ValueError):
+        # (1) define the modules
+        _ = WebCamSource(
+            web_cam_format="this_is_not_a_valid_container_format",
+        )
+
+
+@pytest.mark.skipif(
+    not is_running_on_linux(),
+    reason="Runs on Linux, only.",
+)
+def test_webcam_with_invalid_webcam_identifier_linux():
+    with pytest.raises(av.error.FileNotFoundError):
+        # (1) define the modules
+        _ = WebCamSource(
+            web_cam_format="video4linux2",
+            web_cam_id='this_is_not_a_valid_webcam_identifier',
+        )
+
+
+@pytest.mark.skipif(
+    not is_running_on_macos(),
+    reason="Runs on macOS, only.",
+)
+def test_webcam_with_invalid_webcam_identifier_macos():
+    with pytest.raises(av.error.OSError):
+        # (1) define the modules
+        _ = WebCamSource(
+            web_cam_format="avfoundation",
+            web_cam_id='this_is_not_a_valid_webcam_identifier',
+        )
+
+
+@pytest.mark.skipif(
+    not is_running_on_windows(),
+    reason="Runs on Windows, only.",
+)
+def test_webcam_with_invalid_webcam_identifier_windows_dshow():
+    with pytest.raises(av.error.OSError):
+        # (1) define the modules
+        _ = WebCamSource(
+            web_cam_format="dshow",
+            web_cam_id='this_is_not_a_valid_webcam_identifier',
+        )
+
+
+@pytest.mark.skipif(
+    not is_running_on_windows(),
+    reason="Runs on Windows, only.",
+)
+def test_webcam_with_invalid_webcam_identifier_windows_vfwcap():
+    with pytest.raises(av.error.OSError):
+        # (1) define the modules
+        _ = WebCamSource(
+            web_cam_format="vfwcap",
+            web_cam_id='this_is_not_a_valid_webcam_identifier',
+        )
 
 
 @pytest.fixture()
@@ -237,60 +296,3 @@ def test_webcam_on_windows_in_dshow(virtual_webcam_process_windows):
 
     # Cleanup
     virtual_webcam_process_windows.kill()
-
-
-class WebCamTesting(unittest.TestCase):
-    def test_webcam_with_invalid_container_format(self):
-        with pytest.raises(ValueError):
-            # (1) define the modules
-            _ = WebCamSource(
-                web_cam_format="this_is_not_a_valid_container_format",
-            )
-
-    @pytest.mark.skipif(
-        not is_running_on_linux(),
-        reason="Runs on Linux, only.",
-    )
-    def test_webcam_with_invalid_webcam_identifier_linux(self):
-        with pytest.raises(av.error.FileNotFoundError):
-            # (1) define the modules
-            _ = WebCamSource(
-                web_cam_format="video4linux2",
-                web_cam_id='this_is_not_a_valid_webcam_identifier',
-            )
-
-    @pytest.mark.skipif(
-        not is_running_on_macos(),
-        reason="Runs on macOS, only.",
-    )
-    def test_webcam_with_invalid_webcam_identifier_macos(self):
-        with pytest.raises(av.error.OSError):
-            # (1) define the modules
-            _ = WebCamSource(
-                web_cam_format="avfoundation",
-                web_cam_id='this_is_not_a_valid_webcam_identifier',
-            )
-
-    @pytest.mark.skipif(
-        not is_running_on_windows(),
-        reason="Runs on Windows, only.",
-    )
-    def test_webcam_with_invalid_webcam_identifier_windows_dshow(self):
-        with pytest.raises(av.error.OSError):
-            # (1) define the modules
-            _ = WebCamSource(
-                web_cam_format="dshow",
-                web_cam_id='this_is_not_a_valid_webcam_identifier',
-            )
-
-    @pytest.mark.skipif(
-        not is_running_on_windows(),
-        reason="Runs on Windows, only.",
-    )
-    def test_webcam_with_invalid_webcam_identifier_windows_vfwcap(self):
-        with pytest.raises(av.error.OSError):
-            # (1) define the modules
-            _ = WebCamSource(
-                web_cam_format="vfwcap",
-                web_cam_id='this_is_not_a_valid_webcam_identifier',
-            )
