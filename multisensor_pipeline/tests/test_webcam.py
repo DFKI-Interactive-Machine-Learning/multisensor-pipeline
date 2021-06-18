@@ -1,10 +1,12 @@
 import subprocess
-import sys
 import shlex
 from time import sleep
 
 import av
 import pytest
+
+from multisensor_pipeline.tests.environment_properties import \
+    is_running_on_linux, is_running_on_macos, is_running_on_windows
 from multisensor_pipeline.tests.paths import DATA_PATH
 
 from multisensor_pipeline.modules import QueueSink
@@ -21,7 +23,7 @@ def test_webcam_with_invalid_container_format():
 
 
 @pytest.mark.skipif(
-    not sys.platform.startswith('linux'),
+    not is_running_on_linux(),
     reason="Runs on Linux, only.",
 )
 def test_webcam_with_invalid_webcam_identifier_linux():
@@ -34,7 +36,7 @@ def test_webcam_with_invalid_webcam_identifier_linux():
 
 
 @pytest.mark.skipif(
-    not sys.platform.startswith('darwin'),
+    not is_running_on_macos(),
     reason="Runs on MacOS, only.",
 )
 def test_webcam_with_invalid_webcam_identifier_mac_os():
@@ -47,8 +49,7 @@ def test_webcam_with_invalid_webcam_identifier_mac_os():
 
 
 @pytest.mark.skipif(
-    not sys.platform.startswith('win32') and
-    not sys.platform.startswith('cygwin'),
+    not is_running_on_windows(),
     reason="Runs on Windows, only.",
 )
 def test_webcam_with_invalid_webcam_identifier_windows():
@@ -103,7 +104,7 @@ def virtual_webcam_macos_process():
 
 
 @pytest.mark.skipif(
-    not sys.platform.startswith('darwin'),
+    not is_running_on_macos(),
     reason="Runs on MacOS, only.",
 )
 def _test_webcam_on_mac_os(virtual_webcam_macos_process):
@@ -133,7 +134,7 @@ def _test_webcam_on_mac_os(virtual_webcam_macos_process):
 
 
 @pytest.mark.skipif(
-    not sys.platform.startswith('linux'),
+    not is_running_on_linux(),
     reason="Runs on Linux, only.",
 )
 def test_webcam_on_linux(virtual_webcam_linux_process):
@@ -188,8 +189,7 @@ def test_webcam_on_linux(virtual_webcam_linux_process):
 
 
 @pytest.mark.skipif(
-    not sys.platform.startswith('win32') and
-    not sys.platform.startswith('cygwin'),
+    not is_running_on_windows(),
     reason="Runs on Windows, only.",
 )
 def test_webcam_on_windows():
