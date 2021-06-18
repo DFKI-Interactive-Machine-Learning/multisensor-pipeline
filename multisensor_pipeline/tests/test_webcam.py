@@ -173,10 +173,7 @@ def test_webcam_on_linux(virtual_webcam_process_linux):
 
 @pytest.mark.skipif(
     # Skip, if we are not under Windows
-    (
-        not sys.platform.startswith('win32') and
-        not sys.platform.startswith('cygwin')
-    ) or
+    not is_running_on_windows() or
     # Skip, if we are in continuous integration
     is_running_in_ci(),
     reason="Runs on Windows locally, only.",
@@ -209,10 +206,7 @@ def test_webcam_on_windows_in_vfwcap(virtual_webcam_process_windows):
 
 @pytest.mark.skipif(
     # Skip, if we are not under Windows
-    (
-        not sys.platform.startswith('win32') and
-        not sys.platform.startswith('cygwin')
-    ) or
+    not is_running_on_windows() or
     # Skip, if we are in continuous integration
     is_running_in_ci(),
     reason="Runs on Windows locally, only.",
@@ -252,7 +246,7 @@ class WebCamTesting(unittest.TestCase):
             )
 
     @pytest.mark.skipif(
-        not sys.platform.startswith('linux'),
+        not is_running_on_linux(),
         reason="Runs on Linux, only.",
     )
     def test_webcam_with_invalid_webcam_identifier_linux(self):
@@ -288,8 +282,7 @@ class WebCamTesting(unittest.TestCase):
             )
 
     @pytest.mark.skipif(
-        not sys.platform.startswith('win32') and
-        not sys.platform.startswith('cygwin'),
+        not is_running_on_windows(),
         reason="Runs on Windows, only.",
     )
     def test_webcam_with_invalid_webcam_identifier_windows_vfwcap(self):

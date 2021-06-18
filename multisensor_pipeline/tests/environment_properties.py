@@ -24,7 +24,7 @@ def is_running_on_macos() -> bool:
 
 
 def is_running_on_windows():
-    """Return weather this is running under Windows."""
+    """Return weather this is running under Windows or Cygwin."""
     this_is_running_on_windows: bool = \
         sys.platform.startswith('win32') or sys.platform.startswith('cygwin')
 

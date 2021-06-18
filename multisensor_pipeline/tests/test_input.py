@@ -3,14 +3,16 @@ from time import sleep
 
 import pytest
 
+from multisensor_pipeline.tests.environment_properties import \
+    is_running_on_windows
+
 
 @pytest.mark.skipif(
     # TODO Deactivating a test just like that is not a proper fix.
     # TODO Add an equivalent test that works under Windows.
     # TODO Keep this one for macOS and Linux.
-    sys.platform.startswith('win32') or
-    sys.platform.startswith('cygwin'),
-    reason="Runs on Windows, only.",
+    is_running_on_windows(),
+    reason="Does not run on Windows.",
 )
 @pytest.mark.timeout(0.320 * 10)  # Kill runs taking 10x longer than local
 def test_simple_mouse(xvfb):
@@ -42,9 +44,8 @@ def test_simple_mouse(xvfb):
     # TODO Deactivating a test just like that is not a proper fix.
     # TODO Add an equivalent test that works under Windows.
     # TODO Keep this one for macOS and Linux.
-    sys.platform.startswith('win32') or
-    sys.platform.startswith('cygwin'),
-    reason="Runs on Windows, only.",
+    is_running_on_windows(),
+    reason="Does not run on Windows.",
 )
 @pytest.mark.timeout(0.420 * 10)  # Kill runs taking 10x longer than local
 def test_simple_keyboard(xvfb):
@@ -78,9 +79,8 @@ def test_simple_keyboard(xvfb):
     # TODO Deactivating a test just like that is not a proper fix.
     # TODO Add an equivalent test that works under Windows.
     # TODO Keep this one for macOS and Linux.
-    sys.platform.startswith('win32') or
-    sys.platform.startswith('cygwin'),
-    reason="Runs on Windows, only.",
+    is_running_on_windows(),
+    reason="Does not run on Windows.",
 )
 def _test_simulated_keyboard_input(xvfb):
     from multisensor_pipeline.modules import ListSink
