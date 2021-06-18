@@ -22,6 +22,7 @@ class ProfilingTest(unittest.TestCase):
             sleep(1./frequency)
 
         stats = msp_stats.get_stats(direction=MSPModuleStats.Direction.IN)
+
         # TODO Loosening a test just like that is not a proper fix.
         # TODO Make the code under test work as intended.
         # TODO *Only then* tighten these conditions again for all environments.
