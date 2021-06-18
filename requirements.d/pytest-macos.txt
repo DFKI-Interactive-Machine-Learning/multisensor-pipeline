@@ -18,7 +18,7 @@ pyobjc-core==7.2
 pyobjc-framework-Cocoa==7.2
 pyparsing==2.4.7
 pytest==6.2.4
-pytest-cov==2.11.1
+pytest-cov==2.12.0
 pytest-timeout==1.4.2
 pytest-xvfb==2.0.0
 python-xlib==0.29
