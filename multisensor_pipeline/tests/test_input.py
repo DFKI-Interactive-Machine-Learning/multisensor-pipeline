@@ -97,6 +97,9 @@ def __test_simple_keyboard():
     assert True
 
 
+# TODO Deactivating a test just like that is not a proper fix.
+# TODO Make the code under test work as intended.
+# TODO *Only then* reactivate this test.
 def _test_simulated_keyboard_input(xvfb):
     from multisensor_pipeline.modules import ListSink
     from multisensor_pipeline.modules.keyboard import Keyboard
