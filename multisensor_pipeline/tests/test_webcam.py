@@ -62,7 +62,7 @@ def test_webcam_with_invalid_webcam_identifier_windows():
 
 
 @pytest.fixture()
-def virtual_webcam_linux_process():
+def virtual_webcam_process_linux():
     """Start a virtual webcam using ffmpeg in a subprocess."""
     command: str = \
         'ffmpeg ' \
@@ -76,14 +76,14 @@ def virtual_webcam_linux_process():
         '/dev/video2'
     print(command)
     print(shlex.split(command))
-    virtual_webcam_linux_process = subprocess.Popen(
+    virtual_webcam_process_linux = subprocess.Popen(
         args=shlex.split(command),
     )
-    return virtual_webcam_linux_process
+    return virtual_webcam_process_linux
 
 
 @pytest.fixture()
-def virtual_webcam_macos_process():
+def virtual_webcam_process_macos():
     """Start a virtual webcam using ffmpeg in a subprocess."""
     command: str = \
         'ffmpeg ' \
@@ -97,17 +97,17 @@ def virtual_webcam_macos_process():
         '/dev/video2'
     print(command)
     print(shlex.split(command))
-    virtual_webcam_macos_process = subprocess.Popen(
+    virtual_webcam_process_macos = subprocess.Popen(
         args=shlex.split(command),
     )
-    return virtual_webcam_macos_process
+    return virtual_webcam_process_macos
 
 
 @pytest.mark.skipif(
     not is_running_on_macos(),
     reason="Runs on MacOS, only.",
 )
-def _test_webcam_on_mac_os(virtual_webcam_macos_process):
+def _test_webcam_on_mac_os(virtual_webcam_process_macos):
     # (1) define the modules
     source = WebCamSource()
 
@@ -131,14 +131,14 @@ def _test_webcam_on_mac_os(virtual_webcam_macos_process):
     assert sink.queue.qsize() > 5
 
     # Cleanup
-    virtual_webcam_macos_process.kill()
+    virtual_webcam_process_macos.kill()
 
 
 @pytest.mark.skipif(
     not is_running_on_linux(),
     reason="Runs on Linux, only.",
 )
-def test_webcam_on_linux(virtual_webcam_linux_process):
+def test_webcam_on_linux(virtual_webcam_process_linux):
     # (1) define the modules
     webcam_source = None
     webcam_identifiers = (
@@ -187,7 +187,7 @@ def test_webcam_on_linux(virtual_webcam_linux_process):
     assert sink.queue.qsize() > 5
 
     # Cleanup
-    virtual_webcam_linux_process.kill()
+    virtual_webcam_process_linux.kill()
 
 
 @pytest.mark.skipif(
