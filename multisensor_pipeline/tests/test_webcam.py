@@ -98,6 +98,7 @@ def test_webcam_on_macos(virtual_webcam_process_macos):
     pipeline = GraphPipeline()
     pipeline.add_source(source)
     pipeline.add_sink(sink)
+
     # (3) ...and connect the modules
     pipeline.connect(source, sink)
 
@@ -186,6 +187,7 @@ def test_webcam_on_windows_in_vfwcap(virtual_webcam_process_windows):
     pipeline = GraphPipeline()
     pipeline.add_source(source)
     pipeline.add_sink(sink)
+
     # (3) ...and connect the modules
     pipeline.connect(source, sink)
 
@@ -219,6 +221,7 @@ def test_webcam_on_windows_in_dshow(virtual_webcam_process_windows):
     pipeline = GraphPipeline()
     pipeline.add_source(source)
     pipeline.add_sink(sink)
+
     # (3) ...and connect the modules
     pipeline.connect(source, sink)
 
