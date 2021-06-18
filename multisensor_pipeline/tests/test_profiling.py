@@ -6,7 +6,8 @@ from typing import List
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
 from multisensor_pipeline.modules.base.profiling import MSPModuleStats
 from multisensor_pipeline.tests.environment_properties import \
-    is_running_in_ci, is_running_on_macos, is_running_on_linux
+    is_running_in_ci, is_running_on_macos, is_running_on_linux, \
+    is_running_on_windows
 
 
 class ProfilingTest(unittest.TestCase):
@@ -31,6 +32,9 @@ class ProfilingTest(unittest.TestCase):
         elif is_running_in_ci() and is_running_on_linux():
             assert 9 < stats["test"]._cma <= 20
             assert 9 < stats["test"]._sma <= 20
+        elif is_running_in_ci() and is_running_on_windows():
+            assert 10 < stats["test"]._cma <= 20
+            assert 10 < stats["test"]._sma <= 20
         else:
             self.assertAlmostEqual(10, stats["test"]._cma, delta=1)
             self.assertAlmostEqual(10, stats["test"]._sma, delta=1)
