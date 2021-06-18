@@ -65,8 +65,8 @@ class JsonSerializationTest(unittest.TestCase):
 
         playback_timestamps = [t['playback_timestamp'] for t in json_list.list]
         playback_time = playback_timestamps[-1] - playback_timestamps[0]
-        plaback_frame_time = playback_time / (len(rec_timestamps) - 1)
-        playback_fps = 1. / plaback_frame_time
+        playback_frame_time = playback_time / (len(rec_timestamps) - 1)
+        playback_fps = 1. / playback_frame_time
 
         mean_frame_time_diff = np.fabs(np.mean(np.diff(playback_timestamps)) - np.mean(np.diff(rec_timestamps)))
         logging.info(
