@@ -5,7 +5,8 @@ from typing import List
 
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
 from multisensor_pipeline.modules.base.profiling import MSPModuleStats
-from multisensor_pipeline.tests.environment_properties import is_running_in_ci
+from multisensor_pipeline.tests.environment_properties import is_running_in_ci, \
+    is_running_on_macos
 
 
 class ProfilingTest(unittest.TestCase):
@@ -24,7 +25,7 @@ class ProfilingTest(unittest.TestCase):
         # TODO Loosening a test just like that is not a proper fix.
         # TODO Make the code under test work as intended.
         # TODO *Only then* tighten these conditions again for all environments.
-        if is_running_in_ci():
+        if is_running_in_ci() and is_running_on_macos():
             assert 7 < stats["test"]._cma <= 20
             assert 7 < stats["test"]._sma <= 20
         else:
