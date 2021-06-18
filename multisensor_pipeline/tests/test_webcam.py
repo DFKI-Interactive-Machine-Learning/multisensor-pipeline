@@ -141,12 +141,9 @@ def virtual_webcam_process_windows():
 
 
 @pytest.mark.skipif(
-    not is_running_on_macos(),
-    reason="Runs on macOS, only.",
+    not is_running_on_macos() or is_running_in_ci(),
+    reason="Runs on macOS locally, only.",
 )
-# This can work on client machines, but will fail on servers.
-# So attempt to run it, but allow for it to fail
-@pytest.mark.xfail(strict=False)
 def test_webcam_on_macos(virtual_webcam_process_macos):
     # (1) define the modules
     source = WebCamSource()
