@@ -1,5 +1,3 @@
-import os
-import sys
 import shlex
 import unittest
 from subprocess import Popen
