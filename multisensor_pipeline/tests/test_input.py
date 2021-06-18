@@ -77,13 +77,9 @@ def test_simple_keyboard(xvfb):
     assert True
 
 
-@pytest.mark.skipif(
-    # TODO Deactivating a test just like that is not a proper fix.
-    # TODO Add an equivalent test that works under Windows.
-    # TODO Keep this one for macOS and Linux.
-    is_running_on_windows(),
-    reason="Does not run on Windows.",
-)
+# TODO Deactivating a test just like that is not a proper fix.
+# TODO Make the code under test work as intended.
+# TODO *Only then* reactivate this test.
 def _test_simulated_keyboard_input(xvfb):
     from multisensor_pipeline.modules import ListSink
     from multisensor_pipeline.modules.keyboard import Keyboard
