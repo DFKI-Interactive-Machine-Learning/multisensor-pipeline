@@ -30,8 +30,8 @@ class ProfilingTest(unittest.TestCase):
             assert 7 < stats["test"]._cma <= 20
             assert 7 < stats["test"]._sma <= 20
         elif is_running_in_ci() and is_running_on_linux():
-            assert 10 < stats["test"]._cma <= 20
-            assert 10 < stats["test"]._sma <= 20
+            assert 9 < stats["test"]._cma <= 20
+            assert 9 < stats["test"]._sma <= 20
         else:
             self.assertAlmostEqual(10, stats["test"]._cma, delta=1)
             self.assertAlmostEqual(10, stats["test"]._sma, delta=1)
