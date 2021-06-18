@@ -36,6 +36,7 @@ def test_simple_mouse(xvfb):
     pipeline.stop()
 
     # Assert
+    # If we ever get here, we consider this test successful.
     assert True
 
 
