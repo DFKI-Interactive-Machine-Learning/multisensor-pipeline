@@ -114,6 +114,7 @@ def _test_simulated_keyboard_input(xvfb):
     pipeline = GraphPipeline()
     pipeline.add_source(source)
     pipeline.add_sink(sink)
+
     # (3) ...and connect the modules
     pipeline.connect(source, sink)
 

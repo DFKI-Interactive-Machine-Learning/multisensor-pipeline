@@ -23,6 +23,7 @@ class VideoTesting(unittest.TestCase):
         pipeline = GraphPipeline()
         pipeline.add_source(source)
         pipeline.add_sink(sink)
+
         # (3) ...and connect the modules
         pipeline.connect(source, sink)
 
@@ -61,6 +62,7 @@ class VideoTesting(unittest.TestCase):
         pipeline = GraphPipeline()
         pipeline.add_source(source)
         pipeline.add_sink(sink)
+
         # (3) ...and connect the modules
         pipeline.connect(source, sink)
 
@@ -102,6 +104,7 @@ class VideoTesting(unittest.TestCase):
         pipeline = GraphPipeline()
         pipeline.add_source(source)
         pipeline.add_sink(sink)
+
         # (3) ...and connect the modules
         pipeline.connect(source, sink)
 
@@ -144,6 +147,7 @@ class VideoTesting(unittest.TestCase):
         pipeline = GraphPipeline()
         pipeline.add_source(source)
         pipeline.add_sink(sink)
+
         # (3) ...and connect the modules
         pipeline.connect(source, sink)
 
