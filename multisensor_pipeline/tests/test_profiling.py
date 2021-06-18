@@ -5,8 +5,8 @@ from typing import List
 
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
 from multisensor_pipeline.modules.base.profiling import MSPModuleStats
-from multisensor_pipeline.tests.environment_properties import is_running_in_ci, \
-    is_running_on_macos
+from multisensor_pipeline.tests.environment_properties import \
+    is_running_in_ci, is_running_on_macos
 
 
 class ProfilingTest(unittest.TestCase):
