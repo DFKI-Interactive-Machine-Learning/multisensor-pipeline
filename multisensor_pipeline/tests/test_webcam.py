@@ -77,7 +77,7 @@ def test_webcam_with_invalid_webcam_identifier_windows_vfwcap():
 
 @pytest.fixture()
 def virtual_webcam_process_linux():
-    """Start a virtual webcam using ffmpeg in a subprocess under linux."""
+    """Start a virtual webcam using ffmpeg in a subprocess under Linux."""
     command: str = \
         'ffmpeg ' \
         '-re ' \
