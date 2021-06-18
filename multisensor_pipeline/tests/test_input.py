@@ -1,12 +1,13 @@
-import sys
 from time import sleep
 
 import pytest
 
+from multisensor_pipeline.tests.environment_properties import \
+    is_running_on_windows
+
 
 @pytest.mark.skipif(
-    sys.platform.startswith('win32') or
-    sys.platform.startswith('cygwin'),
+    is_running_on_windows(),
     reason="Does not run under Windows.",
 )
 @pytest.mark.timeout(0.320 * 10)  # Kill runs taking 10x longer than local
@@ -15,8 +16,7 @@ def test_simple_mouse_not_windows(xvfb):
 
 
 @pytest.mark.skipif(
-    not sys.platform.startswith('win32') and
-    not sys.platform.startswith('cygwin'),
+    is_running_on_windows(),
     reason="Does run only under Windows.",
 )
 @pytest.mark.timeout(0.320 * 10)  # Kill runs taking 10x longer than local
@@ -52,8 +52,7 @@ def __test_simple_mouse():
 
 
 @pytest.mark.skipif(
-    sys.platform.startswith('win32') or
-    sys.platform.startswith('cygwin'),
+    is_running_on_windows(),
     reason="Does not run under Windows.",
 )
 @pytest.mark.timeout(0.420 * 10)  # Kill runs taking 10x longer than local
@@ -62,8 +61,7 @@ def test_simple_keyboard_not_windows(xvfb):
 
 
 @pytest.mark.skipif(
-    not sys.platform.startswith('win32') and
-    not sys.platform.startswith('cygwin'),
+    is_running_on_windows(),
     reason="Does run only under Windows.",
 )
 @pytest.mark.timeout(0.420 * 10)  # Kill runs taking 10x longer than local
