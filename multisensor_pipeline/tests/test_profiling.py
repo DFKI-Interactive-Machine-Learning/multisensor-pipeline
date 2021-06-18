@@ -25,8 +25,8 @@ class ProfilingTest(unittest.TestCase):
         # TODO Make the code under test work as intended.
         # TODO *Only then* tighten these conditions again for all environments.
         if is_running_in_ci():
-            assert 8 < stats["test"]._cma <= 20
-            assert 8 < stats["test"]._sma <= 20
+            assert 7 < stats["test"]._cma <= 20
+            assert 7 < stats["test"]._sma <= 20
         else:
             self.assertAlmostEqual(10, stats["test"]._cma, delta=1)
             self.assertAlmostEqual(10, stats["test"]._sma, delta=1)
