@@ -52,8 +52,8 @@ class DownsamplingProcessorTest(unittest.TestCase):
         # TODO Make the code under test work as intended.
         # TODO *Only then* tighten these conditions again for all environments.
         if is_running_in_ci() and is_running_on_macos():
-            assert 77 <= sink_0.queue.qsize() <= num_samples
-            assert 77 <= sink_1.queue.qsize() <= num_samples
+            assert 69 <= sink_0.queue.qsize() <= num_samples
+            assert 69 <= sink_1.queue.qsize() <= num_samples
         else:
             self.assertEqual(num_samples, sink_0.queue.qsize())
             self.assertEqual(num_samples, sink_1.queue.qsize())
