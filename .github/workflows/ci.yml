@@ -127,7 +127,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setup Virtual Environment (Ubuntu | macOS)
+      - name: Setup Virtual Environment (macOS | Ubuntu)
         if: startsWith( matrix.os, 'macos-' ) ||
             startsWith( matrix.os, 'ubuntu-' )
         run: |
