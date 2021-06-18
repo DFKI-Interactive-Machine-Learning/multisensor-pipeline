@@ -39,7 +39,7 @@ def test_webcam_with_invalid_webcam_identifier_linux():
     not is_running_on_macos(),
     reason="Runs on MacOS, only.",
 )
-def test_webcam_with_invalid_webcam_identifier_mac_os():
+def test_webcam_with_invalid_webcam_identifier_macos():
     with pytest.raises(av.error.OSError):
         # (1) define the modules
         _ = WebCamSource(
@@ -107,7 +107,7 @@ def virtual_webcam_process_macos():
     not is_running_on_macos(),
     reason="Runs on MacOS, only.",
 )
-def _test_webcam_on_mac_os(virtual_webcam_process_macos):
+def _test_webcam_on_macos(virtual_webcam_process_macos):
     # (1) define the modules
     source = WebCamSource()
 
