@@ -42,10 +42,9 @@ class DownsamplingProcessorTest(unittest.TestCase):
         pipeline.start()
         sleep(5)
         pipeline.stop()
-        sleep(5)
         pipeline.join()
 
-        sleep(6.4)  # To make this work under macOS in the cloud
+        sleep(0.1)  # To make this work under macOS in the cloud
 
         # Assert
         # TODO Loosening a test just like that is not a proper fix.
@@ -85,10 +84,9 @@ class DownsamplingProcessorTest(unittest.TestCase):
         pipeline.start()
         sleep(5)
         pipeline.stop()
-        sleep(5)
         pipeline.join()
 
-        sleep(6.4)  # To make this work under macOS in the cloud
+        sleep(0.1)  # To make this work under macOS in the cloud
 
         # Assert
         if is_running_in_ci() and is_running_on_macos():
@@ -129,10 +127,9 @@ class DownsamplingProcessorTest(unittest.TestCase):
         pipeline.start()
         sleep(5)
         pipeline.stop()
-        sleep(5)
         pipeline.join()
 
-        sleep(6.4)  # To make this work under macOS in the cloud
+        sleep(0.1)  # To make this work under macOS in the cloud
 
         # Assert
         self.assertEqual(sink_0.queue.qsize(), 10)

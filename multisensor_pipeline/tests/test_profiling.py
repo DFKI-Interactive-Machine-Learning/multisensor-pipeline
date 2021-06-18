@@ -12,6 +12,7 @@ from multisensor_pipeline.tests.environment_properties import \
 
 class ProfilingTest(unittest.TestCase):
     def test_frequency_stats(self):
+        frequency = 10
         msp_stats = MSPModuleStats()
         frames: List = []
         for _ in range(20):
@@ -19,7 +20,7 @@ class ProfilingTest(unittest.TestCase):
 
         for frame in frames:
             msp_stats.add_frame(frame, direction=MSPModuleStats.Direction.IN)
-            sleep(0.05)
+            sleep(1./frequency)
 
         stats = msp_stats.get_stats(direction=MSPModuleStats.Direction.IN)
 
@@ -54,6 +55,7 @@ class ProfilingTest(unittest.TestCase):
                 frame=frame,
                 direction=MSPModuleStats.Direction.IN,
             )
-            sleep(0.05)
+            sleep(1./10)
 
-        _ = msp_stats.get_stats(direction=MSPModuleStats.Direction.IN)
+        stats = msp_stats.get_stats(direction=MSPModuleStats.Direction.IN)
+        self.assertAlmostEqual(10, stats["test"]._cma, delta=1)
