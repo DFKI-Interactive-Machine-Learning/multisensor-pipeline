@@ -6,6 +6,8 @@ from multisensor_pipeline.modules.npy import RandomArraySource
 from multisensor_pipeline.modules.signal.filtering import OneEuroProcessor
 from multisensor_pipeline.modules.signal.sampling import DownsamplingProcessor
 from multisensor_pipeline.pipeline.graph import GraphPipeline
+from multisensor_pipeline.tests.environment_properties import is_running_in_ci, \
+    is_running_on_macos
 
 
 class DownsamplingProcessorTest(unittest.TestCase):
