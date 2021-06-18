@@ -6,7 +6,8 @@ import av
 import pytest
 
 from multisensor_pipeline.tests.environment_properties import \
-    is_running_on_linux, is_running_on_macos, is_running_on_windows
+    is_running_on_linux, is_running_on_macos, is_running_on_windows, \
+    is_running_in_ci
 from multisensor_pipeline.tests.paths import DATA_PATH
 
 from multisensor_pipeline.modules import QueueSink
@@ -104,10 +105,10 @@ def virtual_webcam_process_macos():
 
 
 @pytest.mark.skipif(
-    not is_running_on_macos(),
-    reason="Runs on macOS, only.",
+    not is_running_on_macos() or is_running_in_ci(),
+    reason="Runs on macOS locally, only.",
 )
-def _test_webcam_on_macos(virtual_webcam_process_macos):
+def test_webcam_on_macos(virtual_webcam_process_macos):
     # (1) define the modules
     source = WebCamSource()
 
