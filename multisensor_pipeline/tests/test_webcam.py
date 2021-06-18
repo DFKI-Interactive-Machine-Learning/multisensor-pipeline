@@ -154,6 +154,7 @@ def test_webcam_on_linux(virtual_webcam_process_linux):
     pipeline = GraphPipeline()
     pipeline.add_source(webcam_source)
     pipeline.add_sink(sink)
+
     # (3) ...and connect the modules
     pipeline.connect(webcam_source, sink)
 

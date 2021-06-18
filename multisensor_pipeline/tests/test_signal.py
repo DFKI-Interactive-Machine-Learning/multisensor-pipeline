@@ -76,6 +76,7 @@ class DownsamplingProcessorTest(unittest.TestCase):
         pipeline.add_source(source)
         pipeline.add_processor(processor)
         pipeline.add_sink(sink)
+
         # (3) ...and connect the modules
         pipeline.connect(source, processor)
         pipeline.connect(processor, sink)
