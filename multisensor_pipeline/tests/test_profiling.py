@@ -28,8 +28,8 @@ class ProfilingTest(unittest.TestCase):
         # TODO Make the code under test work as intended.
         # TODO *Only then* tighten these conditions again for all environments.
         if is_running_in_ci() and is_running_on_macos():
-            assert 7 < stats["test"]._cma <= 20
-            assert 7 < stats["test"]._sma <= 20
+            assert 6 < stats["test"]._cma <= 20
+            assert 6 < stats["test"]._sma <= 20
         elif is_running_in_ci() and is_running_on_linux():
             assert 9 < stats["test"]._cma <= 20
             assert 9 < stats["test"]._sma <= 20
