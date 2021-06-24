@@ -173,7 +173,7 @@ jobs:
             startsWith( matrix.os, 'ubuntu-' )
         run: |
           venv/bin/python -m tox -e $TOXENV
-        timeout-minutes: 5  # About ten times the time of a successful step
+        timeout-minutes: 7  # About ten times the time of a successful step
         shell: bash
       - name: Test Attempt 2 (macOS | Ubuntu)
         continue-on-error: true
@@ -185,7 +185,7 @@ jobs:
             steps.test-attempt-1-macos_ubuntu.outcome=='failure'
         run: |
           venv/bin/python -m tox -e $TOXENV
-        timeout-minutes: 5  # About ten times the time of a successful step
+        timeout-minutes: 7  # About ten times the time of a successful step
         shell: bash
       - name: Test Attempt 3 (macOS | Ubuntu)
         continue-on-error: true
@@ -197,7 +197,7 @@ jobs:
             steps.test-attempt-2-macos_ubuntu.outcome=='failure'
         run: |
           venv/bin/python -m tox -e $TOXENV
-        timeout-minutes: 5  # About ten times the time of a successful step
+        timeout-minutes: 7  # About ten times the time of a successful step
         shell: bash
       - name: Test Attempt 4 (macOS | Ubuntu)
         continue-on-error: true
@@ -209,7 +209,7 @@ jobs:
             steps.test-attempt-3-macos_ubuntu.outcome=='failure'
         run: |
           venv/bin/python -m tox -e $TOXENV
-        timeout-minutes: 5  # About ten times the time of a successful step
+        timeout-minutes: 7  # About ten times the time of a successful step
         shell: bash
       - name: Test Attempt 5 (macOS | Ubuntu)
         continue-on-error: true
@@ -221,7 +221,7 @@ jobs:
             steps.test-attempt-4-macos_ubuntu.outcome=='failure'
         run: |
           venv/bin/python -m tox -e $TOXENV
-        timeout-minutes: 5  # About ten times the time of a successful step
+        timeout-minutes: 7  # About ten times the time of a successful step
         shell: bash
       - name: Check for Success (macOS | Ubuntu)
         if: startsWith( matrix.os, 'macos-' ) ||
@@ -248,7 +248,7 @@ jobs:
         id: test-attempt-1-windows
         run: |
           python -m tox -e $TOXENV
-        timeout-minutes: 5  # About ten times the time of a successful step
+        timeout-minutes: 7  # About ten times the time of a successful step
         shell: bash
       - name: Test Attempt 2 (Windows)
         continue-on-error: true
@@ -258,7 +258,7 @@ jobs:
             startsWith( matrix.py, '3.6')
         run: |
           python -m tox -e $TOXENV
-        timeout-minutes: 5  # About ten times the time of a successful step
+        timeout-minutes: 7  # About ten times the time of a successful step
         shell: bash
       - name: Test Attempt 3 (Windows)
         continue-on-error: true
@@ -268,7 +268,7 @@ jobs:
             startsWith( matrix.py, '3.6')
         run: |
           python -m tox -e $TOXENV
-        timeout-minutes: 5  # About ten times the time of a successful step
+        timeout-minutes: 7  # About ten times the time of a successful step
         shell: bash
       - name: Test Attempt 4 (Windows)
         continue-on-error: true
@@ -278,7 +278,7 @@ jobs:
             startsWith( matrix.py, '3.6')
         run: |
           python -m tox -e $TOXENV
-        timeout-minutes: 5  # About ten times the time of a successful step
+        timeout-minutes: 7  # About ten times the time of a successful step
         shell: bash
       - name: Test Attempt 5 (Windows)
         continue-on-error: true
@@ -288,7 +288,7 @@ jobs:
             startsWith( matrix.py, '3.6')
         run: |
           python -m tox -e $TOXENV
-        timeout-minutes: 5  # About ten times the time of a successful step
+        timeout-minutes: 7  # About ten times the time of a successful step
         shell: bash
       - name: Check for Success (Windows)
         if: startsWith( matrix.os, 'windows-' ) &&
