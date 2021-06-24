@@ -90,7 +90,7 @@ class DownsamplingProcessorTest(unittest.TestCase):
 
         # Assert
         if is_running_in_ci() and is_running_on_macos():
-            assert sink.queue.qsize() <= 5
+            assert sink.queue.qsize() <= 6
         else:
             assert sink.queue.qsize() <= 2
 
