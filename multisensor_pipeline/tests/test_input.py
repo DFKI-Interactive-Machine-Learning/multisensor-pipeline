@@ -17,7 +17,7 @@ def test_simple_mouse_not_windows(xvfb):
 
 @pytest.mark.skipif(
     is_running_on_windows(),
-    reason="Does run only under Windows.",
+    reason="Does run only on Windows.",
 )
 @pytest.mark.timeout(0.320 * 10)  # Kill runs taking 10x longer than local
 def test_simple_mouse_windows():
@@ -62,7 +62,7 @@ def test_simple_keyboard_not_windows(xvfb):
 
 @pytest.mark.skipif(
     is_running_on_windows(),
-    reason="Does run only under Windows.",
+    reason="Does run only on Windows.",
 )
 @pytest.mark.timeout(0.420 * 10)  # Kill runs taking 10x longer than local
 def test_simple_keyboard_windows():
