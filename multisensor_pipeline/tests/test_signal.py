@@ -80,16 +80,22 @@ class DownsamplingProcessorTest(unittest.TestCase):
         pipeline.connect(source, processor)
         pipeline.connect(processor, sink)
 
+        number_of_seconds_to_run_the_pipeline = 2
+
         # Test
         pipeline.start()
-        sleep(1)
+        sleep(number_of_seconds_to_run_the_pipeline)
         pipeline.stop()
         pipeline.join()
 
         sleep(0.1)  # To make this work under macOS in the cloud
 
         # Assert
-        assert sink.queue.qsize() <= 2
+        # There should be at most one frame for each second
+        if is_running_in_ci() and is_running_on_macos():
+            assert sink.queue.qsize() <= number_of_seconds_to_run_the_pipeline
+        else:
+            assert sink.queue.qsize() <= number_of_seconds_to_run_the_pipeline
 
     def test_one_euro_filter(self):
         # Mock a setup like so:
