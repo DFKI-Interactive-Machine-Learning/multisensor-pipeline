@@ -8,7 +8,7 @@ from multisensor_pipeline.tests.environment_properties import \
 
 @pytest.mark.skipif(
     is_running_on_windows(),
-    reason="Does not run under Windows.",
+    reason="Does not run on Windows.",
 )
 @pytest.mark.timeout(0.320 * 10)  # Kill runs taking 10x longer than local
 def test_simple_mouse_not_windows(xvfb):
@@ -53,7 +53,7 @@ def __test_simple_mouse():
 
 @pytest.mark.skipif(
     is_running_on_windows(),
-    reason="Does not run under Windows.",
+    reason="Does not run on Windows.",
 )
 @pytest.mark.timeout(0.420 * 10)  # Kill runs taking 10x longer than local
 def test_simple_keyboard_not_windows(xvfb):
