@@ -138,7 +138,7 @@ jobs:
       - name: Setup Virtual Environment (Windows)
         if: startsWith( matrix.os, 'windows-' ) &&
             startsWith( matrix.py, '3.6')
-        # There seems to be no clean way to create a venv under windows.
+        # There seems to be no clean way to create a venv on windows.
         # So, do not actually install a virtual environment.
         # Instead, install the venv requirements to the system python.
         run: |
