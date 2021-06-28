@@ -17,7 +17,7 @@ To ease their installation process, we recommend using a package manager.
 On Linux:
 
 -   There is usually a package manager provided by your distributor.
-    Please refer to the distribution documentation on how to initialize.
+    Please refer to the distribution documentation on how to initialize it.
 
 On macOS:
 
