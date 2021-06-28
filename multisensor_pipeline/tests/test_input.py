@@ -14,7 +14,20 @@ from multisensor_pipeline.tests.environment_properties import \
     reason="Does not run on Windows.",
 )
 @pytest.mark.timeout(0.320 * 10)  # Kill runs taking 10x longer than local
-def test_simple_mouse(xvfb):
+def test_simple_mouse_not_windows(xvfb):
+    __test_simple_mouse()
+
+
+@pytest.mark.skipif(
+    is_running_on_windows(),
+    reason="Does run only on Windows.",
+)
+@pytest.mark.timeout(0.320 * 10)  # Kill runs taking 10x longer than local
+def test_simple_mouse_windows():
+    __test_simple_mouse()
+
+
+def __test_simple_mouse():
     from multisensor_pipeline.modules import QueueSink
     from multisensor_pipeline.modules.mouse import Mouse
     from multisensor_pipeline.pipeline.graph import GraphPipeline
@@ -49,7 +62,20 @@ def test_simple_mouse(xvfb):
     reason="Does not run on Windows.",
 )
 @pytest.mark.timeout(0.420 * 10)  # Kill runs taking 10x longer than local
-def test_simple_keyboard(xvfb):
+def test_simple_keyboard_not_windows(xvfb):
+    __test_simple_keyboard()
+
+
+@pytest.mark.skipif(
+    is_running_on_windows(),
+    reason="Does run only on Windows.",
+)
+@pytest.mark.timeout(0.420 * 10)  # Kill runs taking 10x longer than local
+def test_simple_keyboard_windows():
+    __test_simple_keyboard()
+
+
+def __test_simple_keyboard():
     from multisensor_pipeline.modules import QueueSink
     from multisensor_pipeline.modules.keyboard import Keyboard
     from multisensor_pipeline.pipeline.graph import GraphPipeline
