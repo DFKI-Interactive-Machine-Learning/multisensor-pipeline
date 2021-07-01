@@ -44,7 +44,7 @@ To install Anaconda, follow the instructions on their website:
 <https://docs.anaconda.com/anaconda/install/index.html>
 
 > Note:
->     On macOS, this is supported on X86 CPUs, only.
+>     On macOS, this is supported on x86 CPUs, only.
 >     On machines with Apple Silicon using the ARM architecture,
 >     please refer to the following developer installation:
 
@@ -79,7 +79,7 @@ On macOS (Intel / x86):
         portaudio \
         pkgconfig
 
-On macOS (Apple Silicon / ARM64):
+On macOS (Apple / ARM64):
 
     brew install \
         jpeg \
@@ -112,7 +112,7 @@ On Linux:
         -p .condaenv \
         --file requirements.d/pytest-macos.txt
 
-On macOS (Intel / X86_64):
+On macOS (Intel / x86_64):
 
     conda create \
         --channel conda-forge \
@@ -121,13 +121,14 @@ On macOS (Intel / X86_64):
 
 On macOS (Apple / ARM):
 
--   Change to the directory containing the MSP repository:  
-    `cd ..`
+-   Open a terminal in your working copy of multisensor pipeline
 -   Create an empty virtual environment:  
     `python -m venv venv`
 -   Install most of the requirements:  
     `venv/bin/python3 -m pip install
-        -r requirements.d/pytest-macos-arm.txt`
+        -r requirements.d/pytest-macos-m1-pip-source.txt`
+-   Change to the directory containing the MSP repository:  
+    `cd ..`
 -   Download PyAudio:  
     `git clone
         https://people.csail.mit.edu/hubert/git/pyaudio.git`  
@@ -153,10 +154,6 @@ On macOS (Apple / ARM):
     `cd ..`  
     `git clone --depth 1 --recursive https://github.com/opencv/opencv-python.git`  
     `cd opencv`
-<!-- Unnecessary?
--   Build the package:  
-    `pip wheel . --verbose`
--->
 -   Install OpenCV's installation requirements:  
     `../multisensor-pipeline/venv/bin/python3
         -m pip install scikit-build`
