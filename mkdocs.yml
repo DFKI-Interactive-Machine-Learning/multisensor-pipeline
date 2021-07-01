@@ -1,4 +1,5 @@
 site_name: Multisensor Pipeline (MSP)
+site_url: https://dfki-interactive-machine-learning.github.io/multisensor-pipeline/
 repo_url: https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline
 
 theme:
@@ -44,7 +45,6 @@ nav:
       - Creating Custom Modules: 'custom_modules.md'
       - Existing Extensions: 'existing_modules.md'
 
-
 markdown_extensions:
   - toc:
       slugify: !!python/name:pymdownx.slugs.uslugify
@@ -69,6 +69,3 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline
-
-
-
