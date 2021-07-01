@@ -3,7 +3,7 @@ site_url: https://dfki-interactive-machine-learning.github.io/multisensor-pipeli
 repo_url: https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline
 
 theme:
-  name: 'material'
+  name: 'readthedocs'
   features:
     - navigation.top
     - search.suggest
