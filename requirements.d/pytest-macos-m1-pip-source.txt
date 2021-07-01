@@ -1,0 +1,32 @@
+attrs
+av
+coverage
+decorator
+iniconfig
+networkx==2.5
+numpy
+# Install OpenCV from source as described in documentation
+# -e git+https://github.com/opencv/opencv-python.git#egg=opencv-python
+packaging
+Pillow
+pip
+pluggy
+py
+# Install PyAudio from source as described in documentation
+# PyAudio
+pynput
+pyobjc-framework-Quartz
+pyobjc-core
+pyobjc-framework-Cocoa
+pyparsing
+pytest
+pytest-cov
+pytest-timeout
+pytest-xvfb
+python-xlib
+PyVirtualDisplay
+pyzmq
+setuptools
+six
+toml
+wheel
