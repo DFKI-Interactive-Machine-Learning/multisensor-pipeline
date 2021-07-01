@@ -1,4 +1,4 @@
-#Overview
+# Overview
 The multisensor pipeline (`msp`) package enables stream and event processing with a small amount of dependencies. The main purpose of the `msp` pipeline is the development of research prototypes, but it can also be used for realizing small productive systems or demos that require an acquisition of multiple sensors or data streams (*source*), processing of this data(*processor*), and a utilization of the output (*sink*). The modules in a pipeline form a weakly connected directed graph. Sources and sinks are defined analogously to graph theory, processors are equivalent to internals (see this [Wikipedia article](https://en.wikipedia.org/wiki/Directed_graph#Indegree_and_outdegree)). A pipeline needs at least one source and one sink module. An `msp` pipeline can...
 
 - read/stream signals from any number of **source modules** like sensors, microphones, cameras, pens, eye trackers, etc.
