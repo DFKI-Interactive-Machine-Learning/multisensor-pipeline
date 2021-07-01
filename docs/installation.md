@@ -68,7 +68,7 @@ So, we install them beforehand:
 
 On Linux:
 
-TODO
+    sudo apt install --yes libjpeg-turbo8 cmake portaudio19-dev
 
 On macOS (Intel / x86):
 
@@ -98,6 +98,10 @@ To install or upgrade your Python interpreter, please refer to their documentati
 
 <https://wiki.python.org/moin/BeginnersGuide/Download>
 
+To make sure that a Python interpreter is available, run: 
+
+    python --version
+
 ## Virtual Environment
 
 Installing Python libraries system-wide can lead to unforeseen consequences.
@@ -110,7 +114,7 @@ On Linux:
     conda create \
         --channel conda-forge \
         -p .condaenv \
-        --file requirements.d/pytest-macos.txt
+        --file requirements.d/pytest-ubuntu.txt
 
 On macOS (Intel / x86_64):
 
