@@ -1,4 +1,4 @@
-# User Installation
+# Installation
 
 This document provides an installation guide for users of Multisensor pipeline.
 
