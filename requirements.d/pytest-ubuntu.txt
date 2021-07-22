@@ -4,6 +4,10 @@ coverage==5.5
 decorator==4.4.2
 EasyProcess==0.3
 evdev==1.4.0
+Flask==2.0.1
+flask-socketio==5.1.0
+gevent==21.1.2
+gevent-websocket==0.10.1
 iniconfig==1.1.1
 networkx==2.5.1
 numpy==1.19.5
