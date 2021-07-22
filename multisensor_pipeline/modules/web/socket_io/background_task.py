@@ -10,7 +10,6 @@ def background_task(
     server_to_client_connection_read: Connection,
 ):
     """Send server generated events to clients."""
-
     while True:
         # If there is no data to be send to client, try again in a bit.
         if not server_to_client_connection_read.poll():
