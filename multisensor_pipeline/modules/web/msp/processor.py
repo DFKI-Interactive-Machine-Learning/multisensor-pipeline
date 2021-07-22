@@ -29,7 +29,7 @@ class WebProcessor(BaseProcessor):
             server_to_client_connection_read=server_to_client_connection_read,
             server_to_client_connection_write=server_to_client_connection_write,  # TODO
         )
-        self._webserver_process = Process(
+        self._webserver_process: Process = Process(
             target=_main_partial,
         )
         self._webserver_process.start()
@@ -60,7 +60,7 @@ class WebProcessor(BaseProcessor):
         return client_frame
 
     def on_stop(self):
-        self._webserver_process.kill()
+        self._webserver_process.terminate()
 
 
 if __name__ == '__main__':
