@@ -66,7 +66,6 @@ class DatetimeNamespace(Namespace):
                 background_task_partial = partial(
                     background_task,
                     socket_io=self.socket_io,
-                    namespace='/test',
                     server_to_client_connection_read=self.
                     server_to_client_connection_read,
                 )
