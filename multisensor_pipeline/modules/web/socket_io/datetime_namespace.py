@@ -1,4 +1,5 @@
 from functools import partial
+from multiprocessing import Pipe
 from threading import Lock
 
 from flask import request
@@ -13,10 +14,20 @@ class DatetimeNamespace(Namespace):
     _thread = None
     _thread_lock = Lock()
 
-    def __init__(self, namespace: str, socket_io: SocketIO):
+    def __init__(
+        self,
+        namespace: str,
+        socket_io: SocketIO,
+        server_to_client_connection_read: Pipe,
+        server_to_client_connection_write: Pipe,
+    ):
         super(DatetimeNamespace, self).__init__(namespace=namespace)
 
         self.socket_io: SocketIO = socket_io
+        self.server_to_client_connection_read: Pipe = \
+            server_to_client_connection_read
+        self.server_to_client_connection_write: Pipe = \
+            server_to_client_connection_write
 
     def on_event(self, message):
         emit(
@@ -56,6 +67,8 @@ class DatetimeNamespace(Namespace):
                     background_task,
                     socket_io=self.socket_io,
                     namespace='/test',
+                    server_to_client_connection_read=self.
+                    server_to_client_connection_read,
                 )
                 DatetimeNamespace._thread = \
                     self.socket_io.start_background_task(
