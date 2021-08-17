@@ -16,6 +16,7 @@ The multisensor pipeline (`msp`) package enables stream and event processing wit
 # Status
 
 [![.github/workflows/ci.yml](https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline/actions/workflows/ci.yml)
+[![Python package](https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline/actions/workflows/python-package.yml/badge.svg)](https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline/actions/workflows/python-package.yml)
 
 ## Installation
 
