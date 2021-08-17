@@ -76,6 +76,6 @@ class JsonSerializationTest(unittest.TestCase):
             f"Playback ({playback_speed}x) at {playback_fps} Hz"
         )
         if is_running_on_macos() and is_running_in_ci():
-            assert float(mean_frame_time_diff) <= .09
+            assert float(mean_frame_time_diff) <= .11
         else:
             assert float(mean_frame_time_diff) <= .08
