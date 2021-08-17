@@ -136,10 +136,9 @@ class BaseSource(BaseModule, ABC):
                 sink.add_source(self)   # should we still define which topic the source is sending?
         else:
             # case: connection with specified topic
-            pass
-
-        self._sinks.append(sink)
-        # TODO: check if types match -> raise error or warning
+            for topic in topics:        # should we check this again here or are we giving the user the possibility to have source.topic[0] sink.accepted_topictopic[0]
+                self._sinks[topic] = self._sinks.get(topic, []).append(sink)
+                sink.add_source(self, topic)
 
     def _notify(self, frame: Optional[MSPDataFrame]):
         """
