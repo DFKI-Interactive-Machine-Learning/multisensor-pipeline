@@ -5,7 +5,7 @@ from multiprocessing.queues import Queue as MPQueue
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic
 from multisensor_pipeline.dataframe.control import MSPControlMessage
 from multisensor_pipeline.modules.base.profiling import MSPModuleStats
-from typing import Union, Optional
+from typing import Union, Optional, List
 import logging
 import uuid
 
@@ -97,7 +97,8 @@ class BaseSource(BaseModule, ABC):
         Initializes the worker thread and a queue list for communication with observers that listen to that source.
         """
         super().__init__()
-        self._sinks = []
+        #self._sinks = []
+        self._sinks = {}
 
     def _worker(self):
         """ Source worker function: notify observer when source update function returns a DataFrame """
@@ -108,11 +109,12 @@ class BaseSource(BaseModule, ABC):
         """ Custom update routine. """
         raise NotImplementedError()
 
-    def add_observer(self, sink):
+    def add_observer(self, sink, topics: Union[str, List[Topic]] = "Any"):
         """
         Register a Sink or Queue as an observer.
 
         Args:
+            topics:
             sink: A thread-safe Queue object or Sink [or any class that implements put(tuple)]
         """
         if isinstance(sink, Queue) or isinstance(sink, MPQueue):
@@ -120,7 +122,22 @@ class BaseSource(BaseModule, ABC):
             return
 
         assert isinstance(sink, BaseSink) or isinstance(sink, BaseProcessor)
-        sink.add_source(self)
+        # case: connection without specifying topics
+        if topics == "Any":
+            if sink.accepted_topics:
+                # case: sink has defined which topics it accepts
+                for topic in self.outgoing_topics:
+                    if topic in sink.accepted_topics:
+                        self._sinks[topic] = self._sinks.get(topic, []).append(sink)
+                        sink.add_source(self, topic)
+            else:
+                # case: sink has not defined which topics it accepts, therefore you send everything
+                self._sinks["Any"] = self._sinks.get("Any", []).append(sink)
+                sink.add_source(self)   # should we still define which topic the source is sending?
+        else:
+            # case: connection with specified topic
+            pass
+
         self._sinks.append(sink)
         # TODO: check if types match -> raise error or warning
 
@@ -151,6 +168,11 @@ class BaseSource(BaseModule, ABC):
         """
         self._notify(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM, source=self))
         super(BaseSource, self).stop(blocking=blocking)
+
+    @property
+    def outgoing_topics(self) -> [Topic]:
+        """ Returns outgoin topics, None if outgoing_topics are not defined in the module"""
+        return None
 
 
 class BaseSink(BaseModule, ABC):
@@ -239,6 +261,11 @@ class BaseSink(BaseModule, ABC):
         self._queue.put(frame)
         if self._profiling:
             self._stats.add_queue_state(qsize=self._queue.qsize(), skipped_frames=skipped_frames)
+
+    @property
+    def accepted_topics(self) -> [Topic]:
+        """ Returns accepted topics, None if accepted_topics are not defined in the module"""
+        return None
 
 
 class BaseProcessor(BaseSink, BaseSource, ABC):
