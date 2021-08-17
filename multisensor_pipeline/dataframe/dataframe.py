@@ -41,6 +41,9 @@ class Topic:
     def uuid(self):
         return f"{self.source_uuid}:{self.name}:{self.dtype.__name__}"
 
+    def __hash__(self):
+        return hash(self.uuid)
+
     def __eq__(self, other):
         if not isinstance(other, Topic):
             return False
