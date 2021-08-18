@@ -9,17 +9,13 @@ logger = logging.getLogger(__name__)
 
 class Topic:
 
-    def __init__(self, name: str, source_uuid: str, dtype: type = None, source_module: type = None):
+    def __init__(self, name: str = "Any", dtype: type = None):
         """
-
         :param name:
         :param dtype:
-        :param source_module:
         """
         self._name = name
         self._dtype = dtype
-        self._source = source_module
-        self._uuid = source_uuid
 
     @property
     def name(self) -> str:
@@ -30,16 +26,8 @@ class Topic:
         return self._dtype
 
     @property
-    def source_module(self) -> type:
-        return self._source
-
-    @property
-    def source_uuid(self) -> str:
-        return self._uuid
-
-    @property
     def uuid(self):
-        return f"{self.source_uuid}:{self.name}:{self.dtype.__name__}"
+        return f"{self.name}:{self.dtype.__name__}"
 
     def __hash__(self):
         return hash(self.uuid)
@@ -47,13 +35,22 @@ class Topic:
     def __eq__(self, other):
         if not isinstance(other, Topic):
             return False
-        return self.dtype == other.dtype and self.name == other.name and self.source_uuid == other.source_uuid
+        if other.name == "Any":
+            if other.dtype:
+                return other.dtype == self.dtype
+            else:
+                True
+        elif other.name == self._name:
+            if other.dtype:
+                return other.dtype == self._dtype
+            else:
+                True
 
     def __str__(self):
-        return f"{self.source_module.__name__}:{self.name}:{self.dtype.__name__}"
+        return f"{self.name}:{self.dtype.__name__}"
 
     def __repr__(self):
-        return f"Topic(name={self.name}, dtype={self.dtype}, source_module={self.source_module})"
+        return f"Topic(name={self.name}, dtype={self.dtype})"
 
 
 class MSPDataFrame(dict):
