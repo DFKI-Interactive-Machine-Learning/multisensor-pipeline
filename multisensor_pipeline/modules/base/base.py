@@ -109,7 +109,7 @@ class BaseSource(BaseModule, ABC):
         """ Custom update routine. """
         raise NotImplementedError()
 
-    def add_observer(self, sink, topics: Union[str, List[Topic]] = "Any"):
+    def add_observer(self, sink, topics: Union[str, Topic, List[Topic]] = "Any"):
         """
         Register a Sink or Queue as an observer.
 
@@ -187,15 +187,17 @@ class BaseSink(BaseModule, ABC):
         super().__init__()
         self._queue = Queue()
         self._active_sources = {}
+        self._sources = {}
         self._dropout = dropout  # in seconds
         if dropout and isinstance(dropout, bool):
             self._dropout = 5
 
-    def add_source(self, source: BaseModule):
+    def add_source(self, source: BaseModule, topic: Topic = None):
         """
         Add a source module to be observed
 
         Args:
+           topic: specifies which topic the source module sends
            source: Set the max age before elements of the queue are dropped
         """
         self._active_sources[source.uuid] = True
