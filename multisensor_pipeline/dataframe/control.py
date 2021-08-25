@@ -3,10 +3,16 @@ from multisensor_pipeline.dataframe import MSPDataFrame, Topic
 
 class MSPControlMessage(MSPDataFrame):
 
+    class ControlTopic(Topic):
+        class ControlType:
+            pass
+        name = None
+        dtype = ControlType
+
     END_OF_STREAM = "EOS"
 
-    def __init__(self, message, source):
-        topic = Topic(name="control", source_module=source.name, source_uuid=source.uuid)
+    def __init__(self, message):
+        topic = self.ControlTopic()
         super(MSPControlMessage, self).__init__(topic=topic, message=message)
 
     @property

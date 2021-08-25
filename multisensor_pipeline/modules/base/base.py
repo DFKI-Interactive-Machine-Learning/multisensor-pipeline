@@ -38,8 +38,9 @@ class BaseModule(object):
         self.on_start()
         self._thread.start()
 
-    def _generate_topic(self, name: str, dtype: type = None):
-        return Topic(name=name, dtype=dtype, source_module=self.__class__, source_uuid=self.uuid)
+    @staticmethod
+    def _generate_topic(name: str, dtype: type = None):
+        return Topic(name=name, dtype=dtype)
 
     def on_start(self):
         """ Custom initialization """
@@ -88,6 +89,9 @@ class BaseModule(object):
         """ Returns real-time profiling information. """
         return self._stats
 
+    def __hash__(self):
+        return hash(self.uuid)
+
 
 class BaseSource(BaseModule, ABC):
     """ Base class for data sources. """
@@ -97,7 +101,6 @@ class BaseSource(BaseModule, ABC):
         Initializes the worker thread and a queue list for communication with observers that listen to that source.
         """
         super().__init__()
-        #self._sinks = []
         self._sinks = {}
 
     def _worker(self):
@@ -109,7 +112,7 @@ class BaseSource(BaseModule, ABC):
         """ Custom update routine. """
         raise NotImplementedError()
 
-    def add_observer(self, sink, topics: Union[str, Topic, List[Topic]] = "Any"):
+    def add_observer(self, sink, topics: Optional[Union[Topic, List[Topic]]] = None):
         """
         Register a Sink or Queue as an observer.
 
@@ -118,27 +121,34 @@ class BaseSource(BaseModule, ABC):
             sink: A thread-safe Queue object or Sink [or any class that implements put(tuple)]
         """
         if isinstance(sink, Queue) or isinstance(sink, MPQueue):
-            self._sinks.append(sink)
+            if topics is None:
+                self._sinks.get(None, []).append(sink)
+            else:
+                for topic in topics:
+                    self._sinks.get(topic, []).append(sink)
             return
 
         assert isinstance(sink, BaseSink) or isinstance(sink, BaseProcessor)
-        # case: connection without specifying topics
-        if topics == "Any":
-            if sink.accepted_topics:
-                # case: sink has defined which topics it accepts
-                for topic in self.outgoing_topics:
-                    if topic in sink.accepted_topics:
-                        self._sinks[topic] = self._sinks.get(topic, []).append(sink)
-                        sink.add_source(self, topic)
+        # if no topic filter is specified
+        if topics is None:
+            if self.output_topics is None or sink.input_topics is None:
+                self._sinks.get(None, []).append(sink)
+                sink.add_source(self)
             else:
-                # case: sink has not defined which topics it accepts, therefore you send everything
-                self._sinks["Any"] = self._sinks.get("Any", []).append(sink)
-                sink.add_source(self)   # should we still define which topic the source is sending?
+                for topic in self.output_topics:
+                    if topic in sink.input_topics:
+                        self._sinks[topic] = self._sinks.get(topic, []).append(sink)
+                        sink.add_source(self)
         else:
             # case: connection with specified topic
-            for topic in topics:        # should we check this again here or are we giving the user the possibility to have source.topic[0] sink.accepted_topictopic[0]
+            for topic in topics:
+                assert self.output_topics is not None, \
+                    "you can only specify a topic filter, if output topics are defined"
+                # input topics do not need to be defined
+                assert topic in self.output_topics and topic in sink.input_topics, \
+                    "all topics must be in the output and input topic list"
                 self._sinks[topic] = self._sinks.get(topic, []).append(sink)
-                sink.add_source(self, topic)
+                sink.add_source(self)
 
     def _notify(self, frame: Optional[MSPDataFrame]):
         """
@@ -151,9 +161,11 @@ class BaseSource(BaseModule, ABC):
             return
 
         assert isinstance(frame, MSPDataFrame), "You must use a MSPDataFrame instance to wrap your data."
+        frame.source_module = self
 
-        for sink in self._sinks:
-            sink.put(frame)
+        for topic, sink in self._sinks.items():
+            if topic is None or topic is MSPControlMessage.ControlTopic or topic == frame.topic:
+                sink.put(frame)
 
         if self._profiling:
             self._stats.add_frame(frame, MSPModuleStats.Direction.OUT)
@@ -165,12 +177,13 @@ class BaseSource(BaseModule, ABC):
         Args:
             blocking:
         """
-        self._notify(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM, source=self))
+        self._notify(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM))
         super(BaseSource, self).stop(blocking=blocking)
 
     @property
-    def outgoing_topics(self) -> [Topic]:
-        """ Returns outgoin topics, None if outgoing_topics are not defined in the module"""
+    def output_topics(self) -> Optional[Topic]:
+        """ Returns outgoing topics, None if outgoing_topics are not defined in the module"""
+        # TODO: return list of topics
         return None
 
 
@@ -192,15 +205,14 @@ class BaseSink(BaseModule, ABC):
         if dropout and isinstance(dropout, bool):
             self._dropout = 5
 
-    def add_source(self, source: BaseModule, topic: Topic = None):
+    def add_source(self, source: BaseModule):
         """
         Add a source module to be observed
 
         Args:
-           topic: specifies which topic the source module sends
            source: Set the max age before elements of the queue are dropped
         """
-        self._active_sources[source.uuid] = True
+        self._active_sources[source] = True
 
     def _handle_control_message(self, frame: MSPDataFrame):
         """
@@ -210,11 +222,11 @@ class BaseSink(BaseModule, ABC):
            frame: frame containing MSPControlMessage
         """
         if isinstance(frame, MSPControlMessage):
-            logger.debug(f"[CONTROL] {frame.topic.source_uuid} -> {frame.message} -> {self.uuid}")
+            logger.debug(f"[CONTROL] {frame.source_module.uuid} -> {frame.message} -> {self.uuid}")
             if frame.message == MSPControlMessage.END_OF_STREAM:
-                if frame.topic.source_uuid in self._active_sources:
+                if frame.source_module in self._active_sources:
                     # set source to inactive
-                    self._active_sources[frame.topic.source_uuid] = False
+                    self._active_sources[frame.source_module] = False
                     # if no active source is left
                 if not any(self._active_sources.values()):
                     self.stop(blocking=False)
@@ -233,7 +245,7 @@ class BaseSink(BaseModule, ABC):
             if self._handle_control_message(frame):
                 continue
 
-            if self._profiling:
+            if self._profiling:   # TODO: check profiling
                 self._stats.add_frame(frame, MSPModuleStats.Direction.IN)
 
             self.on_update(frame)
@@ -243,6 +255,7 @@ class BaseSink(BaseModule, ABC):
         raise NotImplementedError()
 
     def _perform_sample_dropout(self, frame_time) -> int:
+        # TODO: do this per topic (single queue)
         if not self._dropout:
             return 0
 
@@ -258,14 +271,16 @@ class BaseSink(BaseModule, ABC):
         return num_skipped
 
     def put(self, frame: MSPDataFrame):
+        # TODO: create a queue per topic and perform explicit sample synchronization
         skipped_frames = self._perform_sample_dropout(frame.timestamp)
         self._queue.put(frame)
         if self._profiling:
             self._stats.add_queue_state(qsize=self._queue.qsize(), skipped_frames=skipped_frames)
 
     @property
-    def accepted_topics(self) -> [Topic]:
+    def input_topics(self) -> [Topic]:
         """ Returns accepted topics, None if accepted_topics are not defined in the module"""
+        # TODO: return defined input topics
         return None
 
 
