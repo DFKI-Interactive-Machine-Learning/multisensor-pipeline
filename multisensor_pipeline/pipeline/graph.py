@@ -126,6 +126,13 @@ class GraphPipeline(PipelineBase):
         for node in self.sink_nodes:
             node.join()
 
+    def __enter__(self):
+        self.start()
+
+    def __exit__(self, type, value, traceback):
+        self.stop()
+        self.join()
+
 
 class SubGraphPipeline(GraphPipeline, BaseProcessor):
     """ A pipeline that can be used like a BaseProcessor """
