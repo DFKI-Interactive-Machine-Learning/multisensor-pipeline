@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 import logging
 from time import time
 import json
@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class Topic:
 
-    def __init__(self, name: str = "Any", dtype: type = None):
+    def __init__(self, name: Optional[str] = None, dtype: Optional[type] = None):
         """
         :param name:
         :param dtype:
@@ -35,22 +35,24 @@ class Topic:
     def __eq__(self, other):
         if not isinstance(other, Topic):
             return False
-        if other.name == "Any":
-            if other.dtype:
-                return other.dtype == self.dtype
-            else:
-                True
-        elif other.name == self._name:
-            if other.dtype:
-                return other.dtype == self._dtype
-            else:
-                True
+
+        if other.dtype is not None:
+            dtype_matches = other.dtype == self.dtype
+        else:
+            dtype_matches = True
+
+        if other.name is not None:
+            name_matches = other.name == self.name
+        else:
+            name_matches = True
+
+        return dtype_matches and name_matches
 
     def __str__(self):
-        return f"{self.name}:{self.dtype.__name__}"
+        return f"{self.dtype.__name__ if self.dtype is not None else None}:{self.name}"
 
     def __repr__(self):
-        return f"Topic(name={self.name}, dtype={self.dtype})"
+        return f"Topic(dtype={self.dtype}, name={self.name})"
 
 
 class MSPDataFrame(dict):
@@ -102,6 +104,8 @@ class MSPDataFrame(dict):
             self['timestamp'] = timestamp
         self['topic'] = topic
 
+        self._source_module = None
+
         if kwargs is not None:
             self.update(kwargs)
 
@@ -120,6 +124,14 @@ class MSPDataFrame(dict):
     @topic.setter
     def topic(self, value: Topic):
         self['topic'] = value
+
+    @property
+    def source_module(self):
+        return self._source_module
+
+    @source_module.setter
+    def source_module(self, value):
+        self._source_module = value
 
 
 class MSPEventFrame(MSPDataFrame):

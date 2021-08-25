@@ -1,7 +1,7 @@
 from .base import PipelineBase
 from multisensor_pipeline.modules.base import *
 import networkx as nx
-from typing import Union, List
+from typing import Union, List, Optional
 
 from ..dataframe import MSPDataFrame, Topic
 
@@ -40,9 +40,8 @@ class GraphPipeline(PipelineBase):
         assert isinstance(sink_module, BaseSink)
         self._graph.add_node(sink_module, role=self.ROLE_SINK)
 
-    def connect(self, module, successor, topics: Union[str, Topic, List[Topic]] = "Any"):
-        module.add_observer(successor, topics)  # must be first, because it implicitly validates the connection
-        #should the graph know about topic connection?
+    def connect(self, module, successor, topics: Optional[Union[Topic, List[Topic]]] = None):
+        module.add_observer(successor, topics)  # must be called first -> it implicitly validates the connection
         self._graph.add_edge(module, successor)
 
     def add_connection(
