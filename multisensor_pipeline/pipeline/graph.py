@@ -44,6 +44,29 @@ class GraphPipeline(PipelineBase):
         module.add_observer(successor)  # must be first, because it implicitly validates the connection
         self._graph.add_edge(module, successor)
 
+    def add_connection(
+        self,
+        module,
+        successor,
+    ):
+        """
+        Add a connection from the given source to the given sink.
+
+        This is a convenience method wrapping two add and one connect call.
+        This method automatically adds the given modules to the pipeline.
+        So, explicit calls to `add` are not necessary for the given modules.
+        """
+        # Add the modules
+        # Note that nodes get added to networkx' DiGraph by their hash.
+        # This makes the adding method idempotent.
+        # So, adding the same node twice has the same effect as adding it once.
+        # Therefore, the following works, regardless of the number of calls.
+        self.add(module)
+        self.add(successor)
+
+        # Connect the modules
+        self.connect(module, successor)
+
     def get_nodes_with_attribute(self, attribute, value):
         return [node[0] for node in self._graph.nodes(data=attribute) if node[1] == value]
 
@@ -125,6 +148,13 @@ class GraphPipeline(PipelineBase):
     def join(self):
         for node in self.sink_nodes:
             node.join()
+
+    def __enter__(self):
+        self.start()
+
+    def __exit__(self, type, value, traceback):
+        self.stop()
+        self.join()
 
 
 class SubGraphPipeline(GraphPipeline, BaseProcessor):

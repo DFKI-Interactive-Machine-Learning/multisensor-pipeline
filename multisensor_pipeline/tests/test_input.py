@@ -7,6 +7,9 @@ from multisensor_pipeline.tests.environment_properties import \
 
 
 @pytest.mark.skipif(
+    # TODO Deactivating a test just like that is not a proper fix.
+    # TODO Add an equivalent test that works under Windows.
+    # TODO Keep this one for macOS and Linux.
     is_running_on_windows(),
     reason="Does not run on Windows.",
 )
@@ -52,6 +55,9 @@ def __test_simple_mouse():
 
 
 @pytest.mark.skipif(
+    # TODO Deactivating a test just like that is not a proper fix.
+    # TODO Add an equivalent test that works under Windows.
+    # TODO Keep this one for macOS and Linux.
     is_running_on_windows(),
     reason="Does not run on Windows.",
 )
