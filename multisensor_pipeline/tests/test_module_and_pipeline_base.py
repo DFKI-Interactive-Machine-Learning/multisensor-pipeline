@@ -92,7 +92,24 @@ class BaseTestCase(unittest.TestCase):
 
         assert not sink.empty()
 
-    def test_minimal_example(self):
+    def test_minimal_example_I(self):
+        # define the modules
+        source = RandomArraySource(shape=None, sampling_rate=60)
+        sink = ConsoleSink()
+
+        # add module to a pipeline...
+        pipeline = GraphPipeline()
+        pipeline.add(modules=[source, sink])
+        # ...and connect the modules
+        pipeline.connect(module=source, successor=sink, topics=source.OutputTopics.random_int.value)
+
+        # print mean of random numbers for 0.1 seconds
+        pipeline.start()
+        sleep(.1)
+        pipeline.stop()
+        pipeline.join()
+
+    def test_minimal_example_II(self):
         # define the modules
         source = RandomArraySource(shape=(50,), sampling_rate=60)
         processor = ArrayManipulationProcessor(numpy_operation=np.mean)
