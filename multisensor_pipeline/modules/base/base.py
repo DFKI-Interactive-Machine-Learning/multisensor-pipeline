@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from threading import Thread
 from queue import Queue
 from multiprocessing.queues import Queue as MPQueue
@@ -46,10 +46,12 @@ class BaseModule(object):
         """ Custom initialization """
         pass
 
+    @abstractmethod
     def _worker(self):
         """ Main worker function (async) """
         raise NotImplementedError()
 
+    @abstractmethod
     def on_update(self):
         """ Custom update routine. """
         raise NotImplementedError()
@@ -108,6 +110,7 @@ class BaseSource(BaseModule, ABC):
         while self._active:
             self._notify(self.on_update())
 
+    @abstractmethod
     def on_update(self) -> Optional[MSPDataFrame]:
         """ Custom update routine. """
         raise NotImplementedError()
@@ -163,9 +166,12 @@ class BaseSource(BaseModule, ABC):
         assert isinstance(frame, MSPDataFrame), "You must use a MSPDataFrame instance to wrap your data."
         frame.source_module = self
 
-        for topic, sink in self._sinks.items():
-            if topic is None or topic is MSPControlMessage.ControlTopic or topic == frame.topic:
-                sink.put(frame)
+        # TODO: check if the frame topic is actually an output_topic, send warning if not.
+
+        for topic, sinks in self._sinks.items():
+            if topic is None or frame.topic is MSPControlMessage.ControlTopic or topic == frame.topic:
+                for sink in sinks:
+                    sink.put(frame)
 
         if self._profiling:
             self._stats.add_frame(frame, MSPModuleStats.Direction.OUT)
@@ -181,10 +187,10 @@ class BaseSource(BaseModule, ABC):
         super(BaseSource, self).stop(blocking=blocking)
 
     @property
-    def output_topics(self) -> Optional[Topic]:
-        """ Returns outgoing topics, None if outgoing_topics are not defined in the module"""
-        # TODO: return list of topics
-        return None
+    @abstractmethod
+    def output_topics(self) -> List[Topic]:
+        """ Returns outgoing topics that are provided by the source module at hand. """
+        raise NotImplementedError()
 
 
 class BaseSink(BaseModule, ABC):
@@ -250,6 +256,7 @@ class BaseSink(BaseModule, ABC):
 
             self.on_update(frame)
 
+    @abstractmethod
     def on_update(self, frame: MSPDataFrame):
         """ Custom update routine. """
         raise NotImplementedError()
@@ -278,10 +285,10 @@ class BaseSink(BaseModule, ABC):
             self._stats.add_queue_state(qsize=self._queue.qsize(), skipped_frames=skipped_frames)
 
     @property
-    def input_topics(self) -> [Topic]:
-        """ Returns accepted topics, None if accepted_topics are not defined in the module"""
-        # TODO: return defined input topics
-        return None
+    @abstractmethod
+    def input_topics(self) -> List[Topic]:
+        """ Returns topics which can be handled by the sink module at hand. """
+        raise NotImplementedError()
 
 
 class BaseProcessor(BaseSink, BaseSource, ABC):
