@@ -3,6 +3,7 @@ import logging
 from time import time
 import json
 import numpy as np
+from enum import Enum, unique
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,7 @@ class Topic:
 
     @property
     def uuid(self):
-        return f"{self.name}:{self.dtype.__name__}"
+        return f"{self.name}:{self.dtype.__name__ if self.dtype is not None else None}"
 
     def __hash__(self):
         return hash(self.uuid)
@@ -53,6 +54,11 @@ class Topic:
 
     def __repr__(self):
         return f"Topic(dtype={self.dtype}, name={self.name})"
+
+
+@unique
+class TopicEnum(Enum):
+    pass
 
 
 class MSPDataFrame(dict):
