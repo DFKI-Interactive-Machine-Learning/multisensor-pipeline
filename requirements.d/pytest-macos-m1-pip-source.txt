@@ -13,7 +13,7 @@ numpy==1.21.0
 # Install OpenCV from source as described in documentation
 # -e git+https://github.com/opencv/opencv-python.git#egg=opencv-python
 packaging==20.9
-Pillow==8.2.0
+Pillow==8.3.2
 pip==21.1.3
 pluggy==0.13.1
 py==1.10.0
