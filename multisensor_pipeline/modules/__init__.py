@@ -1,8 +1,8 @@
 from .base import BaseProcessor, BaseSink, BaseSource
-from typing import Optional
+from typing import Optional, List
 from queue import Queue
 from time import sleep
-from ..dataframe import MSPDataFrame, Topic, TopicEnum
+from ..dataframe import MSPDataFrame, Topic
 
 
 class PassthroughProcessor(BaseProcessor):
@@ -73,9 +73,6 @@ class QueueSink(BaseSink):
 
 class ConsoleSink(BaseSink):
     """ Prints incoming frames to the console. """
-
-    class InputTopics(TopicEnum):
-        ANY = Topic()
 
     def on_update(self, frame: MSPDataFrame):
         if frame is not None:

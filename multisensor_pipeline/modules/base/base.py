@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from threading import Thread
 from queue import Queue
 from multiprocessing.queues import Queue as MPQueue
-from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic, TopicEnum
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic
 from multisensor_pipeline.dataframe.control import MSPControlMessage
 from multisensor_pipeline.modules.base.profiling import MSPModuleStats
 from typing import Union, Optional, List
@@ -101,9 +101,6 @@ class BaseSource(BaseModule, ABC):
         super().__init__()
         self._sinks = {}
 
-        topic_enum = self.__getattribute__("OutputTopics")
-        issubclass(topic_enum, TopicEnum)
-
     def _worker(self):
         """ Source worker function: notify observer when source update function returns a DataFrame """
         while self._active:
@@ -134,12 +131,12 @@ class BaseSource(BaseModule, ABC):
         # if no topic filter is specified
         if topics is None:
             if self.output_topics is None or sink.input_topics is None:
-                self._sinks.get(None, []).append(sink)
+                self._sinks[None] = self._sinks.get(None, [sink])
                 sink.add_source(self)
             else:
                 for topic in self.output_topics:
                     if topic in sink.input_topics:
-                        self._sinks.get(topic, []).append(sink)
+                        self._sinks[topic] = self._sinks.get(topic, [sink])
                         sink.add_source(self)
         else:
             if isinstance(topics, Topic):
@@ -151,7 +148,7 @@ class BaseSource(BaseModule, ABC):
                 # input topics do not need to be defined
                 assert topic in self.output_topics and topic in sink.input_topics, \
                     "all topics must be in the output and input topic list"
-                self._sinks.get(topic, []).append(sink)
+                self._sinks[topic] = self._sinks.get(topic, []).append(sink)
                 sink.add_source(self)
 
     def _notify(self, frame: Optional[MSPDataFrame]):
@@ -170,7 +167,7 @@ class BaseSource(BaseModule, ABC):
         # TODO: check if the frame topic is actually an output_topic, send warning if not.
 
         for topic, sinks in self._sinks.items():
-            if topic is None or frame.topic is MSPControlMessage.ControlTopic or topic == frame.topic:
+            if topic is None or frame.topic.dtype is MSPControlMessage.ControlTopic.dtype or topic == frame.topic:
                 for sink in sinks:
                     sink.put(frame)
 
@@ -189,8 +186,8 @@ class BaseSource(BaseModule, ABC):
 
     @property
     def output_topics(self) -> List[Topic]:
-        """ Returns an Enum of outgoing topics that are provided by the source module at hand. """
-        return [e.value for e in list(self.OutputTopics)]
+        """ Returns outgoing topics that are provided by the source module at hand. """
+        return None
 
 
 class BaseSink(BaseModule, ABC):
@@ -210,9 +207,6 @@ class BaseSink(BaseModule, ABC):
         self._dropout = dropout  # in seconds
         if dropout and isinstance(dropout, bool):
             self._dropout = 5
-
-        topic_enum = self.__getattribute__("InputTopics")
-        issubclass(topic_enum, TopicEnum)
 
     def add_source(self, source: BaseModule):
         """
@@ -288,9 +282,9 @@ class BaseSink(BaseModule, ABC):
             self._stats.add_queue_state(qsize=self._queue.qsize(), skipped_frames=skipped_frames)
 
     @property
-    def input_topics(self) -> TopicEnum:
-        """ Returns Enum of topics which can be handled by the sink module at hand. """
-        return [e.value for e in list(self.InputTopics)]
+    def input_topics(self) -> List[Topic]:
+        """ Returns topics which can be handled by the sink module at hand. """
+        return None
 
 
 class BaseProcessor(BaseSink, BaseSource, ABC):
