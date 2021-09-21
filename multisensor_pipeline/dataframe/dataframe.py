@@ -80,9 +80,7 @@ class MSPDataFrame(dict):
                     "_kind_": "topic",
                     "_value_": {
                         "name": obj.name,
-                        "dtype": str(obj.dtype),
-                        "source_module": str(obj.source_module),
-                        "source_uuid": obj.source_uuid
+                        "dtype": str(obj.dtype)
                     }
                 }
             return super(MSPDataFrame.JsonEncoder, self).default(obj)
