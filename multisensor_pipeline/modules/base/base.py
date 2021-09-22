@@ -118,6 +118,7 @@ class BaseSource(BaseModule, ABC):
         Args:
             topics:
             sink: A thread-safe Queue object or Sink [or any class that implements put(tuple)]
+            TODO: REWRITE TESTS with TOPICS
         """
         if isinstance(sink, Queue) or isinstance(sink, MPQueue):
             if topics is None:
@@ -148,7 +149,7 @@ class BaseSource(BaseModule, ABC):
                 # input topics do not need to be defined
                 assert topic in self.output_topics and topic in sink.input_topics, \
                     "all topics must be in the output and input topic list"
-                self._sinks[topic] = self._sinks.get(topic, []).append(sink)
+                self._sinks[topic] = self._sinks.get(topic, [sink])
                 sink.add_source(self)
 
     def _notify(self, frame: Optional[MSPDataFrame]):
@@ -184,8 +185,12 @@ class BaseSource(BaseModule, ABC):
         self._notify(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM))
         super(BaseSource, self).stop(blocking=blocking)
 
+    @staticmethod
+    def _generate_topic(name: str, dtype: type = None):
+        return Topic(name=name, dtype=dtype)
+
     @property
-    def output_topics(self) -> List[Topic]:
+    def output_topics(self) -> Optional[List[Topic]]:
         """ Returns outgoing topics that are provided by the source module at hand. """
         return None
 
