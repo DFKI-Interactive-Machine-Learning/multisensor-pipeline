@@ -1,8 +1,8 @@
 import collections
 from pynput import  keyboard
 from multisensor_pipeline.modules.base import BaseSource
-from multisensor_pipeline.dataframe import MSPEventFrame, MSPDataFrame
-from typing import Optional
+from multisensor_pipeline.dataframe import MSPEventFrame, MSPDataFrame, Topic
+from typing import Optional, List
 import logging
 
 logger = logging.getLogger(__name__)
@@ -20,6 +20,8 @@ class Keyboard(BaseSource):
         self.stop_listener = False
         self.listener = None
         self.queue = collections.deque()
+        self._keypress_topic = Topic(name="keyboard.press", dtype=str)
+        self._keyrelease_topic = Topic(name="keyboard.release", dtype=str)
 
     def on_start(self):
         args = {}
@@ -32,11 +34,11 @@ class Keyboard(BaseSource):
         self.listener.start()
 
     def on_press(self, key):
-        frame = MSPEventFrame(topic=self._generate_topic(name="keyboard.press", dtype=str), chunk={"key": key})
+        frame = MSPEventFrame(topic=self._keypress_topic, chunk={"key": key})
         self.queue.append(frame)
 
     def on_release(self, key):
-        frame = MSPEventFrame(topic=self._generate_topic(name="keyboard.release", dtype=str), chunk={"key": key})
+        frame = MSPEventFrame(topic=self._keyrelease_topic, chunk={"key": key})
         self.queue.append(frame)
 
     def on_update(self) -> Optional[MSPDataFrame]:
@@ -48,4 +50,8 @@ class Keyboard(BaseSource):
     def on_stop(self):
         self.stop_listener = True
         self.listener.stop()
+
+    def output_topics(self) -> Optional[List[Topic]]:
+        return [self._keyrelease_topic, self._keypress_topic]
+
 
