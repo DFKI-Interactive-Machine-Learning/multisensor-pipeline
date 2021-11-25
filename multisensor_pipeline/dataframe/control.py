@@ -13,8 +13,9 @@ class MSPControlMessage(MSPDataFrame):
 
     def __init__(self, message):
         topic = self.ControlTopic()
-        super(MSPControlMessage, self).__init__(topic=topic, message=message)
+        super(MSPControlMessage, self).__init__(topic=topic)
+        self._message = message
 
     @property
     def message(self):
-        return self['message']
+        return self._message
