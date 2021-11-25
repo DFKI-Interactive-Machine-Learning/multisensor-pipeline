@@ -142,3 +142,6 @@ fabric.properties
 /data/json_test.json
 /data/output_av.mp4
 /multisensor_pipeline/tests/test_mic_to_wave_pipeline.wav
+
+# Conda virtual environment
+/.condaenv

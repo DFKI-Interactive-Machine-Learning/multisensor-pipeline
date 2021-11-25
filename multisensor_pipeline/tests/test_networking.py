@@ -3,9 +3,10 @@ import unittest
 from multisensor_pipeline.modules.network import ZmqPublisher, ZmqSubscriber
 from multisensor_pipeline.modules.npy import RandomArraySource
 from multisensor_pipeline.modules import ListSink
-from multisensor_pipeline import GraphPipeline
 from time import sleep
 import logging
+
+from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

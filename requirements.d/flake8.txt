@@ -6,7 +6,7 @@ flake8-polyfill==1.0.2
 flake8-typing-imports==1.10.1
 mccabe==0.6.1
 pep8-naming==0.11.1
-pip==21.1.2
+pip==21.2.4
 pycodestyle==2.7.0
 pydocstyle==6.0.0
 pyflakes==2.3.1
