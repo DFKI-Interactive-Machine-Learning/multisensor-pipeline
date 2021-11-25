@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, Dict, TypeVar, Generic
 import logging
 from time import time
 import json
@@ -6,6 +6,7 @@ import numpy as np
 from enum import Enum, unique
 
 logger = logging.getLogger(__name__)
+T = TypeVar('T')
 
 
 class Topic:
@@ -56,12 +57,7 @@ class Topic:
         return f"Topic(dtype={self.dtype}, name={self.name})"
 
 
-@unique
-class TopicEnum(Enum):
-    pass
-
-
-class MSPDataFrame(dict):
+class MSPDataFrame(Generic[T]):
     class JsonEncoder(json.JSONEncoder):
 
         def default(self, obj: Any) -> Any:
@@ -100,61 +96,51 @@ class MSPDataFrame(dict):
                     # TODO: decode class types (#22)
             return obj
 
-    def __init__(self, topic: Topic, timestamp: float = None, **kwargs):
+    def __init__(self, topic: Topic, timestamp: float = None, duration: float = 0, data: Optional[T] = None):
         super(MSPDataFrame, self).__init__()
-        if timestamp is None:
-            self['timestamp'] = time()
-        else:
-            self['timestamp'] = timestamp
-        self['topic'] = topic
-
+        self._timestamp = time() if timestamp is None else timestamp
+        self._duration = duration
+        self._topic = topic
         self._source_module = None
-
-        if kwargs is not None:
-            self.update(kwargs)
+        self._data = data
 
     @property
     def timestamp(self) -> float:
-        return self['timestamp']
+        return self._timestamp
 
     @timestamp.setter
-    def timestamp(self, value: float):
-        self['timestamp'] = value
+    def timestamp(self, timestamp: float):
+        self._timestamp = timestamp
 
     @property
     def topic(self) -> Topic:
-        return self['topic']
+        return self._topic
 
     @topic.setter
-    def topic(self, value: Topic):
-        self['topic'] = value
+    def topic(self, topic: Topic):
+        self._topic = topic
 
     @property
     def source_module(self):
         return self._source_module
 
     @source_module.setter
-    def source_module(self, value):
-        self._source_module = value
+    def source_module(self, source):
+        self._source_module = source
 
+    @property
+    def data(self) -> T:
+        return self._data
 
-class MSPEventFrame(MSPDataFrame):
-
-    def __init__(self, value=None, duration: float = 0, **kwargs):
-        super(MSPEventFrame, self).__init__(value=value, duration=duration, **kwargs)
+    @data.setter
+    def data(self, data: T):
+        self._data = data
 
     @property
     def duration(self) -> float:
-        return self['duration']
+        return self._duration
 
     @duration.setter
-    def duration(self, value: float):
-        self['duration'] = value
+    def duration(self, duration: float):
+        self._duration = duration
 
-    @property
-    def value(self) -> str:
-        return self['value']
-
-    @value.setter
-    def value(self, value: str):
-        self['value'] = value
