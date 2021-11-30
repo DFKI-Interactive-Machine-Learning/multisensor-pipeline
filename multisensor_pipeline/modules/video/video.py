@@ -24,7 +24,7 @@ class VideoSource(BaseDatasetSource):
         self.file_path = file_path
         self.video = None
         self.queue = None
-        self._frame_topic = self._generate_topic(name="frame", dtype=Image)
+        self._frame_topic = Topic(name="frame", dtype=Image)
 
     def on_start(self):
         """

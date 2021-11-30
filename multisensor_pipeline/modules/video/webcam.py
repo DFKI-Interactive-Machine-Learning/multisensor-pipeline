@@ -1,9 +1,11 @@
 from time import sleep
-from typing import Optional
+from typing import Optional, List
+
+from PIL.Image import Image
 import av
 
 from multisensor_pipeline import BaseSource, GraphPipeline
-from multisensor_pipeline.dataframe import MSPDataFrame
+from multisensor_pipeline.dataframe import MSPDataFrame, Topic
 from multisensor_pipeline.modules import ConsoleSink
 
 
@@ -27,26 +29,26 @@ class WebCamSource(BaseSource):
         self.queue = None
         self.options = options
         self.video = av.open(format=self.web_cam_format, file=self.web_cam_id, options=self.options)
-
+        self.stream = self.video.streams.video[0]
+        self._topic = Topic(name="frame", dtype=Image)
 
     def frame_gen(self):
         """
         Generator for iterating over frames of the webcam input
         """
-        stream = self.video.streams.video[0]
-        for frame in self.video.decode(stream):
+        for frame in self.video.decode(self.stream):
             img = frame.to_image()
             yield img
 
     def on_update(self) -> Optional[MSPDataFrame]:
         try:
             frame = next(self.frame_gen())
-            return MSPDataFrame(topic=self._generate_topic(name="frame", dtype=str),
-                                chunk={"frame": frame})
+            return MSPDataFrame(topic=self._topic, data={"frame": frame})
         except av.error.BlockingIOError as e:
             return
 
     def on_stop(self):
         self.video.close()
 
-
+    def output_topics(self) -> Optional[List[Topic]]:
+        return [self._topic]
