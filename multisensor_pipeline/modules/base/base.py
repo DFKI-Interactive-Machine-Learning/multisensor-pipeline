@@ -12,6 +12,13 @@ import uuid
 logger = logging.getLogger(__name__)
 
 
+def add_to_dict(orig_dict, key, value, default=[]):
+    if orig_dict.get(key, default) == default:
+        orig_dict[key] = [value]
+    else:
+        orig_dict[key].append(value)
+
+
 class BaseModule(object):
     """
     Base Class for all Modules
@@ -121,22 +128,22 @@ class BaseSource(BaseModule, ABC):
         """
         if isinstance(sink, Queue) or isinstance(sink, MPQueue):
             if topics is None:
-                self._sinks.get(None, []).append(sink)
+                add_to_dict(self._sinks, None, sink)
             else:
                 for topic in topics:
-                    self._sinks.get(topic, []).append(sink)
+                    add_to_dict(self._sinks, topic, sink)
             return
 
         assert isinstance(sink, BaseSink) or isinstance(sink, BaseProcessor)
         # if no topic filter is specified
         if topics is None:
             if self.output_topics is None or sink.input_topics is None:
-                self._sinks[None] = self._sinks.get(None, [sink])
+                add_to_dict(self._sinks, None, sink)
                 sink.add_source(self)
             else:
                 for topic in self.output_topics:
                     if topic in sink.input_topics:
-                        self._sinks[topic] = self._sinks.get(topic, [sink])
+                        add_to_dict(self._sinks, topic, sink)
                         sink.add_source(self)
         else:
             if isinstance(topics, Topic):
@@ -149,12 +156,13 @@ class BaseSource(BaseModule, ABC):
                 if sink.input_topics is not None:
                     assert topic in self.output_topics and topic in sink.input_topics, \
                         "all topics must be in the output and input topic list"
-                    self._sinks[topic] = self._sinks.get(topic, [sink])
+                    add_to_dict(self._sinks, topic, sink)
                     sink.add_source(self)
                 else:
                     "sink does not specify incoming_topics -> therefore it accepts everything TODO: Confirm"
-                    self._sinks[topic] = self._sinks.get(topic, [sink])
+                    add_to_dict(self._sinks, topic, sink)
                     sink.add_source(self)
+
 
     def _notify(self, frame: Optional[MSPDataFrame]):
         """
@@ -257,7 +265,7 @@ class BaseSink(BaseModule, ABC):
             if self._handle_control_message(frame):
                 continue
 
-            if self._profiling:   # TODO: check profiling
+            if self._profiling:  # TODO: check profiling
                 self._stats.add_frame(frame, MSPModuleStats.Direction.IN)
 
             self.on_update(frame)

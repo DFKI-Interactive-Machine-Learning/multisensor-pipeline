@@ -19,13 +19,13 @@ setup(
     install_requires=[
         'decorator<5.0.0',  # For networkx
         'networkx',
-        'numpy<1.20.0',     # For Python 3.6
+        'numpy',     # For Python 3.6
         'Pillow',
         'PyAudio',
         'pynput',
         'pyzmq',
-        'av==8.0.3',
-        'opencv-python==4.5.2.52',
+        'av',
+        'opencv-python',
     ],
     keywords=[
         'multimodality', 'streaming', 'multisensor', 'sensors',

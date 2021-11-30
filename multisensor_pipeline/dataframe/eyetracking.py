@@ -1,4 +1,4 @@
-from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, MSPEventFrame
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
 
 
 class MSPGazeFrame(MSPDataFrame):

@@ -44,4 +44,4 @@ class ArrayManipulationProcessor(BaseProcessor):
 
     @property
     def output_topics(self) -> Optional[List[Topic]]:
-        return [Topic(name=self._op , dtype=int), Topic(name=self._op, dtype=np.ndarray)]
+        return [Topic(name=self._op, dtype=int), Topic(name=self._op, dtype=np.ndarray)]
