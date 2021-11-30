@@ -22,9 +22,9 @@ class RandomArraySource(BaseFixedRateSource):
     def on_update(self) -> Optional[MSPDataFrame]:
         if self.index < self.max_count:
             self.index += 1
-            return MSPDataFrame(topic=self.output_topics[0], value=np.random.randint(self._min, self._max, size=self._shape))
+            return MSPDataFrame(topic=self.output_topics[0],
+                                data=np.random.randint(self._min, self._max, size=self._shape))
         return
-
 
 
 class ArrayManipulationProcessor(BaseProcessor):
@@ -34,6 +34,14 @@ class ArrayManipulationProcessor(BaseProcessor):
         self._op = numpy_operation
 
     def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
-        value = self._op(frame['value'])
-        topic = self._generate_topic(name=f"{frame.topic.name}.{self._op.__name__}", dtype=type(value))
-        return MSPDataFrame(topic=topic, value=value)
+        data = self._op(frame.data)
+        topic = self.output_topics[0] if type(data) is int else self.output_topics[1]
+        return MSPDataFrame(topic=topic, data=data)
+
+    @property
+    def input_topics(self) -> List[Topic]:
+        return [Topic(dtype=int), Topic(dtype=np.ndarray)]
+
+    @property
+    def output_topics(self) -> Optional[List[Topic]]:
+        return [Topic(name=self._op , dtype=int), Topic(name=self._op, dtype=np.ndarray)]

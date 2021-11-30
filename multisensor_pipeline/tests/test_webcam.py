@@ -44,6 +44,19 @@ class WebCamTests(unittest.TestCase):
         elif is_running_on_macos():
             self.simple_webcam_macos()
 
+        assert True
+
+    def test_simple_webcam_filter(self):
+        topic = Topic(name="frame", dtype=Image)
+        if is_running_on_windows():
+            self.simple_webcam_windows(topic=topic)
+        elif is_running_on_linux():
+            self.simple_webcam_linux(topic=topic)
+        elif is_running_on_macos():
+            self.simple_webcam_macos(topic=topic)
+        assert True
+
+
 
     def simple_webcam_windows(self, topic=None):
         # (1) define the modules
@@ -139,14 +152,5 @@ class WebCamTests(unittest.TestCase):
         # Assert
         assert sink.queue.qsize() >= 10
 
-
-    def test_simple_webcam_filter(self):
-        topic = Topic(name="frame", dtype=Image)
-        if is_running_on_windows():
-            self.simple_webcam_windows(topic=topic)
-        elif is_running_on_linux():
-            self.simple_webcam_linux(topic=topic)
-        elif is_running_on_macos():
-            self.simple_webcam_macos(topic=topic)
 
 
