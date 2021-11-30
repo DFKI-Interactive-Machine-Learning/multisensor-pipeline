@@ -80,7 +80,7 @@ class VideoTesting(unittest.TestCase):
         os.remove(str(DATA_PATH / "output_av.mp4"))
 
     def test_long_video(self):
-        # Mock a video file with 24 PIL Images and export it
+        # Mock a video file with 500 PIL Images and export it
         img_sequence: List[Image] = [
             Image.new('RGB', (300, 200), (228, 150, 150)) for _ in range(500)
         ]
@@ -121,7 +121,6 @@ class VideoTesting(unittest.TestCase):
         assert 498 > sink.queue.qsize()
 
     def test_video_sink_simple(self):
-        # Mock a video file with 24 PIL Images and export it
         img_sequence = [
             Image.new('RGB', (200, 300), (228, 150, 150)) for _ in range(10)
         ]
@@ -169,7 +168,6 @@ class VideoTesting(unittest.TestCase):
         os.remove(str(DATA_PATH / "input.mp4"))
 
     def test_video_sink_simple_topic_filter(self):
-        # Mock a video file with 24 PIL Images and export it
         img_sequence = [
             Image.new('RGB', (200, 300), (228, 150, 150)) for _ in range(10)
         ]
@@ -197,7 +195,7 @@ class VideoTesting(unittest.TestCase):
         pipeline.add_sink(sink)
 
         # (3) ...and connect the modules
-        pipeline.connect(source, sink)
+        pipeline.connect(source, sink, topics=source.output_topics[0])
 
         # Test
         pipeline.start()

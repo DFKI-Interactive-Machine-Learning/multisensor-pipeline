@@ -79,18 +79,17 @@ class VideoSink(BaseSink):
         """
         Writes to the video file
         """
-        if frame.topic.name == self.topic_name:
-            pil_frame = frame["chunk"][self.topic_name]
-            video_frame = av.VideoFrame.from_image(pil_frame)
-            packet = self.stream.encode(video_frame)
-            self.output.mux(packet)
-            if self.live_preview:
-                cv_img = np.array(pil_frame)
-                cv_img = cv_img[:, :, ::-1]
-                cv2.startWindowThread()
-                cv2.namedWindow("preview")
-                cv2.imshow("preview", cv_img)
-                cv2.waitKey(1)
+        pil_frame = frame.data
+        video_frame = av.VideoFrame.from_image(pil_frame)
+        packet = self.stream.encode(video_frame)
+        self.output.mux(packet)
+        if self.live_preview:
+            cv_img = np.array(pil_frame)
+            cv_img = cv_img[:, :, ::-1]
+            cv2.startWindowThread()
+            cv2.namedWindow("preview")
+            cv2.imshow("preview", cv_img)
+            cv2.waitKey(1)
 
     def on_stop(self):
         """
@@ -99,5 +98,6 @@ class VideoSink(BaseSink):
         self.output.mux(self.stream.encode())
         self.output.close()
 
+    @property
     def input_topics(self) -> List[Topic]:
         return [self._frame_topic]
