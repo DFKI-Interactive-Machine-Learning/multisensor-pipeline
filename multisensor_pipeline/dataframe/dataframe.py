@@ -29,7 +29,7 @@ class Topic:
 
     @property
     def uuid(self):
-        return f"{self.name}:{self.dtype.__name__ if self.dtype is not None else None}"
+        return f"{self.name}:{self.dtype if self.dtype is not None else None}"
 
     def __hash__(self):
         return hash(self.uuid)

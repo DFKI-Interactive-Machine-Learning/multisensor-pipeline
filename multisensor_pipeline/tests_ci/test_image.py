@@ -45,5 +45,5 @@ class ImageCroppingTest(unittest.TestCase):
         p.stop()
         p.join()
 
-        # If we ever get here, we consider this test successful.
+        # If we ever get here, we consider this tests_ci successful.
         assert True

@@ -1,8 +1,10 @@
 import collections
+
+import typing
 from pynput import mouse
 from multisensor_pipeline.modules.base import BaseSource
-from multisensor_pipeline.dataframe import MSPEventFrame, MSPDataFrame
-from typing import Optional
+from multisensor_pipeline.dataframe import  MSPDataFrame, Topic
+from typing import Optional, List, Tuple, Dict, Generic, Any
 import logging
 
 logger = logging.getLogger(__name__)
@@ -22,6 +24,9 @@ class Mouse(BaseSource):
         self.stop_listener = False
         self.listener = None
         self.queue = collections.deque()
+        self._mouse_scroll_topic = Topic(name="mouse.scroll", dtype=Tuple[float, float])
+        self._mouse_click_topic = Topic(name="mouse.click", dtype=Dict)
+        self._mouse_move_topic = Topic(name="mouse.coordinates", dtype=Tuple[float,float])
 
     def on_start(self):
         args = {}
@@ -36,17 +41,17 @@ class Mouse(BaseSource):
         self.listener.start()
 
     def on_move(self, x, y):
-        frame = MSPEventFrame(topic=self._generate_topic(name="mouse.coordinates", dtype=float), chunk={"x": x, "y": y})
+        frame = MSPDataFrame(topic=self._mouse_move_topic, data=(x, y))
         self.queue.append(frame)
 
     def on_click(self, x, y, button, pressed):
-        frame = MSPEventFrame(topic=self._generate_topic(name="mouse.click", dtype=float),
-                              chunk={"x": x, "y": y, "button": button, "pressed": pressed})
+        frame = MSPDataFrame(topic=self._mouse_click_topic,
+                             data={"point": (x, y), "button": button, "pressed": pressed})
         self.queue.append(frame)
 
     def on_scroll(self, x, y, dx, dy):
-        frame = MSPEventFrame(topic=self._generate_topic(name="mouse.scroll", dtype=float),
-                              chunk={"x": x, "y": y, "scroll_x": dx, "scroll_y": dy})
+        frame = MSPDataFrame(topic=self._mouse_scroll_topic,
+                             data=(dx, dy))
         self.queue.append(frame)
 
     def on_update(self) -> Optional[MSPDataFrame]:
@@ -58,3 +63,7 @@ class Mouse(BaseSource):
     def on_stop(self):
         self.stop_listener = True
         self.listener.stop()
+
+    @property
+    def output_topics(self) -> Optional[List[Topic]]:
+        return [self._mouse_move_topic, self._mouse_click_topic, self._mouse_scroll_topic]

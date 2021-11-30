@@ -38,7 +38,6 @@ class VideoTesting(unittest.TestCase):
         except AttributeError:
             assert True
 
-
     def test_short_video(self):
         # Create a video file with 24 PIL Images and export it
         img_sequence = [
@@ -56,7 +55,7 @@ class VideoTesting(unittest.TestCase):
         output.close()
 
         # (1) define the modules
-        source = VideoSource(file_path=str(DATA_PATH / "output_av.mp4"), name="test")
+        source = VideoSource(file_path=str(DATA_PATH / "output_av.mp4"))
         sink = QueueSink()
 
         # (2) add module to a pipeline...
@@ -79,6 +78,7 @@ class VideoTesting(unittest.TestCase):
         # Cleanup
         os.remove(str(DATA_PATH / "output_av.mp4"))
 
+    @pytest.mark.timeout(0.420 * 10)  # Kill run, if it takes 10x longer than local
     def test_long_video(self):
         # Mock a video file with 24 PIL Images and export it
         img_sequence: List[Image] = [
@@ -97,7 +97,7 @@ class VideoTesting(unittest.TestCase):
         output.close()
 
         # (1) define the modules
-        source = VideoSource(file_path=str(DATA_PATH / "output_av.mp4"), name="test")
+        source = VideoSource(file_path=str(DATA_PATH / "output_av.mp4"))
         sink = QueueSink()
 
         # (2) add module to a pipeline...
@@ -120,7 +120,7 @@ class VideoTesting(unittest.TestCase):
         # Assert
         assert 498 > sink.queue.qsize()
 
-    def test_video_sink_simple(self):
+    def test_video_sink(self):
         # Mock a video file with 24 PIL Images and export it
         img_sequence = [
             Image.new('RGB', (200, 300), (228, 150, 150)) for _ in range(10)
@@ -137,58 +137,10 @@ class VideoTesting(unittest.TestCase):
         output.close()
 
         # (1) define the modules
-        source = VideoSource(file_path=str(DATA_PATH / "input.mp4"), name="test")
+        source = VideoSource(file_path=str(DATA_PATH / "input.mp4"))
         sink = VideoSink(
             file_path=str(DATA_PATH / "output.mp4"),
-            live_preview=False, name="test"
-        )
-
-        # (2) add module to a pipeline...
-        pipeline = GraphPipeline()
-        pipeline.add_source(source)
-        pipeline.add_sink(sink)
-
-        # (3) ...and connect the modules
-        pipeline.connect(source, sink)
-
-        # Test
-        pipeline.start()
-        sleep(5)
-        pipeline.stop()
-        pipeline.join()
-
-        # Assert
-        video = av.open(str(DATA_PATH / "output.mp4"))
-        stream = video.streams.video[0]
-        count = 1 + sum(1 for _ in video.decode(stream))
-        assert 10 == count
-        video.close()
-
-        # Cleanup
-        os.remove(str(DATA_PATH / "output.mp4"))
-        os.remove(str(DATA_PATH / "input.mp4"))
-
-    def test_video_sink_simple_topic_filter(self):
-        # Mock a video file with 24 PIL Images and export it
-        img_sequence = [
-            Image.new('RGB', (200, 300), (228, 150, 150)) for _ in range(10)
-        ]
-
-        output = av.open(str(DATA_PATH / 'input.mp4'), 'w')
-        stream = output.add_stream('h264')
-        for img in img_sequence:
-            frame = av.VideoFrame.from_image(img)
-            packet = stream.encode(frame)
-            output.mux(packet)
-
-        output.mux(stream.encode())
-        output.close()
-
-        # (1) define the modules
-        source = VideoSource(file_path=str(DATA_PATH / "input.mp4"), name="test")
-        sink = VideoSink(
-            file_path=str(DATA_PATH / "output.mp4"),
-            live_preview=False, name="wrong_test"
+            live_preview=False,
         )
 
         # (2) add module to a pipeline...

@@ -1,10 +1,11 @@
-from typing import Optional
+from typing import Optional, List
 import av
 import cv2
+from PIL.Image import Image
 import numpy as np
 
-from multisensor_pipeline import BaseSink, GraphPipeline
-from multisensor_pipeline.dataframe import MSPDataFrame
+from multisensor_pipeline import BaseSink
+from multisensor_pipeline.dataframe import MSPDataFrame, Topic
 from multisensor_pipeline.modules.persistence.dataset import BaseDatasetSource
 
 
@@ -23,6 +24,7 @@ class VideoSource(BaseDatasetSource):
         self.file_path = file_path
         self.video = None
         self.queue = None
+        self._frame_topic = self._generate_topic(name="frame", dtype=Image)
 
     def on_start(self):
         """
@@ -42,13 +44,16 @@ class VideoSource(BaseDatasetSource):
     def on_update(self) -> Optional[MSPDataFrame]:
         try:
             frame = next(self.frame_gen())
-            return MSPDataFrame(topic=self._generate_topic(name="frame", dtype=str),
-                                chunk={"frame": frame})
+            return MSPDataFrame(topic=self._frame_topic, data=frame)
         except av.error.EOFError as e:
             return
 
     def on_stop(self):
         self.video.close()
+
+    @property
+    def output_topics(self) -> Optional[List[Topic]]:
+        return [self._frame_topic]
 
 
 class VideoSink(BaseSink):
@@ -56,8 +61,7 @@ class VideoSink(BaseSink):
     Sink to export PIL-Images to a video file and/or show a live preview
     """
 
-    def __init__(self, file_path: str = "output.mp4", live_preview: bool = True,
-                 topic_name: str = "frame", **kwargs):
+    def __init__(self, file_path: str = "output.mp4", live_preview: bool = True, **kwargs):
         """
         Args:
             file_path: path of the export video
@@ -67,9 +71,9 @@ class VideoSink(BaseSink):
         super(VideoSink, self).__init__(**kwargs)
         self.file_path = file_path
         self.live_preview = live_preview
-        self.topic_name = topic_name
         self.output = av.open(self.file_path, "w")
         self.stream = self.output.add_stream('h264')
+        self._frame_topic = Topic(name="frame", dtype=Image)
 
     def on_update(self, frame: MSPDataFrame):
         """
@@ -95,3 +99,5 @@ class VideoSink(BaseSink):
         self.output.mux(self.stream.encode())
         self.output.close()
 
+    def input_topics(self) -> List[Topic]:
+        return [self._frame_topic]

@@ -165,7 +165,7 @@ jobs:
           conda install -c conda-forge portaudio
         shell: cmd
 
-      # Take multiple attempts at running the tests
+      # Take multiple attempts at running the tests_ci
       - name: Test Attempt 1 (macOS | Ubuntu)
         continue-on-error: true
         id: test-attempt-1-macos_ubuntu
@@ -240,7 +240,7 @@ jobs:
           fi
         shell: bash
 
-      # Take multiple attempts at running the tests
+      # Take multiple attempts at running the tests_ci
       - name: Test Attempt 1 (Windows)
         if: startsWith( matrix.os, 'windows-' ) &&
             startsWith( matrix.py, '3.6')

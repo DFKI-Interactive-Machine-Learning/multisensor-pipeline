@@ -5,10 +5,10 @@ from time import sleep
 import av
 import pytest
 
-from multisensor_pipeline.tests.environment_properties import \
+from multisensor_pipeline.tests_ci.environment_properties import \
     is_running_in_ci, is_running_on_macos, is_running_on_windows, \
     is_running_on_linux
-from multisensor_pipeline.tests.paths import DATA_PATH
+from multisensor_pipeline.tests_ci.paths import DATA_PATH
 
 from multisensor_pipeline.modules import QueueSink
 from multisensor_pipeline.modules.video.webcam import WebCamSource
@@ -82,7 +82,7 @@ def virtual_webcam_process_linux():
         'ffmpeg ' \
         '-re ' \
         '-loop 1 ' \
-        f'-i {DATA_PATH / "test.png"} ' \
+        f'-i {DATA_PATH / "tests_ci.png"} ' \
         '-filter:v ' \
         'format=yuv422p ' \
         '-r 30 ' \
@@ -101,7 +101,7 @@ def virtual_webcam_process_macos():
         'ffmpeg ' \
         '-re ' \
         '-loop 1 ' \
-        f'-i {DATA_PATH / "test.png"} ' \
+        f'-i {DATA_PATH / "tests_ci.png"} ' \
         '-filter:v ' \
         'format=yuv422p ' \
         '-r 30 ' \
@@ -199,7 +199,7 @@ def test_webcam_on_linux(virtual_webcam_process_linux):
         print(
             f'Could not find a webcam under Linux. '
             f'Tried: {webcam_identifiers} '
-            f'Thus, skipping this test. '
+            f'Thus, skipping this tests_ci. '
             f'Test coverage may be reduced.'
         )
         return

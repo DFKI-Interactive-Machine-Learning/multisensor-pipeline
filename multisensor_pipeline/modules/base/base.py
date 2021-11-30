@@ -118,7 +118,6 @@ class BaseSource(BaseModule, ABC):
         Args:
             topics:
             sink: A thread-safe Queue object or Sink [or any class that implements put(tuple)]
-            TODO: REWRITE TESTS with TOPICS
         """
         if isinstance(sink, Queue) or isinstance(sink, MPQueue):
             if topics is None:
@@ -147,10 +146,15 @@ class BaseSource(BaseModule, ABC):
                 assert self.output_topics is not None, \
                     "you can only specify a topic filter, if output topics are defined"
                 # input topics do not need to be defined
-                assert topic in self.output_topics and topic in sink.input_topics, \
-                    "all topics must be in the output and input topic list"
-                self._sinks[topic] = self._sinks.get(topic, [sink])
-                sink.add_source(self)
+                if sink.input_topics is not None:
+                    assert topic in self.output_topics and topic in sink.input_topics, \
+                        "all topics must be in the output and input topic list"
+                    self._sinks[topic] = self._sinks.get(topic, [sink])
+                    sink.add_source(self)
+                else:
+                    "sink does not specify incoming_topics -> therefore it accepts everything TODO: Confirm"
+                    self._sinks[topic] = self._sinks.get(topic, [sink])
+                    sink.add_source(self)
 
     def _notify(self, frame: Optional[MSPDataFrame]):
         """

@@ -24,6 +24,8 @@ setup(
         'PyAudio',
         'pynput',
         'pyzmq',
+        'av==8.0.3',
+        'opencv-python==4.5.2.52',
     ],
     keywords=[
         'multimodality', 'streaming', 'multisensor', 'sensors',

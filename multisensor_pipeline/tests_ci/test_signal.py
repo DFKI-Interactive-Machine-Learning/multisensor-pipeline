@@ -6,7 +6,7 @@ from multisensor_pipeline.modules.npy import RandomArraySource
 from multisensor_pipeline.modules.signal.filtering import OneEuroProcessor
 from multisensor_pipeline.modules.signal.sampling import DownsamplingProcessor
 from multisensor_pipeline.pipeline.graph import GraphPipeline
-from multisensor_pipeline.tests.environment_properties import \
+from multisensor_pipeline.tests_ci.environment_properties import \
     is_running_in_ci, is_running_on_macos
 
 
@@ -47,8 +47,8 @@ class DownsamplingProcessorTest(unittest.TestCase):
         sleep(0.1)  # To make this work under macOS in the cloud
 
         # Assert
-        # TODO Loosening a test just like that is not a proper fix.
-        # TODO Make the code under test work as intended.
+        # TODO Loosening a tests_ci just like that is not a proper fix.
+        # TODO Make the code under tests_ci work as intended.
         # TODO *Only then* tighten these conditions again for all environments.
         if is_running_in_ci() and is_running_on_macos():
             assert 37 <= sink_0.queue.qsize() <= num_samples
