@@ -56,7 +56,7 @@ class VideoTesting(unittest.TestCase):
         output.close()
 
         # (1) define the modules
-        source = VideoSource(file_path=str(DATA_PATH / "output_av.mp4"), name="test")
+        source = VideoSource(file_path=str(DATA_PATH / "output_av.mp4"))
         sink = QueueSink()
 
         # (2) add module to a pipeline...
@@ -97,7 +97,7 @@ class VideoTesting(unittest.TestCase):
         output.close()
 
         # (1) define the modules
-        source = VideoSource(file_path=str(DATA_PATH / "output_av.mp4"), name="test")
+        source = VideoSource(file_path=str(DATA_PATH / "output_av.mp4"))
         sink = QueueSink()
 
         # (2) add module to a pipeline...
@@ -137,10 +137,10 @@ class VideoTesting(unittest.TestCase):
         output.close()
 
         # (1) define the modules
-        source = VideoSource(file_path=str(DATA_PATH / "input.mp4"), name="test")
+        source = VideoSource(file_path=str(DATA_PATH / "input.mp4"))
         sink = VideoSink(
             file_path=str(DATA_PATH / "output.mp4"),
-            live_preview=False, name="test"
+            live_preview=False
         )
 
         # (2) add module to a pipeline...
@@ -185,10 +185,10 @@ class VideoTesting(unittest.TestCase):
         output.close()
 
         # (1) define the modules
-        source = VideoSource(file_path=str(DATA_PATH / "input.mp4"), name="test")
+        source = VideoSource(file_path=str(DATA_PATH / "input.mp4"))
         sink = VideoSink(
             file_path=str(DATA_PATH / "output.mp4"),
-            live_preview=False, name="wrong_test"
+            live_preview=False,
         )
 
         # (2) add module to a pipeline...
