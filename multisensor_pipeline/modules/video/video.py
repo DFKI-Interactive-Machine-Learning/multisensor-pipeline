@@ -39,12 +39,12 @@ class VideoSource(BaseDatasetSource):
         stream = self.video.streams.video[0]
         for frame in self.video.decode(stream):
             img = frame.to_image()
-            yield img
+            yield img, frame.time
 
     def on_update(self) -> Optional[MSPDataFrame]:
         try:
-            frame = next(self.frame_gen())
-            return MSPDataFrame(topic=self._frame_topic, data=frame)
+            frame, frame_time = next(self.frame_gen())
+            return MSPDataFrame(topic=self._frame_topic, data=frame, timestamp=frame_time)
         except av.error.EOFError as e:
             return
 

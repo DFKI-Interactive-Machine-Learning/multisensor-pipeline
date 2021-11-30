@@ -13,7 +13,7 @@ class BaseDatasetSource(BaseSource, ABC):
         """
         Initializes the BaseDatasetSource
         Args:
-            playback_speed: sets the playback speed. Default set to as fast as possible.
+            playback_speed: sets the playback speed (1 is original playback speed). Default set to as fast as possible.
         """
         super(BaseDatasetSource, self).__init__()
         self._playback_speed = playback_speed
@@ -65,4 +65,4 @@ class BaseDatasetSource(BaseSource, ABC):
 
         self._last_frame_timestamp = frame.timestamp
         self._last_playback_timestamp = time()
-        frame['playback_timestamp'] = self._last_playback_timestamp
+        # frame['playback_timestamp'] = self._last_playback_timestamp

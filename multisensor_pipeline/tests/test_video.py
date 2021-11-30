@@ -56,7 +56,7 @@ class VideoTesting(unittest.TestCase):
         output.close()
 
         # (1) define the modules
-        source = VideoSource(file_path=str(DATA_PATH / "output_av.mp4"))
+        source = VideoSource(file_path=str(DATA_PATH / "output_av.mp4"), playback_speed=1)
         sink = QueueSink()
 
         # (2) add module to a pipeline...
@@ -69,7 +69,7 @@ class VideoTesting(unittest.TestCase):
 
         # Test
         pipeline.start()
-        sleep(3)
+        sleep(1.)
         pipeline.stop()
         pipeline.join()
 
