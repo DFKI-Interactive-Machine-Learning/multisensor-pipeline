@@ -1,9 +1,9 @@
 import unittest
 from time import sleep
+from datetime import datetime
 import logging
 from typing import Optional, List
 from random import randint
-import math
 
 import numpy as np
 import pytest
@@ -11,7 +11,8 @@ import pytest
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic
 from multisensor_pipeline.modules.base.base import BaseSource, BaseProcessor
 from multisensor_pipeline.modules.npy import RandomArraySource, ArrayManipulationProcessor
-from multisensor_pipeline.modules import QueueSink, ConsoleSink, SleepTrashSink, SleepPassthroughProcessor, ListSink
+from multisensor_pipeline.modules import QueueSink, ConsoleSink, SleepTrashSink, SleepPassthroughProcessor, ListSink, \
+    PassthroughProcessor, TrashSink
 from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 logging.basicConfig(level=logging.DEBUG)
@@ -160,4 +161,91 @@ class BaseTestCase(unittest.TestCase):
         pipeline.join()
         assert True
 
+    def test_passthrough_processor(self):
+        # define the modules
+        source = RandomArraySource(sampling_rate=100, max_count=10)
+        processor = PassthroughProcessor()
+        sink = ListSink()
+
+        # add module to a pipeline...
+        pipeline = GraphPipeline()
+        pipeline.add(modules=[source, processor, sink])
+        # ...and connect the modules
+        pipeline.connect(module=source, successor=processor)
+        pipeline.connect(module=processor, successor=sink)
+
+        # print result of the constraint checker for 0.1 seconds
+        pipeline.start()
+        sleep(.5)
+        pipeline.stop()
+        pipeline.join()
+        self.assertEqual(len(sink), 10)
+
+    def test_sleep_passthrough_processor(self):
+        # define the modules
+        source = RandomArraySource(sampling_rate=10, max_count=10)
+        processor = SleepPassthroughProcessor(.5)
+        sink = ListSink()
+
+        # add module to a pipeline...
+        pipeline = GraphPipeline()
+        pipeline.add(modules=[source, processor, sink])
+        # ...and connect the modules
+        pipeline.connect(module=source, successor=processor)
+        pipeline.connect(module=processor, successor=sink)
+
+        # print result of the constraint checker for 0.1 seconds
+        start_time = datetime.now()
+        pipeline.start()
+        sleep(1)
+        pipeline.stop()
+        pipeline.join()
+        end_time = datetime.now()
+        self.assertEqual((end_time - start_time).seconds, 5)
+        self.assertEqual(len(sink), 10)
+
+    def test_trash_sink(self):
+        # define the modules
+        source = RandomArraySource(sampling_rate=100, max_count=10)
+        list_sink = ListSink()
+        trash_sink = TrashSink()
+
+        # add module to a pipeline...
+        pipeline = GraphPipeline()
+        pipeline.add(modules=[source, list_sink, trash_sink])
+        # ...and connect the modules
+        pipeline.connect(module=source, successor=list_sink)
+        pipeline.connect(module=source, successor=trash_sink)
+
+        # print result of the constraint checker for 0.1 seconds
+        pipeline.start()
+        sleep(.5)
+        pipeline.stop()
+        pipeline.join()
+        self.assertEqual(len(list_sink), 10)
+        self.assertEqual(trash_sink.counter, 10)
+
+    def test_sleep_trash_sink(self):
+        # define the modules
+        source = RandomArraySource(sampling_rate=100, max_count=10)
+        list_sink = ListSink()
+        sleep_trash_sink = SleepTrashSink(.5)
+
+        # add module to a pipeline...
+        pipeline = GraphPipeline()
+        pipeline.add(modules=[source, list_sink, sleep_trash_sink])
+        # ...and connect the modules
+        pipeline.connect(module=source, successor=list_sink)
+        pipeline.connect(module=source, successor=sleep_trash_sink)
+
+        # print result of the constraint checker for 0.1 seconds
+        start_time = datetime.now()
+        pipeline.start()
+        sleep(1)
+        pipeline.stop()
+        pipeline.join()
+        end_time = datetime.now()
+        self.assertEqual(len(list_sink), 10)
+        self.assertEqual(sleep_trash_sink.counter, 10)
+        self.assertEqual((end_time - start_time).seconds, 5)
 

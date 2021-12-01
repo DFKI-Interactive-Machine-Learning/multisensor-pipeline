@@ -4,12 +4,10 @@ from typing import Optional, List
 import logging
 import numpy as np
 
-
 logger = logging.getLogger(__name__)
 
 
 class DownsamplingProcessor(BaseProcessor):
-
     class DataFrameHistory:
 
         def __init__(self, topic_uid, fps_out, window_size=5, interpolation=None):
@@ -114,7 +112,7 @@ class DownsamplingProcessor(BaseProcessor):
             _frame = hist.get_dataframe()
             if _frame is not None:
                 _topic = Topic(name=f"{frame.topic.name}.{self._sampling_rate}Hz",
-                                              dtype=frame.topic.dtype)
+                               dtype=frame.topic.dtype)
                 _frame.topic = _topic
                 return _frame
 
@@ -123,7 +121,7 @@ class DownsamplingProcessor(BaseProcessor):
         if self._topic_names:
             return [Topic(name=name) for name in self._topic_names]
         else:
-            return None
+            return [Topic()]
 
     @property
     def output_topics(self) -> Optional[List[Topic]]:
@@ -131,8 +129,4 @@ class DownsamplingProcessor(BaseProcessor):
         if self._topic_names:
             return [Topic(name=f"{name}.{self._sampling_rate}Hz") for name in self._topic_names]
         else:
-            None
-
-
-
-
+            return [Topic()]

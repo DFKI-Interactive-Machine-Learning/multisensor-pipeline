@@ -80,9 +80,16 @@ class ConsoleSink(BaseSink):
 
 
 class TrashSink(BaseSink):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._counter = 0
 
     def on_update(self, frame: MSPDataFrame):
-        pass
+        self._counter += 1
+
+    @property
+    def counter(self) -> int:
+        return self._counter
 
 
 class SleepTrashSink(TrashSink):
@@ -93,3 +100,8 @@ class SleepTrashSink(TrashSink):
 
     def on_update(self, frame: MSPDataFrame):
         sleep(self._sleep_time)
+        self._counter += 1
+
+    @property
+    def counter(self) -> int:
+        return self._counter
