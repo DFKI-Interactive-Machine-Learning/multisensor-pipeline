@@ -1,5 +1,7 @@
+from typing import List
+
 from multisensor_pipeline.modules.base import BaseSink
-from multisensor_pipeline.dataframe import MSPDataFrame
+from multisensor_pipeline.dataframe import MSPDataFrame, Topic
 import wave
 import pyaudio
 import logging
@@ -7,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class WaveFile(BaseSink):
+class WaveFileSink(BaseSink):
     """
     WaveFile Sink for .wav files
     """
@@ -20,7 +22,7 @@ class WaveFile(BaseSink):
            format: PyAudio format specification
            rate: The audio sampling rate
         """
-        super(WaveFile, self).__init__()
+        super(WaveFileSink, self).__init__()
         self._frames = []
         self._wf = wave.open(filename, 'wb')
         self._wf.setnchannels(channels)
@@ -32,10 +34,15 @@ class WaveFile(BaseSink):
         Writes chunks of the .wav file
         """
         if frame.topic.name == "audio":
-            self._wf.writeframes(frame["chunk"])
+            self._wf.writeframes(frame.data)
 
     def on_stop(self):
         """
         Stops the WaveFileSink and closes the filestream
         """
         self._wf.close()
+
+    @property
+    def input_topics(self) -> List[Topic]:
+        return [Topic(name="audio", dtype=bytes)]
+
