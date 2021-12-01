@@ -1,6 +1,6 @@
 from multisensor_pipeline import BaseProcessor
-from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
-from typing import Optional
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic
+from typing import Optional, List
 import logging
 import numpy as np
 
@@ -113,8 +113,26 @@ class DownsamplingProcessor(BaseProcessor):
             hist.add(frame)
             _frame = hist.get_dataframe()
             if _frame is not None:
-                _topic = self._generate_topic(name=f"{frame.topic.name}.{self._sampling_rate}Hz",
+                _topic = Topic(name=f"{frame.topic.name}.{self._sampling_rate}Hz",
                                               dtype=frame.topic.dtype)
                 _frame.topic = _topic
                 return _frame
+
+    @property
+    def input_topics(self) -> List[Topic]:
+        if self._topic_names:
+            return [Topic(name=name) for name in self._topic_names]
+        else:
+            return None
+
+    @property
+    def output_topics(self) -> Optional[List[Topic]]:
+        # Check what happens if no topic names are defined
+        if self._topic_names:
+            return [Topic(name=f"{name}.{self._sampling_rate}Hz") for name in self._topic_names]
+        else:
+            None
+
+
+
 
