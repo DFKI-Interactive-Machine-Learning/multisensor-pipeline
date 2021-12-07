@@ -151,3 +151,37 @@ class DownSamplingProcessorTest(unittest.TestCase):
         )
         for sink in pipeline.sink_nodes:
             self.assertEqual(10, len(sink))
+
+    @staticmethod
+    def _run_random_array(topics=None):
+        # (1) define the modules
+        source = RandomArraySource(
+            shape=(2,),
+            sampling_rate=100,
+            max_count=100,
+        )
+
+        sink = ListSink()
+
+        # (2) add module to a pipeline...
+        pipeline = GraphPipeline(profiling=True)
+        pipeline.add_source(source)
+        pipeline.add_sink(sink)
+
+        # (3) ...and connect the modules
+        pipeline.connect(source, sink, topics=topics[0] if topics is not None else None)
+
+        # Test
+        pipeline.start()
+        sleep(1.15)
+        pipeline.stop()
+        pipeline.join()
+
+        return pipeline
+
+    def test_random_array_source(self):
+        pipeline = self._run_random_array()
+        for sink in pipeline.sink_nodes:
+            self.assertEqual(100, len(sink))
+
+

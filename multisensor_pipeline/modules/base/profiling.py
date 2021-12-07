@@ -1,4 +1,6 @@
-from multisensor_pipeline.dataframe import MSPDataFrame, MSPControlMessage
+from typing import Optional
+
+from multisensor_pipeline.dataframe import MSPDataFrame, MSPControlMessage, Topic
 from time import time
 from datetime import datetime
 from collections import deque
@@ -66,10 +68,15 @@ class MSPModuleStats:
         self._queue_size = self.MovingAverageStats()
         self._skipped_frames = self.MovingAverageStats()
 
-    def get_stats(self, direction: Direction):
+    def get_stats(self, direction: Direction, topic: Optional[Topic] = None):
         if direction == self.Direction.IN:
-            return self._in_stats
+            if topic:
+                return self._in_stats[topic.uuid]
+            else:
+                return self._in_stats
         elif direction == self.Direction.OUT:
+            if topic:
+                return self._out_stats[topic.uuid]
             return self._out_stats
         else:
             raise NotImplementedError()
@@ -81,9 +88,9 @@ class MSPModuleStats:
 
         # per direction, topic -> update stats
         stats = self.get_stats(direction)
-        if frame.topic not in stats:
-            stats[frame.topic] = self.FrequencyStats()
-        stats[frame.topic].update(time_received)
+        if frame.topic.uuid not in stats:
+            stats[frame.topic.uuid] = self.FrequencyStats()
+        stats[frame.topic.uuid].update(time_received)
 
     def add_queue_state(self, qsize: int, skipped_frames: int):
         self._queue_size.update(qsize)

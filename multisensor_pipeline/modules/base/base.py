@@ -94,6 +94,15 @@ class BaseModule(object):
         """ Returns real-time profiling information. """
         return self._stats
 
+    @property
+    def profiling(self) -> bool:
+        """ Profiling actvice/deactive """
+        return self._profiling
+
+    @profiling.setter
+    def profiling(self, value):
+        self._profiling = value
+
     def __hash__(self):
         return hash(self.uuid)
 

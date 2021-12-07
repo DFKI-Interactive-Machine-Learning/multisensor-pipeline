@@ -12,7 +12,8 @@ class GraphPipeline(PipelineBase):
     ROLE_PROCESSOR = "processor"
     ROLE_SINK = "sink"
 
-    def __init__(self):
+    def __init__(self, profiling=False):
+        self._profiling = profiling
         self._graph = nx.DiGraph()
 
     def add(self, modules: Union[BaseModule, List[BaseModule]]):
@@ -30,14 +31,20 @@ class GraphPipeline(PipelineBase):
 
     def add_source(self, source_module: BaseSource):
         assert isinstance(source_module, BaseSource)
+        if self._profiling:
+            source_module.profiling = True
         self._graph.add_node(source_module, role=self.ROLE_SOURCE)
 
     def add_processor(self, processor_module: BaseProcessor):
         assert isinstance(processor_module, BaseProcessor)
+        if self._profiling:
+            processor_module.profiling = True
         self._graph.add_node(processor_module, role=self.ROLE_PROCESSOR)
 
     def add_sink(self, sink_module: BaseSink):
         assert isinstance(sink_module, BaseSink)
+        if self._profiling:
+            sink_module.profiling = True
         self._graph.add_node(sink_module, role=self.ROLE_SINK)
 
     def connect(self, module, successor, topics: Optional[Union[Topic, List[Topic]]] = None):
