@@ -115,10 +115,7 @@ class DownSamplingProcessorTest(unittest.TestCase):
             sampling_rate=100,
             max_count=10,
         )
-        processor = OneEuroProcessor(
-            signal_topic_name="random",
-            signal_key="value",
-        )
+        processor = OneEuroProcessor()
         sink_1 = ListSink()
         sink_0 = ListSink()
 
@@ -136,7 +133,7 @@ class DownSamplingProcessorTest(unittest.TestCase):
 
         # Test
         pipeline.start()
-        sleep(5)
+        sleep(.5)
         pipeline.stop()
         pipeline.join()
 

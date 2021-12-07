@@ -26,11 +26,9 @@ class OneEuroProcessor(BaseProcessor):
     if slow speed jitter is a problem, decrease fcmin.
     """
 
-    def __init__(self, signal_topic_name, signal_key, freq=30, fcmin=1.5, beta=.001, dcutoff=1):
+    def __init__(self, freq=30, fcmin=1.5, beta=.001, dcutoff=1):
         super(OneEuroProcessor, self).__init__()
 
-        self._signal_topic_name = signal_topic_name
-        self._signal_key = signal_key
         config = {
             'freq': freq,  # Hz
             'mincutoff': fcmin,
@@ -48,19 +46,18 @@ class OneEuroProcessor(BaseProcessor):
         return self._filter_x(point[0], timestamp), self._filter_y(point[1], timestamp)
 
     def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
-        if frame.topic.name == self._signal_topic_name:
-            smoothed_point = self._filter(frame.data, frame.timestamp)
-            if smoothed_point is not None:
-                frame.data = smoothed_point
-                frame.topic = self.output_topics[0] if frame.topic.dtype == Tuple[float, float] else self.output_topics[1]
-                return frame
+        smoothed_point = self._filter(frame.data, frame.timestamp)
+        if smoothed_point is not None:
+            frame.data = smoothed_point
+            frame.topic = Topic(name=f"{frame.topic.name}.smoothed", dtype=frame.topic.dtype)
+            return frame
 
     @property
     def input_topics(self) -> List[Topic]:
-        return [Topic(name=self._signal_topic_name, dtype=Tuple[float, float]),
-                Topic(name=self._signal_topic_name, dtype=np.ndarray)]
+        return [Topic(dtype=Tuple[float, float]),
+                Topic(dtype=np.ndarray)]
 
     @property
     def output_topics(self) -> Optional[List[Topic]]:
-        return [Topic(name=f"{self._signal_topic_name}.smoothed", dtype=Tuple[float, float]),
-                Topic(name=f"{self._signal_topic_name}.smoothed", dtype=np.ndarray)]
+        return [Topic(dtype=Tuple[float, float]),
+                Topic(dtype=np.ndarray)]
