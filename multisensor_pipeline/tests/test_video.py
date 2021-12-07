@@ -4,7 +4,7 @@ from time import sleep
 from typing import List
 import av
 from PIL import Image
-from multisensor_pipeline.modules import ConsoleSink, QueueSink, ListSink
+from multisensor_pipeline.modules import ConsoleSink, ListSink
 from multisensor_pipeline.modules.video.video import VideoSource, VideoSink
 from multisensor_pipeline.pipeline.graph import GraphPipeline
 

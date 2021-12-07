@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 class DownsamplingProcessor(BaseProcessor):
     class DataFrameHistory:
 
-        def __init__(self, topic_uid, fps_out, window_size=5, interpolation=None):
-            self.topic_uid = topic_uid
+        def __init__(self, topic_uuid, fps_out, window_size=5, interpolation=None):
+            self.topic_uid = topic_uuid
             self.target_fps = fps_out
             self.window_size = window_size  # TODO: expose window_size, mainly for interpolation
             self.interpolation = interpolation  # TODO: utilize interpolation for, e.g., averaging the data
@@ -84,15 +84,15 @@ class DownsamplingProcessor(BaseProcessor):
         def period_time_in(self):
             return (self.dataframes[-1].timestamp - self.dataframes[0].timestamp) / len(self.dataframes)
 
-    def __init__(self, topic_names=None, sampling_rate=5):
+    def __init__(self, target_topics: Optional[List[Topic]] = None, sampling_rate: int = 5):
         """
         Downsamples a signal to a given sampling_rate [Hz], if the original rate is higher.
         Otherwise, the sampling rate stays the same (no upsampling).
-        @param topic_names: the dtype to be resampled; if None, all incoming dtypes are resampled
+        @param target_topics: the dtype to be resampled; if None, all incoming dtypes are resampled
         @param sampling_rate: the desired sampling rate [Hz]
         """
         super(DownsamplingProcessor, self).__init__()
-        self._topic_names = topic_names
+        self._target_topics = [t.name for t in target_topics] if target_topics is not None else None
         self._sampling_rate = sampling_rate
         self._period_time = 1. / sampling_rate
 
@@ -100,13 +100,13 @@ class DownsamplingProcessor(BaseProcessor):
         self._last_sent = dict()
         self._last_received = dict()
 
-    def _get_history(self, uid) -> DataFrameHistory:
-        if uid not in self._sample_hist:
-            self._sample_hist[uid] = self.DataFrameHistory(uid, fps_out=self._sampling_rate)
-        return self._sample_hist[uid]
+    def _get_history(self, uuid) -> DataFrameHistory:
+        if uuid not in self._sample_hist:
+            self._sample_hist[uuid] = self.DataFrameHistory(uuid, fps_out=self._sampling_rate)
+        return self._sample_hist[uuid]
 
     def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
-        if self._topic_names is None or frame.topic.name in self._topic_names:
+        if self._target_topics is None or frame.topic.name in self._target_topics:
             hist = self._get_history(frame.topic.uuid)
             hist.add(frame)
             _frame = hist.get_dataframe()
@@ -118,15 +118,15 @@ class DownsamplingProcessor(BaseProcessor):
 
     @property
     def input_topics(self) -> List[Topic]:
-        if self._topic_names:
-            return [Topic(name=name) for name in self._topic_names]
+        if self._target_topics:
+            return [Topic(name=name) for name in self._target_topics]
         else:
             return [Topic()]
 
     @property
     def output_topics(self) -> Optional[List[Topic]]:
         # Check what happens if no topic names are defined
-        if self._topic_names:
-            return [Topic(name=f"{name}.{self._sampling_rate}Hz") for name in self._topic_names]
+        if self._target_topics:
+            return [Topic(name=f"{name}.{self._sampling_rate}Hz") for name in self._target_topics]
         else:
             return [Topic()]

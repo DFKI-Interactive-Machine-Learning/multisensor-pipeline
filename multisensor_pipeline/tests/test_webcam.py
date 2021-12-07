@@ -1,38 +1,27 @@
 import sys
 import unittest
 from time import sleep
-
 import av
 from PIL.Image import Image
-
 from multisensor_pipeline import GraphPipeline
 from multisensor_pipeline.dataframe import Topic
-from multisensor_pipeline.modules import QueueSink
+from multisensor_pipeline.modules import QueueSink, ListSink
 from multisensor_pipeline.modules.video import WebCamSource
 
 
-def is_running_on_linux():
+def is_running_on_linux() -> bool:
     """Return whether this is running on Linux (Ubuntu, etc.)."""
-    this_is_running_under_linux: bool = sys.platform.startswith('linux')
-
-    return this_is_running_under_linux
+    return sys.platform.startswith('linux')
 
 
 def is_running_on_macos() -> bool:
     """Return whether this is running on macOS (Darwin)."""
-    this_is_running_under_macos: bool = sys.platform.startswith('darwin')
-
-    return this_is_running_under_macos
+    return sys.platform.startswith('darwin')
 
 
-def is_running_on_windows():
-    """Return weather this is running under Windows or Cygwin."""
-    this_is_running_on_windows: bool = \
-        sys.platform.startswith('win32') or sys.platform.startswith('cygwin')
-
-    return this_is_running_on_windows
-
-
+def is_running_on_windows() -> bool:
+    """Return weather this is running under Windows."""
+    return sys.platform.startswith('win32')
 
 
 class WebCamTests(unittest.TestCase):
@@ -44,8 +33,6 @@ class WebCamTests(unittest.TestCase):
         elif is_running_on_macos():
             self.simple_webcam_macos()
 
-        assert True
-
     def test_simple_webcam_filter(self):
         topic = Topic(name="frame", dtype=Image)
         if is_running_on_windows():
@@ -54,15 +41,11 @@ class WebCamTests(unittest.TestCase):
             self.simple_webcam_linux(topic=topic)
         elif is_running_on_macos():
             self.simple_webcam_macos(topic=topic)
-        assert True
-
-
 
     def simple_webcam_windows(self, topic=None):
         # (1) define the modules
-        source = WebCamSource(web_cam_format="dshow", options={"framerate": "5"})
-
-        sink = QueueSink()
+        source = WebCamSource(web_cam_format="dshow", web_cam_id="video=HD WebCam", options={'framerate': '10'})
+        sink = ListSink()
 
         # (2) add module to a pipeline...
         pipeline = GraphPipeline()
@@ -79,7 +62,7 @@ class WebCamTests(unittest.TestCase):
         pipeline.join()
 
         # Assert
-        assert sink.queue.qsize() >= 10
+        self.assertAlmostEqual(len(sink), 20, delta=1)
 
     def simple_webcam_linux(self, topic=None):
         # (1) define the modules

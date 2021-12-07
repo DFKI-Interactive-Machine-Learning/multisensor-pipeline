@@ -1,6 +1,5 @@
 import unittest
 from time import sleep
-
 from multisensor_pipeline.dataframe import Topic
 from multisensor_pipeline.modules import QueueSink, ListSink
 from multisensor_pipeline.modules.npy import RandomArraySource
@@ -23,7 +22,7 @@ class DownSamplingProcessorTest(unittest.TestCase):
             sampling_rate=num_samples,
             max_count=num_samples,
         )
-        processor = DownsamplingProcessor(sampling_rate=num_samples * 2, topic_names=[source.output_topics[0].name])
+        processor = DownsamplingProcessor(sampling_rate=num_samples * 2, target_topics=[source.output_topics[0]])
         sink_0 = QueueSink()
         sink_1 = QueueSink()
 
@@ -41,7 +40,7 @@ class DownSamplingProcessorTest(unittest.TestCase):
 
         # Test
         pipeline.start()
-        sleep(5)
+        sleep(1.5)
         pipeline.stop()
         pipeline.join()
 
@@ -68,8 +67,8 @@ class DownSamplingProcessorTest(unittest.TestCase):
             sampling_rate=100,
             max_count=100,
         )
-        if topics:  # FIXME: the module should be updated to use the new topic filter
-            processor = DownsamplingProcessor(sampling_rate=1, topic_names=["random"])
+        if topics:
+            processor = DownsamplingProcessor(sampling_rate=1, target_topics=[Topic(name="random")])
         else:
             processor = DownsamplingProcessor(sampling_rate=1)
         sink = ListSink()
@@ -95,7 +94,7 @@ class DownSamplingProcessorTest(unittest.TestCase):
     def test_down_sampling_processor_strong(self):
         sink = self._run_down_sampling_processor_strong_pipeline()
         # There should be at most one frame for each second
-        self.assertLessEqual(len(sink), 2)
+        self.assertAlmostEqual(len(sink), 2, delta=1)
 
     def test_down_sampling_processor_strong_filtered(self):
         sink = self._run_down_sampling_processor_strong_pipeline(
@@ -103,7 +102,7 @@ class DownSamplingProcessorTest(unittest.TestCase):
                     Topic(name="random.1Hz", dtype=int)]
         )
         # There should be at most one frame for each second
-        self.assertLessEqual(len(sink), 2)
+        self.assertAlmostEqual(len(sink), 2, delta=1)
 
     @staticmethod
     def _run_one_euro_filter_pipeline(topics=None):
