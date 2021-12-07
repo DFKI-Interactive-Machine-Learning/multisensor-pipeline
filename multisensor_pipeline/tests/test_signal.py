@@ -2,7 +2,7 @@ import unittest
 from time import sleep
 
 from multisensor_pipeline.dataframe import Topic
-from multisensor_pipeline.modules import QueueSink
+from multisensor_pipeline.modules import QueueSink, ListSink
 from multisensor_pipeline.modules.npy import RandomArraySource
 from multisensor_pipeline.modules.signal.filtering import OneEuroProcessor
 from multisensor_pipeline.modules.signal.sampling import DownsamplingProcessor
@@ -11,17 +11,9 @@ import numpy as np
 
 
 class DownSamplingProcessorTest(unittest.TestCase):
-    def test_down_sampling_processor_no_downsampling(self):
-        pipeline = self.down_sampling_processor_no_downsampling()
-        for sink in pipeline.sink_nodes:
-            self.assertEqual(100, sink.queue.qsize())
 
-    def test_down_sampling_processor_no_downsampling_topic_filtered(self):
-        pipeline = self.down_sampling_processor_no_downsampling(topic=Topic(name="random", dtype=int))
-        for sink in pipeline.sink_nodes:
-            self.assertEqual(100, sink.queue.qsize())
-
-    def down_sampling_processor_no_downsampling(self, num_samples=100, topic=None):
+    @staticmethod
+    def _run_down_sampling_processor_no_downsampling_pipeline(num_samples=100, topic=None):
         # Mock a setup like so:
         # sink_0 <- source -> processor -> sink_1
 
@@ -55,22 +47,18 @@ class DownSamplingProcessorTest(unittest.TestCase):
 
         return pipeline
 
-    def test_down_sampling_processor_strong(self):
-        pipeline = self.down_sampling_processor_strong()
+    def test_down_sampling_processor_no_downsampling(self):
+        pipeline = self._run_down_sampling_processor_no_downsampling_pipeline()
         for sink in pipeline.sink_nodes:
-            # Assert
-            # There should be at most one frame for each second
-            assert sink.queue.qsize() <= 2
+            self.assertEqual(100, sink.queue.qsize())
 
-    def test_down_sampling_processor_strong_filtered(self):
-        pipeline = self.down_sampling_processor_strong(topics=[Topic(name="random", dtype=int),
-                                                       Topic(name="random.1Hz", dtype=int)])
+    def test_down_sampling_processor_no_downsampling_topic_filtered(self):
+        pipeline = self._run_down_sampling_processor_no_downsampling_pipeline(topic=Topic(name="random", dtype=int))
         for sink in pipeline.sink_nodes:
-            # Assert
-            # There should be at most one frame for each second
-            assert sink.queue.qsize() <= 2
+            self.assertEqual(100, sink.queue.qsize())
 
-    def down_sampling_processor_strong(self, topics=None):
+    @staticmethod
+    def _run_down_sampling_processor_strong_pipeline(topics=None):
         # Mock a setup like so:
         # source -> processor -> sink
 
@@ -80,11 +68,11 @@ class DownSamplingProcessorTest(unittest.TestCase):
             sampling_rate=100,
             max_count=100,
         )
-        if topics:
+        if topics:  # FIXME: the module should be updated to use the new topic filter
             processor = DownsamplingProcessor(sampling_rate=1, topic_names=["random"])
         else:
             processor = DownsamplingProcessor(sampling_rate=1)
-        sink = QueueSink()
+        sink = ListSink()
 
         # (2) add module to a pipeline...
         pipeline = GraphPipeline()
@@ -102,20 +90,23 @@ class DownSamplingProcessorTest(unittest.TestCase):
         pipeline.stop()
         pipeline.join()
 
-        return pipeline
+        return sink
 
-    def test_one_euro(self):
-        pipeline = self.one_euro_filter()
-        for sink in pipeline.sink_nodes:
-            self.assertEqual(10, sink.queue.qsize())
+    def test_down_sampling_processor_strong(self):
+        sink = self._run_down_sampling_processor_strong_pipeline()
+        # There should be at most one frame for each second
+        self.assertLessEqual(len(sink), 2)
 
-    def test_one_euro_filtered(self):
-        pipeline = self.one_euro_filter(topics=[Topic(name="random", dtype=np.ndarray),
-                                                Topic(name="random.smoothed", dtype=np.ndarray)])
-        for sink in pipeline.sink_nodes:
-            self.assertEqual(10, sink.queue.qsize())
+    def test_down_sampling_processor_strong_filtered(self):
+        sink = self._run_down_sampling_processor_strong_pipeline(
+            topics=[Topic(name="random", dtype=int),
+                    Topic(name="random.1Hz", dtype=int)]
+        )
+        # There should be at most one frame for each second
+        self.assertLessEqual(len(sink), 2)
 
-    def one_euro_filter(self, topics = None):
+    @staticmethod
+    def _run_one_euro_filter_pipeline(topics=None):
         # Mock a setup like so:
         # sink_0 <- source -> processor -> sink_1
 
@@ -129,8 +120,8 @@ class DownSamplingProcessorTest(unittest.TestCase):
             signal_topic_name="random",
             signal_key="value",
         )
-        sink_1 = QueueSink()
-        sink_0 = QueueSink()
+        sink_1 = ListSink()
+        sink_0 = ListSink()
 
         # (2) add module to a pipeline...
         pipeline = GraphPipeline()
@@ -151,3 +142,16 @@ class DownSamplingProcessorTest(unittest.TestCase):
         pipeline.join()
 
         return pipeline
+
+    def test_one_euro(self):
+        pipeline = self._run_one_euro_filter_pipeline()
+        for sink in pipeline.sink_nodes:
+            self.assertEqual(10, len(sink))
+
+    def test_one_euro_filtered(self):
+        pipeline = self._run_one_euro_filter_pipeline(
+            topics=[Topic(name="random", dtype=np.ndarray),
+                    Topic(name="random.smoothed", dtype=np.ndarray)]
+        )
+        for sink in pipeline.sink_nodes:
+            self.assertEqual(10, len(sink))
