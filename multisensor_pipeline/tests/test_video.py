@@ -2,18 +2,27 @@ import os
 import unittest
 from time import sleep
 from typing import List
-
 import av
-import pytest
 from PIL import Image
-
-from multisensor_pipeline.tests_ci.paths import DATA_PATH
-from multisensor_pipeline.modules import ConsoleSink, QueueSink
+from multisensor_pipeline.modules import ConsoleSink, QueueSink, ListSink
 from multisensor_pipeline.modules.video.video import VideoSource, VideoSink
 from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 
 class VideoTesting(unittest.TestCase):
+
+    @staticmethod
+    def _create_test_video(filename, num_frames=1):
+        img_sequence: List[Image] = [Image.new('RGB', (300, 200), (228, 150, 150)) for _ in range(num_frames)]
+        output = av.open(filename, 'w')
+        stream = output.add_stream('h264', '24')
+        for img in img_sequence:
+            frame = av.VideoFrame.from_image(img)
+            packet = stream.encode(frame)
+            output.mux(packet)
+        output.mux(stream.encode())
+        output.close()
+
     def test_no_video_file(self):
         # (1) define the modules
         source = VideoSource(playback_speed=1)
@@ -28,36 +37,19 @@ class VideoTesting(unittest.TestCase):
         pipeline.connect(source, sink)
 
         # (4) print mouse movements
-        try:
+        with self.assertRaises(av.error.FileNotFoundError):
             pipeline.start()
             sleep(2)
-        except av.error.FileNotFoundError:
-            assert True
-        try:
+
+        with self.assertRaises(AttributeError):
             pipeline.stop()
-        except AttributeError:
-            assert True
 
-
-    def test_short_video(self):
-        # Create a video file with 24 PIL Images and export it
-        img_sequence = [
-            Image.new('RGB', (300, 200), (228, 150, 150)) for _ in range(24)
-        ]
-
-        output = av.open(str(DATA_PATH / 'output_av.mp4'), 'w')
-        stream = output.add_stream('h264')
-        for img in img_sequence:
-            frame = av.VideoFrame.from_image(img)
-            packet = stream.encode(frame)
-            output.mux(packet)
-
-        output.mux(stream.encode())
-        output.close()
+    def _test_video_source(self, num_frames, playback_speed=float("inf")):
+        self._create_test_video(filename="output_av.mp4", num_frames=num_frames)
 
         # (1) define the modules
-        source = VideoSource(file_path=str(DATA_PATH / "output_av.mp4"), playback_speed=1)
-        sink = QueueSink()
+        source = VideoSource(file_path="output_av.mp4", playback_speed=playback_speed)
+        sink = ListSink()
 
         # (2) add module to a pipeline...
         pipeline = GraphPipeline()
@@ -74,31 +66,24 @@ class VideoTesting(unittest.TestCase):
         pipeline.join()
 
         # Assert
-        assert 23 <= sink.queue.qsize() <= 24
+        self.assertIn(len(sink), [num_frames - 1, num_frames])
 
         # Cleanup
-        os.remove(str(DATA_PATH / "output_av.mp4"))
+        os.remove("output_av.mp4")
+
+    def test_short_video(self):
+        self._test_video_source(num_frames=24, playback_speed=1.)
 
     def test_long_video(self):
-        # Mock a video file with 500 PIL Images and export it
-        img_sequence: List[Image] = [
-            Image.new('RGB', (300, 200), (228, 150, 150)) for _ in range(500)
-        ]
+        self._test_video_source(num_frames=250)
 
-        output = av.open(str(DATA_PATH / 'output_av.mp4'), 'w')
-        stream = output.add_stream('h264', '24')
-        for img in img_sequence:
-            frame = av.VideoFrame.from_image(img)
-            packet = stream.encode(frame)
-            output.mux(packet)
-
-        packet = stream.encode()
-        output.mux(packet)
-        output.close()
+    def _test_video_sink(self, topic_filtering=False):
+        num_frames = 10
+        self._create_test_video("input.mp4", num_frames=num_frames)
 
         # (1) define the modules
-        source = VideoSource(file_path=str(DATA_PATH / "output_av.mp4"))
-        sink = QueueSink()
+        source = VideoSource(file_path="input.mp4")
+        sink = VideoSink(file_path="output.mp4", live_preview=False)
 
         # (2) add module to a pipeline...
         pipeline = GraphPipeline()
@@ -106,110 +91,28 @@ class VideoTesting(unittest.TestCase):
         pipeline.add_sink(sink)
 
         # (3) ...and connect the modules
-        pipeline.connect(source, sink)
+        topics = None if topic_filtering is False else source.output_topics[0]
+        pipeline.connect(source, sink, topics=topics)
 
         # Test
         pipeline.start()
-        sleep(.3)
+        sleep(1.)
         pipeline.stop()
         pipeline.join()
 
-        # Cleanup
-        os.remove(str(DATA_PATH / "output_av.mp4"))
-
         # Assert
-        assert 498 > sink.queue.qsize()
+        video = av.open("output.mp4")
+        stream = video.streams.video[0]
+        count = 1 + sum(1 for _ in video.decode(stream))
+        video.close()
+        self.assertEqual(num_frames, count)
+
+        # Cleanup
+        os.remove("output.mp4")
+        os.remove("input.mp4")
 
     def test_video_sink_simple(self):
-        img_sequence = [
-            Image.new('RGB', (200, 300), (228, 150, 150)) for _ in range(10)
-        ]
-
-        output = av.open(str(DATA_PATH / 'input.mp4'), 'w')
-        stream = output.add_stream('h264')
-        for img in img_sequence:
-            frame = av.VideoFrame.from_image(img)
-            packet = stream.encode(frame)
-            output.mux(packet)
-
-        output.mux(stream.encode())
-        output.close()
-
-        # (1) define the modules
-        source = VideoSource(file_path=str(DATA_PATH / "input.mp4"))
-        sink = VideoSink(
-            file_path=str(DATA_PATH / "output.mp4"),
-            live_preview=False
-        )
-
-        # (2) add module to a pipeline...
-        pipeline = GraphPipeline()
-        pipeline.add_source(source)
-        pipeline.add_sink(sink)
-
-        # (3) ...and connect the modules
-        pipeline.connect(source, sink)
-
-        # Test
-        pipeline.start()
-        sleep(5)
-        pipeline.stop()
-        pipeline.join()
-
-        # Assert
-        video = av.open(str(DATA_PATH / "output.mp4"))
-        stream = video.streams.video[0]
-        count = 1 + sum(1 for _ in video.decode(stream))
-        assert 10 == count
-        video.close()
-
-        # Cleanup
-        os.remove(str(DATA_PATH / "output.mp4"))
-        os.remove(str(DATA_PATH / "input.mp4"))
+        self._test_video_sink(topic_filtering=False)
 
     def test_video_sink_simple_topic_filter(self):
-        img_sequence = [
-            Image.new('RGB', (200, 300), (228, 150, 150)) for _ in range(10)
-        ]
-
-        output = av.open(str(DATA_PATH / 'input.mp4'), 'w')
-        stream = output.add_stream('h264')
-        for img in img_sequence:
-            frame = av.VideoFrame.from_image(img)
-            packet = stream.encode(frame)
-            output.mux(packet)
-
-        output.mux(stream.encode())
-        output.close()
-
-        # (1) define the modules
-        source = VideoSource(file_path=str(DATA_PATH / "input.mp4"))
-        sink = VideoSink(
-            file_path=str(DATA_PATH / "output.mp4"),
-            live_preview=False,
-        )
-
-        # (2) add module to a pipeline...
-        pipeline = GraphPipeline()
-        pipeline.add_source(source)
-        pipeline.add_sink(sink)
-
-        # (3) ...and connect the modules
-        pipeline.connect(source, sink, topics=source.output_topics[0])
-
-        # Test
-        pipeline.start()
-        sleep(5)
-        pipeline.stop()
-        pipeline.join()
-
-        # Assert
-        video = av.open(str(DATA_PATH / "output.mp4"))
-        stream = video.streams.video[0]
-        count = 1 + sum(1 for _ in video.decode(stream))
-        assert 10 == count
-        video.close()
-
-        # Cleanup
-        os.remove(str(DATA_PATH / "output.mp4"))
-        os.remove(str(DATA_PATH / "input.mp4"))
+        self._test_video_sink(topic_filtering=True)
