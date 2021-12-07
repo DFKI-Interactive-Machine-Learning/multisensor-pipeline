@@ -13,17 +13,8 @@ from multisensor_pipeline.pipeline.graph import GraphPipeline
 class AudioTest(unittest.TestCase):
     _filename = 'test_mic_to_wave_pipeline.wav'
 
-    def test_mic_simple(self):
-        pipeline = self.mic_simple()
-        for sink in pipeline.sink_nodes:
-            assert len(sink.list) > 1
-
-    def test_mic_simple_topic_filtered(self):
-        pipeline = self.mic_simple(topic=Topic(name="audio", dtype=bytes))
-        for sink in pipeline.sink_nodes:
-            assert len(sink.list) > 1
-
-    def mic_simple(self, topic=None):
+    @staticmethod
+    def _run_simple_mic_pipeline(topic=None):
         # create nodes
         mic = MicrophoneSource(channels=1)
         list = ListSink()
@@ -36,29 +27,16 @@ class AudioTest(unittest.TestCase):
 
         # start pipeline
         pipeline.start()
-        sleep(2)
+        sleep(1.)
         pipeline.stop()
         pipeline.join()
-        return pipeline
+        return list
 
-    def test_mic_to_wave_pipeline(self):
-        self.mic_to_wave_pipeline()
-        assert pathlib.Path(self._filename).exists()
-        assert pathlib.Path(self._filename).is_file()
-        # Cleanup
-        os.remove(self._filename)
-
-    def test_mic_to_wave_pipeline_topic_filtered(self):
-        self.mic_to_wave_pipeline(topic=Topic(name="audio", dtype=bytes))
-        assert os.path.exists(self._filename)
-        assert os.path.isfile(self._filename)
-        # Cleanup
-        os.remove(self._filename)
-
-    def mic_to_wave_pipeline(self, topic=None):
+    @staticmethod
+    def _run_mic_to_wave_pipeline(filename='test_mic_to_wave_pipeline.wav', topic=None):
         # create nodes
         mic = MicrophoneSource(channels=1)
-        wav = WaveFileSink(self._filename, channels=1)
+        wav = WaveFileSink(filename, channels=1)
 
         # add and connect nodes
         pipeline = GraphPipeline()
@@ -68,6 +46,31 @@ class AudioTest(unittest.TestCase):
 
         # start pipeline
         pipeline.start()
-        sleep(2)
+        sleep(1.)
         pipeline.stop()
         pipeline.join()
+
+    def test_mic_simple(self):
+        sink = self._run_simple_mic_pipeline()
+        self.assertGreater(len(sink), 1)
+
+    def test_mic_simple_topic_filtered(self):
+        sink = self._run_simple_mic_pipeline(topic=Topic(name="audio", dtype=bytes))
+        self.assertGreater(len(sink), 1)
+
+    def test_mic_to_wave_pipeline(self):
+        self._run_mic_to_wave_pipeline(filename=self._filename)
+        wav_file = pathlib.Path(self._filename)
+        self.assertTrue(wav_file.exists())
+        self.assertTrue(wav_file.is_file())
+        # Cleanup
+        os.remove(self._filename)
+
+
+    def test_mic_to_wave_pipeline_topic_filtered(self):
+        self._run_mic_to_wave_pipeline(topic=Topic(name="audio", dtype=bytes), filename=self._filename)
+        wav_file = pathlib.Path(self._filename)
+        self.assertTrue(wav_file.exists())
+        self.assertTrue(wav_file.is_file())
+        # Cleanup
+        os.remove(self._filename)

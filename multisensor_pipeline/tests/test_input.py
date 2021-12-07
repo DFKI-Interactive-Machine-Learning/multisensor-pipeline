@@ -1,10 +1,10 @@
 import unittest
 from time import sleep
-
 import pynput
-
+from pynput.keyboard import Controller, Key
 from multisensor_pipeline.modules import QueueSink, ListSink
 from multisensor_pipeline.modules.keyboard import KeyboardSource
+from multisensor_pipeline.modules.mouse import Mouse
 from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 
@@ -29,17 +29,7 @@ class KeyboardTests(unittest.TestCase):
         sleep(.3)
         pipeline.stop()
 
-        # Assert
-        # If we ever get here, we consider this test successful.
-        assert True
-
     def test_keyboard_simulated(self):
-        from multisensor_pipeline.modules import ListSink
-        from multisensor_pipeline.modules.keyboard import KeyboardSource
-        from multisensor_pipeline.pipeline.graph import GraphPipeline
-
-        from pynput.keyboard import Controller, Key
-
         # Mock
         # (1) define the modules
         keyboard = Controller()
@@ -63,16 +53,10 @@ class KeyboardTests(unittest.TestCase):
 
         # Assert
         expected_events = 2
-        assert len(sink.list) == expected_events, \
-            "number of keyboard interactions are not correctly recognized or permission to simulate a keyboard is not given"
+        self.assertEqual(len(sink), expected_events, "number of keyboard interactions are not correctly recognized or "
+                                                     "permission to simulate a keyboard is not given ")
 
     def test_keyboard_topic(self):
-        from multisensor_pipeline.modules import ListSink
-        from multisensor_pipeline.modules.keyboard import KeyboardSource
-        from multisensor_pipeline.pipeline.graph import GraphPipeline
-
-        from pynput.keyboard import Controller, Key
-
         # Mock
         # (1) define the modules
         keyboard = Controller()
@@ -96,17 +80,13 @@ class KeyboardTests(unittest.TestCase):
 
         # Assert
         expected_events = 1
-        assert len(sink.list) == expected_events, \
-            "number of keyboard interactions are not correctly recognized or permission to simulate a keyboard is not given"
+        self.assertEqual(len(sink), expected_events, "number of keyboard interactions are not correctly recognized or "
+                                                     "permission to simulate a keyboard is not given ")
 
 
 class MouseTests(unittest.TestCase):
 
     def test_mouse_simple(self):
-        from multisensor_pipeline.modules import QueueSink
-        from multisensor_pipeline.modules.mouse import Mouse
-        from multisensor_pipeline.pipeline.graph import GraphPipeline
-
         # (1) define the modules
         source = Mouse(move=True, scroll=True, click=True)
         sink: QueueSink = QueueSink()
@@ -124,16 +104,7 @@ class MouseTests(unittest.TestCase):
         sleep(.3)
         pipeline.stop()
 
-        # Assert
-        # If we ever get here, we consider this test successful.
-        assert True
-
-
     def test_simulated_mouse(self):
-        from multisensor_pipeline.modules import QueueSink
-        from multisensor_pipeline.modules.mouse import Mouse
-        from multisensor_pipeline.pipeline.graph import GraphPipeline
-
         # (1) define the modules
         source = Mouse(move=True, scroll=True, click=True)
         sink = ListSink()
@@ -158,15 +129,11 @@ class MouseTests(unittest.TestCase):
         for elements in sink.list:
             if elements.topic == source.output_topics[1]:
                 release_count += 1
-        assert release_count == expected_events, \
-            "number of mouse interactions are not correctly recognized or permission to simulate a keyboard is not given"
+        self.assertEqual(release_count, expected_events, "number of mouse interactions are not correctly recognized "
+                                                         "or permission to simulate a keyboard is not given")
 
 
     def test_simulated_mouse_topic(self):
-        from multisensor_pipeline.modules import QueueSink
-        from multisensor_pipeline.modules.mouse import Mouse
-        from multisensor_pipeline.pipeline.graph import GraphPipeline
-
         # (1) define the modules
         source = Mouse(move=True, scroll=True, click=True)
         sink = ListSink()
@@ -187,6 +154,5 @@ class MouseTests(unittest.TestCase):
         pipeline.stop()
 
         expected_events = 1
-        assert len(sink.list) == expected_events, \
-            "number of mouse interactions are not correctly recognized or permission to simulate a keyboard is not given"
-
+        self.assertEqual(len(sink), expected_events, "number of mouse interactions are not correctly recognized or "
+                                                     "permission to simulate a keyboard is not given")

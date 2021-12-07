@@ -4,10 +4,7 @@ from datetime import datetime
 import logging
 from typing import Optional, List
 from random import randint
-
 import numpy as np
-import pytest
-
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic
 from multisensor_pipeline.modules.base.base import BaseSource, BaseProcessor
 from multisensor_pipeline.modules.npy import RandomArraySource, ArrayManipulationProcessor
@@ -82,7 +79,7 @@ class BaseTestCase(unittest.TestCase):
         assert len(pipeline.processor_nodes) == 2
         assert len(pipeline.sink_nodes) == 1
 
-        with pytest.raises(AssertionError):
+        with self.assertRaises(AssertionError):
             pipeline.check_pipeline()
 
         pipeline.connect(source_vector, processor_mean)
