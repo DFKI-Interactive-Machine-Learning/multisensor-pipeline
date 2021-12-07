@@ -1,9 +1,8 @@
-from typing import Any, Optional, Dict, TypeVar, Generic
+from typing import Any, Optional, TypeVar, Generic
 import logging
 from time import time
 import json
 import numpy as np
-from enum import Enum, unique
 
 logger = logging.getLogger(__name__)
 T = TypeVar('T')
@@ -51,10 +50,10 @@ class Topic:
         return dtype_matches and name_matches
 
     def __str__(self):
-        return f"{self.dtype.__name__ if self.dtype is not None else None}:{self.name}"
+        return f"{self.dtype if self.dtype is not None else None}:{self.name}"
 
     def __repr__(self):
-        return f"Topic(dtype={self.dtype}, name={self.name})"
+        return f"Topic(dtype={self.dtype if self.dtype is not None else None}, name={self.name})"
 
 
 class MSPDataFrame(Generic[T]):
@@ -143,4 +142,3 @@ class MSPDataFrame(Generic[T]):
     @duration.setter
     def duration(self, duration: float):
         self._duration = duration
-
