@@ -2,8 +2,7 @@ import unittest
 from random import randint
 from time import sleep
 from typing import List, Tuple
-
-from multisensor_pipeline import GraphPipeline, BaseSink
+from multisensor_pipeline import GraphPipeline
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic
 from multisensor_pipeline.modules import ListSink
 from multisensor_pipeline.modules.base.profiling import MSPModuleStats
@@ -12,54 +11,41 @@ from multisensor_pipeline.modules.signal import DownsamplingProcessor
 import numpy as np
 
 
-def _run_profiling(topics=None):
-    # Mock a setup like so:
-    # sink_0 <- source -> processor -> sink_1
-
+def _run_profiling(topics=None, target_sampling_rate=20, runtime=2):
     # (1) define the modules
-    source_0 = RandomArraySource(
-        shape=(2,),
-        sampling_rate=10,
-        max_count=100,
+    source = RandomArraySource(
+        sampling_rate=target_sampling_rate * 2,
+        max_count=target_sampling_rate * 2 * runtime * 1.2,
     )
-
-    source_1 = RandomArraySource(
-        sampling_rate=50,
-        max_count=100,
-    )
-
-    processor = DownsamplingProcessor()
+    processor = DownsamplingProcessor(sampling_rate=target_sampling_rate)
     sink = ListSink()
 
     # (2) add module to a pipeline...
     pipeline = GraphPipeline(profiling=True)
-    pipeline.add_source(source_0)
-    pipeline.add_source(source_1)
+    pipeline.add_source(source)
     pipeline.add_processor(processor)
     pipeline.add_sink(sink)
 
     # (3) ...and connect the modules
-    pipeline.connect(source_0, sink, topics=topics[0] if topics is not None else None)
-    pipeline.connect(source_1, processor, topics=topics[0] if topics is not None else None)
-    pipeline.connect(processor, sink, topics=topics[1] if topics is not None else None)
+    pipeline.connect(source, processor, topics=topics[0] if topics is not None else None)
+    pipeline.connect(processor, sink, topics=topics[0] if topics is not None else None)
 
     # Test
     pipeline.start()
-    sleep(2)
+    sleep(runtime)
     pipeline.stop()
     pipeline.join()
 
     return pipeline
 
 
-def _run_simple_profiling(topics=None):
+def _run_simple_profiling(topics=None, sampling_rate=25, runtime=2):
     # (1) define the modules
     source = RandomArraySource(
         shape=(2,),
-        sampling_rate=25,
-        max_count=100,
+        sampling_rate=sampling_rate,
+        max_count=int(sampling_rate * runtime * 1.2),
     )
-
     sink = ListSink()
 
     # (2) add module to a pipeline...
@@ -72,7 +58,7 @@ def _run_simple_profiling(topics=None):
 
     # Test
     pipeline.start()
-    sleep(2)
+    sleep(runtime)
     pipeline.stop()
     pipeline.join()
 
@@ -94,42 +80,41 @@ class ProfilingTest(unittest.TestCase):
 
         stats = msp_stats.get_stats(direction=MSPModuleStats.Direction.IN)
 
-        self.assertAlmostEqual(10, stats[topic.uuid]._cma, delta=1)
-        self.assertAlmostEqual(10, stats[topic.uuid]._sma, delta=1)
+        self.assertAlmostEqual(frequency, stats[topic.uuid]._cma, delta=1)
+        self.assertAlmostEqual(frequency, stats[topic.uuid]._sma, delta=1)
 
     def test_simple_profiling(self):
         topic = Topic(name="random", dtype=np.ndarray)
-        pipeline = _run_simple_profiling()
+        frequency = 25
+        pipeline = _run_simple_profiling(sampling_rate=frequency)
         for sink in pipeline.sink_nodes:
             stats = sink.stats.get_stats(direction=1, topic=topic)
-            self.assertAlmostEqual(10, stats._cma, delta=1)
-            self.assertAlmostEqual(10, stats._sma, delta=1)
+            self.assertAlmostEqual(frequency, stats._cma, delta=1)
+            self.assertAlmostEqual(frequency, stats._sma, delta=1)
 
         for source in pipeline.source_nodes:
             stats = source.stats.get_stats(direction=0, topic=topic)
-            self.assertAlmostEqual(10, stats._cma, delta=1)
-            self.assertAlmostEqual(10, stats._sma, delta=1)
-
+            self.assertAlmostEqual(frequency, stats._cma, delta=1)
+            self.assertAlmostEqual(frequency, stats._sma, delta=1)
 
     def test_simple_profiling_filtered(self):
         topic = Topic(name="random", dtype=np.ndarray)
-        pipeline = _run_simple_profiling(topics=[topic])
+        frequency = 25
+        pipeline = _run_simple_profiling(topics=[topic], sampling_rate=frequency)
         for sink in pipeline.sink_nodes:
             stats = sink.stats.get_stats(direction=1, topic=topic)
-            self.assertAlmostEqual(10, stats._cma, delta=1)
-            self.assertAlmostEqual(10, stats._sma, delta=1)
+            self.assertAlmostEqual(frequency, stats._cma, delta=1)
+            self.assertAlmostEqual(frequency, stats._sma, delta=1)
 
         for source in pipeline.source_nodes:
             stats = source.stats.get_stats(direction=0, topic=topic)
-            self.assertAlmostEqual(10, stats._cma, delta=1)
-            self.assertAlmostEqual(10, stats._sma, delta=1)
+            self.assertAlmostEqual(frequency, stats._cma, delta=1)
+            self.assertAlmostEqual(frequency, stats._sma, delta=1)
 
     def test_profiling(self):
-        pipeline = _run_profiling()
+        frequency = 20
+        pipeline = _run_profiling(target_sampling_rate=frequency)
         for sink in pipeline.sink_nodes:
-            self.assertEqual(10, len(sink))
-
-    def test_profiling_filtered(self):
-        pipeline = _run_profiling()
-        for sink in pipeline.sink_nodes:
-            self.assertEqual(10, len(sink))
+            stats = next(iter(sink.stats.get_stats(direction=1, topic=None).values()))
+            self.assertAlmostEqual(frequency, stats._cma, delta=1)
+            self.assertAlmostEqual(frequency, stats._sma, delta=1)
