@@ -1,7 +1,7 @@
 from typing import Any, Optional, TypeVar, Generic
 import logging
 from time import time
-import json
+import msgpack
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -57,50 +57,12 @@ class Topic:
 
 
 class MSPDataFrame(Generic[T]):
-    class JsonEncoder(json.JSONEncoder):
-
-        def default(self, obj: Any) -> Any:
-            if isinstance(obj, np.integer):
-                return int(obj)
-            elif isinstance(obj, np.floating):
-                return float(obj)
-            elif isinstance(obj, np.ndarray):
-                return {
-                    "_kind_": "ndarray",
-                    "_value_": obj.tolist()
-                }
-            if isinstance(obj, Topic):
-                assert isinstance(obj, Topic)
-                return {
-                    "_kind_": "topic",
-                    "_value_": {
-                        "name": obj.name,
-                        "dtype": str(obj.dtype)
-                    }
-                }
-            return super(MSPDataFrame.JsonEncoder, self).default(obj)
-
-    class JsonDecoder(json.JSONDecoder):
-
-        def __init__(self, *args, **kwargs):
-            json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
-
-        def object_hook(self, obj):
-            if '_kind_' in obj:
-                kind = obj['_kind_']
-                if kind == 'ndarray':
-                    return np.array(obj['_value_'])
-                elif kind == 'topic':
-                    return Topic(**obj['_value_'])
-                    # TODO: decode class types (#22)
-            return obj
 
     def __init__(self, topic: Topic, timestamp: float = None, duration: float = 0, data: Optional[T] = None):
         super(MSPDataFrame, self).__init__()
         self._timestamp = time() if timestamp is None else timestamp
         self._duration = duration
         self._topic = topic
-        self._source_module = None
         self._data = data
 
     @property
@@ -120,14 +82,6 @@ class MSPDataFrame(Generic[T]):
         self._topic = topic
 
     @property
-    def source_module(self):
-        return self._source_module
-
-    @source_module.setter
-    def source_module(self, source):
-        self._source_module = source
-
-    @property
     def data(self) -> T:
         return self._data
 
@@ -142,3 +96,58 @@ class MSPDataFrame(Generic[T]):
     @duration.setter
     def duration(self, duration: float):
         self._duration = duration
+
+    @staticmethod
+    def msgpack_encode(obj):
+        if isinstance(obj, MSPDataFrame):
+            return {
+                "__dataframe__": True,
+                "topic": obj.topic,
+                "timestamp": obj.timestamp,
+                "duration": obj.duration,
+                "data": obj.data
+            }
+        if isinstance(obj, Topic):
+            return {
+                "__topic__": True,
+                "name": obj.name,
+                "dtype": str(obj.dtype) if obj.dtype is not None else None  # TODO: how to encode a type?
+            }
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return {
+                "__ndarray__": True,
+                "data": obj.tolist(),
+                "shape": obj.shape,
+                "dtype": obj.dtype.name
+            }
+        return obj
+
+    def serialize(self):
+        return msgpack.packb(self, default=MSPDataFrame.msgpack_encode)
+
+    @staticmethod
+    def deserialize(frame: bytes):
+        return msgpack.unpackb(frame, object_hook=MSPDataFrame.msgpack_decode, raw=False)
+
+    @staticmethod
+    def msgpack_decode(obj):
+        if '__dataframe__' in obj:
+            obj = MSPDataFrame(
+                topic=obj["topic"],
+                timestamp=obj["timestamp"],
+                duration=obj["duration"],
+                data=obj["data"]
+            )
+        elif '__topic__' in obj:
+            obj = Topic(name=obj["name"], dtype=obj["dtype"])
+        elif '__ndarray__' in obj:
+            obj = np.array(
+                object=obj["data"],
+                # shape=obj["shape"],
+                dtype=obj["dtype"]
+            )
+        return obj

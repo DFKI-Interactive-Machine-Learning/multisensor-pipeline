@@ -59,7 +59,7 @@ class RecordingSink(BaseSink, ABC):
 
 class JsonRecordingSink(RecordingSink):
     """
-    JsonReplaySource replays a recorded json dataset
+    JsonRecordingSink records a recorded json dataset
     """
 
     _json_file = None
