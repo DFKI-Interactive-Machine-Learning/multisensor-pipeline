@@ -28,7 +28,7 @@ def _run_profiling(topics=None):
         max_count=100,
     )
 
-    processor = DownsamplingProcessor()
+    processor = DownsamplingProcessor(sampling_rate=10)
     sink = ListSink()
 
     # (2) add module to a pipeline...
@@ -40,8 +40,8 @@ def _run_profiling(topics=None):
 
     # (3) ...and connect the modules
     pipeline.connect(source_0, sink, topics=topics[0] if topics is not None else None)
-    pipeline.connect(source_1, processor, topics=topics[0] if topics is not None else None)
-    pipeline.connect(processor, sink, topics=topics[1] if topics is not None else None)
+    pipeline.connect(source_1, processor, topics=topics[1] if topics is not None else None)
+    pipeline.connect(processor, sink, topics=topics[2] if topics is not None else None)
 
     # Test
     pipeline.start()
@@ -56,7 +56,7 @@ def _run_simple_profiling(topics=None):
     # (1) define the modules
     source = RandomArraySource(
         shape=(2,),
-        sampling_rate=25,
+        sampling_rate=10,
         max_count=100,
     )
 
@@ -72,7 +72,7 @@ def _run_simple_profiling(topics=None):
 
     # Test
     pipeline.start()
-    sleep(2)
+    sleep(1)
     pipeline.stop()
     pipeline.join()
 
@@ -110,7 +110,6 @@ class ProfilingTest(unittest.TestCase):
             self.assertAlmostEqual(10, stats._cma, delta=1)
             self.assertAlmostEqual(10, stats._sma, delta=1)
 
-
     def test_simple_profiling_filtered(self):
         topic = Topic(name="random", dtype=np.ndarray)
         pipeline = _run_simple_profiling(topics=[topic])
@@ -125,11 +124,35 @@ class ProfilingTest(unittest.TestCase):
             self.assertAlmostEqual(10, stats._sma, delta=1)
 
     def test_profiling(self):
+        topic_0 = Topic(name="random", dtype=np.ndarray)
+        topic_1 = Topic(name="random", dtype=int)
+        topic_2 = Topic(name="random.10Hz", dtype=int)
         pipeline = _run_profiling()
-        for sink in pipeline.sink_nodes:
-            self.assertEqual(10, len(sink))
+        self.verify_profiling(pipeline, [topic_0, topic_1, topic_2])
 
     def test_profiling_filtered(self):
-        pipeline = _run_profiling()
-        for sink in pipeline.sink_nodes:
-            self.assertEqual(10, len(sink))
+        topic_0 = Topic(name="random", dtype=np.ndarray)
+        topic_1 = Topic(name="random", dtype=int)
+        topic_2 = Topic(name="random.10Hz", dtype=int)
+        pipeline = _run_profiling([topic_0, topic_1, topic_2])
+        self.verify_profiling(pipeline, [topic_0, topic_1, topic_2])
+
+    def verify_profiling(self, pipeline, topics:List[Topic]):
+        sink = pipeline.sink_nodes[0]
+        stats = sink.stats.get_stats(direction=1, topic=topics[0])
+        self.assertAlmostEqual(10, stats._cma, delta=1)
+        self.assertAlmostEqual(10, stats._sma, delta=1)
+        stats = sink.stats.get_stats(direction=1, topic=topics[2])
+        self.assertAlmostEqual(10, stats._cma, delta=1)
+        self.assertAlmostEqual(10, stats._sma, delta=1)
+
+        source_0 = pipeline.source_nodes[0]
+        source_1 = pipeline.source_nodes[1]
+
+        stats = source_0.stats.get_stats(direction=0, topic=topics[0])
+        self.assertAlmostEqual(10, stats._cma, delta=1)
+        self.assertAlmostEqual(10, stats._sma, delta=1)
+
+        stats = source_1.stats.get_stats(direction=0, topic=topics[1])
+        self.assertAlmostEqual(50, stats._cma, delta=10)
+        self.assertAlmostEqual(50, stats._sma, delta=10)
