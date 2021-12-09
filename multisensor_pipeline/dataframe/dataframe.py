@@ -126,7 +126,7 @@ class MSPDataFrame(Generic[T]):
             }
         return obj
 
-    def serialize(self):
+    def serialize(self) -> bytes:
         return msgpack.packb(self, default=MSPDataFrame.msgpack_encode)
 
     @staticmethod
@@ -151,3 +151,7 @@ class MSPDataFrame(Generic[T]):
                 dtype=obj["dtype"]
             )
         return obj
+
+    @staticmethod
+    def get_msgpack_unpacker(filehandle) -> msgpack.Unpacker:
+        return msgpack.Unpacker(file_like=filehandle, object_hook=MSPDataFrame.msgpack_decode, raw=False)
