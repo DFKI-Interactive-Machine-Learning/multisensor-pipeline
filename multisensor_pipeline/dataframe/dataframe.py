@@ -1,8 +1,10 @@
 from typing import Any, Optional, TypeVar, Generic
 import logging
+import io
 from time import time
 import msgpack
 import numpy as np
+from PIL import Image
 
 logger = logging.getLogger(__name__)
 T = TypeVar('T')
@@ -124,6 +126,13 @@ class MSPDataFrame(Generic[T]):
                 "shape": obj.shape,
                 "dtype": obj.dtype.name
             }
+        if isinstance(obj, Image.Image):
+            buffer = io.BytesIO()
+            obj.save(buffer, format="jpeg", quality=90)
+            return {
+                "__jpeg__": True,
+                "bytes": buffer.getvalue()
+            }
         return obj
 
     def serialize(self) -> bytes:
@@ -150,6 +159,8 @@ class MSPDataFrame(Generic[T]):
                 # shape=obj["shape"],
                 dtype=obj["dtype"]
             )
+        elif '__jpeg__' in obj:
+            obj = Image.open(io.BytesIO(obj["bytes"]))
         return obj
 
     @staticmethod

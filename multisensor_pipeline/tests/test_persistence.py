@@ -1,5 +1,4 @@
 import unittest
-import logging
 import numpy as np
 from multisensor_pipeline.modules.persistence.recording import DefaultRecordingSink
 from multisensor_pipeline.modules.persistence.replay import DefaultReplaySource
@@ -7,9 +6,31 @@ from multisensor_pipeline.modules import ListSink
 from multisensor_pipeline.pipeline.graph import GraphPipeline
 from multisensor_pipeline.modules.npy import RandomArraySource
 from time import sleep
+from PIL import Image
+from multisensor_pipeline.dataframe import MSPDataFrame, Topic
+import io
 
 
 class DefaultSerializationTest(unittest.TestCase):
+
+    def test_image_serialization(self):
+        # create random image
+        img_raw = Image.fromarray(np.random.randint(0, 255, size=(100, 100, 3)), mode="RGB")
+
+        # simulate jpeg encoding
+        buf = io.BytesIO()
+        img_raw.save(buf, format="jpeg", quality=90)
+        img1 = Image.open(io.BytesIO(buf.getvalue()))
+
+        # serialize and deserialize image using the dataframe class
+        frame = MSPDataFrame(data=img_raw, topic=Topic(name="image", dtype=Image.Image))
+        packed = frame.serialize()
+        unpacked = MSPDataFrame.deserialize(packed)
+        img2 = unpacked.data
+
+        # compare images, they should be same
+        imgs_are_equal = (np.asarray(img1) == np.asarray(img2)).all()
+        self.assertTrue(imgs_are_equal)
 
     def test_record_and_replay(self):
         filename = "recording_test.msgpack"
