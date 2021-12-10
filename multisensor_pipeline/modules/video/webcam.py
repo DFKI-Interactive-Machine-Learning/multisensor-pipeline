@@ -1,10 +1,8 @@
-from time import sleep
 from typing import Optional, List
 from PIL.Image import Image
 import av
-from multisensor_pipeline import BaseSource, GraphPipeline
+from multisensor_pipeline import BaseSource
 from multisensor_pipeline.dataframe import MSPDataFrame, Topic
-from multisensor_pipeline.modules import ConsoleSink
 
 
 class WebCamSource(BaseSource):
