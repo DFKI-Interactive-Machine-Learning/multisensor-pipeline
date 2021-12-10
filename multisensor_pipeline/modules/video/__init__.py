@@ -1,2 +1,2 @@
-from .video import VideoSource
-from .webcam import WebCamSource
+from .video import VideoSource, VideoSink
+from .webcam import WebcamSource

@@ -22,8 +22,8 @@ setup(
         'pynput',
         'pyzmq',
         'av',
-        'opencv-python',
-        'msgpack>1.0.0'
+        'msgpack>1.0.0',
+        'windows-capture-devices'
     ],
     keywords=[
         'multimodality', 'streaming', 'multisensor', 'sensors', 'multimodal interaction',

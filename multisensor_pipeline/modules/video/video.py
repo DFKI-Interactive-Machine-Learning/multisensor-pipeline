@@ -1,11 +1,60 @@
-from typing import List
+from ..base import BaseSink
+from abc import ABC
+from typing import Optional, List
 import av
 from PIL import Image
+from multisensor_pipeline.dataframe import Topic, MSPDataFrame
+from multisensor_pipeline.modules.persistence import BaseDatasetSource
 
-from .av import PyAVSource
-from ..base import BaseSink
-from ..persistence.dataset import BaseDatasetSource
-from ...dataframe import Topic, MSPDataFrame
+
+class PyAVSource(BaseDatasetSource, ABC):
+
+    def __init__(
+            self, file: str, av_format: Optional[str] = None, av_options: Optional[dict] = None,
+            playback_speed: float = float("inf")
+    ):
+        super(PyAVSource, self).__init__(playback_speed=playback_speed)
+
+        self._file = file
+        self._av_format = av_format
+        self._av_options = av_options if av_options is not None else {}
+        self._frame_topic = Topic(name="frame", dtype=Image.Image)
+        self._handle = None
+        self._stream = None
+
+    def on_start(self):
+        """ Initialize the file/device handle. """
+        self._handle = av.open(
+            file=self._file,
+            format=self._av_format,
+            options=self._av_options
+        )
+        self._stream = self._handle.streams.video[0]
+
+    def on_update(self) -> Optional[MSPDataFrame]:
+        try:
+            frame, frame_time = next(self.frame_gen())
+            return MSPDataFrame(topic=self._frame_topic, data=frame, timestamp=frame_time)
+        except av.error.EOFError as e:
+            return
+        except av.error.BlockingIOError as e:
+            return
+
+    def frame_gen(self):
+        """
+        Generator for iterating over frames of the video file
+        """
+        for frame in self._handle.decode(self._stream):
+            img = frame.to_image()
+            yield img, frame.time
+
+    def on_stop(self):
+        """ Close the file/device handle. """
+        self._handle.close()
+
+    @property
+    def output_topics(self) -> Optional[List[Topic]]:
+        return [self._frame_topic]
 
 
 class VideoSource(PyAVSource, BaseDatasetSource):
