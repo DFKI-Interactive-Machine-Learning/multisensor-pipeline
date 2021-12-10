@@ -19,38 +19,38 @@ class PyAVSource(BaseDatasetSource, ABC):
         self._av_format = av_format
         self._av_options = av_options if av_options is not None else {}
         self._frame_topic = Topic(name="frame", dtype=Image.Image)
-        self._handle = None
-        self._stream = None
+        self._container = None
 
     def on_start(self):
         """ Initialize the file/device handle. """
-        self._handle = av.open(
+        self._container = av.open(
             file=self._file,
             format=self._av_format,
             options=self._av_options
         )
-        self._stream = self._handle.streams.video[0]
 
     def on_update(self) -> Optional[MSPDataFrame]:
-        try:
-            frame, frame_time = next(self.frame_gen())
-            return MSPDataFrame(topic=self._frame_topic, data=frame, timestamp=frame_time)
-        except av.error.EOFError as e:
-            return
-        except av.error.BlockingIOError as e:
-            return
+        frame, frame_time = next(self.frame_gen())
+        if frame is None:
+            return None
+        return MSPDataFrame(topic=self._frame_topic, data=frame, timestamp=frame_time)
 
     def frame_gen(self):
         """
         Generator for iterating over frames of the video file
         """
-        for frame in self._handle.decode(self._stream):
-            img = frame.to_image()
-            yield img, frame.time
+        try:
+            for frame in self._container.decode(video=0):
+                img = frame.to_image()
+                yield img, frame.time
+        except av.error.EOFError as e:
+            yield None, 0
+        except av.error.BlockingIOError as e:
+            yield None, 0
 
     def on_stop(self):
         """ Close the file/device handle. """
-        self._handle.close()
+        self._container.close()
 
     @property
     def output_topics(self) -> Optional[List[Topic]]:

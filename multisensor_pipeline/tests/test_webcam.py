@@ -36,5 +36,9 @@ class WebcamTests(unittest.TestCase):
         pipeline.stop()
         pipeline.join()
 
+        # for i, img_frame in enumerate(sink.list):
+        #     img_frame.data.save(f"test{i}.jpg")
+
         # Assert
         self.assertAlmostEqual(len(sink), 2*framerate, delta=1)
+

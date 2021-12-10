@@ -47,9 +47,6 @@ class WebcamSource(PyAVSource):
             av_options=self._options,
             playback_speed=float("inf")
         )
-        # WebCamSource(web_cam_format="dshow", web_cam_id="video=HD WebCam", options={'framerate': '10'})
-        # self.video = av.open(format=self.web_cam_format, file=self.web_cam_id, options=self.options)
-        #         self.stream = self.video.streams.video[0]
 
     @staticmethod
     def available_webcams():
