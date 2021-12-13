@@ -245,4 +245,3 @@ class BaseTestCase(unittest.TestCase):
         self.assertEqual(len(list_sink), 10)
         self.assertEqual(sleep_trash_sink.counter, 10)
         self.assertEqual((end_time - start_time).seconds, 5)
-

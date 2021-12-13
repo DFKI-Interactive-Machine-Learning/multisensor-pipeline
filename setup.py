@@ -7,10 +7,11 @@ install_requires = [
         'networkx',
         'numpy',
         'Pillow',
-        'PyAudio',
         'pynput',
         'pyzmq',
         'av',
+        'sounddevice',
+        'soundfile',
         'msgpack>1.0.0'
     ]
 if sys.platform.startswith("win32"):
