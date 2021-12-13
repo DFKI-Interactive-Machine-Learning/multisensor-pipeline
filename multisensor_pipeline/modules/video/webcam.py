@@ -1,12 +1,21 @@
 import sys
+import os
 from typing import Optional
 from .video import PyAVSource
+
+
+def _get_device_list_linux():
+    devs = os.listdir('/dev')
+    vid_indices = [int(dev[-1]) for dev in devs
+                   if dev.startswith('video')]
+    vid_indices = sorted(vid_indices)
+    return vid_indices
 
 
 if sys.platform.startswith("win32"):
     from windows_capture_devices import get_capture_devices
 elif sys.platform.startswith("linux"):
-    raise NotImplementedError()
+    get_capture_devices = _get_device_list_linux
 elif sys.platform.startswith("darwin"):
     raise NotImplementedError()
 else:
