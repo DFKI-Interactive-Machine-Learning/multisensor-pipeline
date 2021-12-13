@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class NetworkingTestCase(unittest.TestCase):
     def test_zmq_pub_sub(self):
-        wait_time = .5
+        wait_time = 2.
 
         logger.info(
             "initialize pipelines: [mic -> pub] ->TCP-> [sub -> final_sink]."

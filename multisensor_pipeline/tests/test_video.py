@@ -25,7 +25,7 @@ class VideoTesting(unittest.TestCase):
 
     def test_no_video_file(self):
         # (1) define the modules
-        source = VideoSource(playback_speed=1)
+        source = VideoSource(file="invalid.mp4", playback_speed=1)
         sink = ConsoleSink()
 
         # (2) add module to a pipeline...
@@ -48,7 +48,7 @@ class VideoTesting(unittest.TestCase):
         self._create_test_video(filename="output_av.mp4", num_frames=num_frames)
 
         # (1) define the modules
-        source = VideoSource(file_path="output_av.mp4", playback_speed=playback_speed)
+        source = VideoSource(file="output_av.mp4", playback_speed=playback_speed)
         sink = ListSink()
 
         # (2) add module to a pipeline...
@@ -66,7 +66,7 @@ class VideoTesting(unittest.TestCase):
         pipeline.join()
 
         # Assert
-        self.assertIn(len(sink), [num_frames - 1, num_frames])
+        self.assertAlmostEqual(len(sink), num_frames, delta=2)
 
         # Cleanup
         os.remove("output_av.mp4")
@@ -82,8 +82,8 @@ class VideoTesting(unittest.TestCase):
         self._create_test_video("input.mp4", num_frames=num_frames)
 
         # (1) define the modules
-        source = VideoSource(file_path="input.mp4")
-        sink = VideoSink(file_path="output.mp4", live_preview=False)
+        source = VideoSource(file="input.mp4")
+        sink = VideoSink(file_path="output.mp4")
 
         # (2) add module to a pipeline...
         pipeline = GraphPipeline()

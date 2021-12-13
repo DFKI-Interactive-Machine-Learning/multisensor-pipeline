@@ -76,7 +76,7 @@ class ConsoleSink(BaseSink):
 
     def on_update(self, frame: MSPDataFrame):
         if frame is not None:
-            print(f"{frame.topic}:\t{frame}")
+            print(f"{frame.timestamp}\t{frame.topic}\t{frame.data}")
 
 
 class TrashSink(BaseSink):

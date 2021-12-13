@@ -1,7 +1,8 @@
 from multisensor_pipeline.modules.base import BaseSource
 from multisensor_pipeline.dataframe import MSPDataFrame, Topic
 from typing import Optional, List
-import pyaudio
+import sounddevice as sd
+import numpy as np
 import logging
 
 logger = logging.getLogger(__name__)
@@ -12,48 +13,96 @@ class MicrophoneSource(BaseSource):
     Microphone Source for live audio recording of a connected microphone
     """
 
-    def __init__(self, device: str = "", pyaudio_format=pyaudio.paInt16, channels: int = 2, sampling_rate: int = 44100,
-                 chunk_size: int = 1024):
+    class InputDevice:
+
+        def __init__(self, device_info: dict, device_id: int):
+            self._device_info = device_info
+            self._device_id = device_id
+
+        @property
+        def device_id(self) -> int:
+            return self._device_id
+
+        @property
+        def name(self) -> str:
+            return self._device_info["name"]
+
+        @property
+        def channels(self) -> int:
+            return self._device_info["max_input_channels"]
+
+        @property
+        def default_samplerate(self) -> float:
+            return self._device_info["default_samplerate"]
+
+        @property
+        def device_info(self) -> dict:
+            return self._device_info
+
+        def __str__(self):
+            return f"[{self.device_id}] {self.name}; channels={self.channels}; rate={self.default_samplerate}"
+
+    @staticmethod
+    def available_input_devices():
+        devices = sd.query_devices()
+        return [MicrophoneSource.InputDevice(d, i) for i, d in enumerate(devices) if d["max_input_channels"] > 0]
+
+    def __init__(self, device: Optional[InputDevice] = None,
+                 channels: Optional[int] = None,
+                 samplerate: Optional[float] = None,
+                 blocksize: Optional[int] = 1024):
         """
         Initialize the Source
         Args:
            device: Device id of the microphone
-           format: PyAudio format specification
            channels: Number of channels of the device
-           sampling_rate: The audio sampling rate
-           chunk_size: Size of the chunks of the recordings
+           samplerate: The audio sampling rate
+           blocksize: Size of the chunks of the recordings
         """
         super(MicrophoneSource, self).__init__()
 
-        self.device = device
-        self.pyaudio_format = pyaudio_format
-        self.channels = channels
-        self.sampling_rate = sampling_rate
-        self.chunk_size = chunk_size
+        if device is None:
+            device = MicrophoneSource.InputDevice(sd.query_devices(kind='input'), 0)
+        self._device = device
+        self._samplerate = self._device.default_samplerate if samplerate is None else samplerate
+        self._channels = self._device.channels if channels is None else channels
+        self._blocksize = blocksize
+        self._stream = sd.InputStream(
+            samplerate=self._samplerate,
+            blocksize=self._blocksize,
+            device=self._device.name,
+            channels=self._channels
+        )
 
-        self._mic = pyaudio.PyAudio()
-        self._stream = self._mic.open(format=self.pyaudio_format,
-                                      channels=self.channels,
-                                      rate=self.sampling_rate,
-                                      input=True,
-                                      frames_per_buffer=self.chunk_size)
+    def on_start(self):
+        self._stream.start()
 
     def on_update(self) -> Optional[MSPDataFrame]:
         """
         Sends chunks of the audio recording
         """
-        data = self._stream.read(self.chunk_size)
-        return MSPDataFrame(topic=self.output_topics[0], data=data)
+        t = self._stream.time
+        data, _ = self._stream.read(self._blocksize)
+        return MSPDataFrame(topic=self.output_topics[0], data=data.copy(), timestamp=t)
 
     def on_stop(self):
         """
         Stops the Microphone source and closes the stream
         """
-        self._stream.stop_stream()
         self._stream.close()
-        self._mic.terminate()
+
+    @property
+    def device(self) -> InputDevice:
+        return self._device
+
+    @property
+    def channels(self) -> int:
+        return self._channels
+
+    @property
+    def samplerate(self) -> float:
+        return self._samplerate
 
     @property
     def output_topics(self) -> Optional[List[Topic]]:
-        return [Topic(name="audio", dtype=bytes)]
-
+        return [Topic(name="audio", dtype=np.ndarray)]

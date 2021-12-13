@@ -1,2 +1,2 @@
 from .microphone import  MicrophoneSource
-from .wave import WaveFileSink
+from .file import AudioFileSink

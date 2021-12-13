@@ -3,7 +3,7 @@ from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic
 from typing import Optional, List
 import zmq
 import logging
-import json
+import msgpack
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +21,7 @@ class ZmqPublisher(BaseSink):
         self.socket.bind("{}://{}:{}".format(self.protocol, self.url, self.port))
 
     def on_update(self, frame: MSPDataFrame):
-        payload = json.dumps(frame, cls=MSPDataFrame.JsonEncoder)
-        self.socket.send_json(payload)
+        self.socket.send(data=frame.serialize())
 
     def on_stop(self):
         self.socket.close()
@@ -49,8 +48,7 @@ class ZmqSubscriber(BaseSource):
         self.socket.setsockopt_string(zmq.SUBSCRIBE, self.source_filter)
 
     def on_update(self) -> Optional[MSPDataFrame]:
-        payload = self.socket.recv_json()
-        frame = MSPDataFrame(**json.loads(s=payload, cls=MSPDataFrame.JsonDecoder))
+        frame = MSPDataFrame.deserialize(self.socket.recv())
         return frame
 
     def on_stop(self):

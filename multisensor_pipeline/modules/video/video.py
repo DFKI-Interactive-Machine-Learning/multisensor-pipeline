@@ -1,59 +1,66 @@
+from ..base import BaseSink
+from abc import ABC
 from typing import Optional, List
 import av
-import cv2
-from PIL.Image import Image
-import numpy as np
-
-from multisensor_pipeline import BaseSink
-from multisensor_pipeline.dataframe import MSPDataFrame, Topic
-from multisensor_pipeline.modules.persistence.dataset import BaseDatasetSource
+from PIL import Image
+from multisensor_pipeline.dataframe import Topic, MSPDataFrame
+from multisensor_pipeline.modules.persistence import BaseDatasetSource
 
 
-class VideoSource(BaseDatasetSource):
-    """
-    Source for video file input. Sends PIL frames.
-    """
+class PyAVSource(BaseDatasetSource, ABC):
 
-    def __init__(self, file_path: str = "", **kwargs):
-        """
-        Args:
-            file_path: video file path
-            kwargs: kwargs for BaseDa
-        """
-        super(VideoSource, self).__init__(**kwargs)
-        self.file_path = file_path
-        self.video = None
-        self.queue = None
-        self._frame_topic = Topic(name="frame", dtype=Image)
+    def __init__(
+            self, file: str, av_format: Optional[str] = None, av_options: Optional[dict] = None,
+            playback_speed: float = float("inf")
+    ):
+        super(PyAVSource, self).__init__(playback_speed=playback_speed)
+
+        self._file = file
+        self._av_format = av_format
+        self._av_options = av_options if av_options is not None else {}
+        self._frame_topic = Topic(name="frame", dtype=Image.Image)
+        self._container = None
 
     def on_start(self):
-        """
-        Initialize video container with the provided path.
-        """
-        self.video = av.open(self.file_path)
+        """ Initialize the file/device handle. """
+        self._container = av.open(
+            file=self._file,
+            format=self._av_format,
+            options=self._av_options
+        )
+
+    def on_update(self) -> Optional[MSPDataFrame]:
+        frame, frame_time = next(self.frame_gen())
+        if frame is None:
+            return None
+        return MSPDataFrame(topic=self._frame_topic, data=frame, timestamp=frame_time)
 
     def frame_gen(self):
         """
         Generator for iterating over frames of the video file
         """
-        stream = self.video.streams.video[0]
-        for frame in self.video.decode(stream):
-            img = frame.to_image()
-            yield img, frame.time
-
-    def on_update(self) -> Optional[MSPDataFrame]:
         try:
-            frame, frame_time = next(self.frame_gen())
-            return MSPDataFrame(topic=self._frame_topic, data=frame, timestamp=frame_time)
+            for frame in self._container.decode(video=0):
+                img = frame.to_image()
+                yield img, frame.time
         except av.error.EOFError as e:
-            return
+            yield None, 0
+        except av.error.BlockingIOError as e:
+            yield None, 0
 
     def on_stop(self):
-        self.video.close()
+        """ Close the file/device handle. """
+        self._container.close()
 
     @property
     def output_topics(self) -> Optional[List[Topic]]:
         return [self._frame_topic]
+
+
+class VideoSource(PyAVSource, BaseDatasetSource):
+
+    def __init__(self, file: str, playback_speed: float = 1.):
+        super(VideoSource, self).__init__(file=file, playback_speed=playback_speed)
 
 
 class VideoSink(BaseSink):
@@ -61,7 +68,7 @@ class VideoSink(BaseSink):
     Sink to export PIL-Images to a video file and/or show a live preview
     """
 
-    def __init__(self, file_path: str = "output.mp4", live_preview: bool = True, **kwargs):
+    def __init__(self, file_path: str = "output.mp4", **kwargs):
         """
         Args:
             file_path: path of the export video
@@ -70,10 +77,9 @@ class VideoSink(BaseSink):
         """
         super(VideoSink, self).__init__(**kwargs)
         self.file_path = file_path
-        self.live_preview = live_preview
         self.output = av.open(self.file_path, "w")
         self.stream = self.output.add_stream('h264')
-        self._frame_topic = Topic(name="frame", dtype=Image)
+        self._frame_topic = Topic(name="frame", dtype=Image.Image)
 
     def on_update(self, frame: MSPDataFrame):
         """
@@ -83,13 +89,6 @@ class VideoSink(BaseSink):
         video_frame = av.VideoFrame.from_image(pil_frame)
         packet = self.stream.encode(video_frame)
         self.output.mux(packet)
-        if self.live_preview:
-            cv_img = np.array(pil_frame)
-            cv_img = cv_img[:, :, ::-1]
-            cv2.startWindowThread()
-            cv2.namedWindow("preview")
-            cv2.imshow("preview", cv_img)
-            cv2.waitKey(1)
 
     def on_stop(self):
         """
