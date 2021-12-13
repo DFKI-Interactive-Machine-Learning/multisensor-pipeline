@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from threading import Thread
 from queue import Queue
-from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic, ParallelDataFrameQueue
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic
 from multisensor_pipeline.dataframe.control import MSPControlMessage
 from multisensor_pipeline.modules.base.profiling import MSPModuleStats
 from multiprocessing.queues import Queue as MPQueue

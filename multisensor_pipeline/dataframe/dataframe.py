@@ -176,20 +176,3 @@ class MSPDataFrame(Generic[T]):
     @staticmethod
     def get_msgpack_unpacker(filehandle) -> msgpack.Unpacker:
         return msgpack.Unpacker(file_like=filehandle, object_hook=MSPDataFrame.msgpack_decode, raw=False)
-
-
-class ParallelDataFrameQueue:
-
-    def __init__(self):
-        self.queue = mp.Queue()
-
-    def put(self, frame: MSPDataFrame) -> None:
-        try:
-            b = frame.serialize()
-        except TypeError as e:
-            return
-        self.queue.put(b)
-
-    def get(self) -> MSPDataFrame:
-        frame = MSPDataFrame.deserialize(self.queue.get())
-        return frame

@@ -31,7 +31,7 @@ class ConstraintCheckingProcessor(BaseProcessor):
     """Checks, if incoming integer values are greater than 50."""
 
     def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
-        return MSPDataFrame(topic=self.input_topics[0], data=frame.data > 50)
+        return MSPDataFrame(topic=self.output_topics[0], data=frame.data > 50)
 
     @property
     def input_topics(self) -> List[Topic]:
@@ -132,7 +132,7 @@ class BaseTestCase(unittest.TestCase):
         # (optional) add another edge to print all random numbers
         pipeline.connect(module=source, successor=sink)
 
-        # print mean of random numbers for 0.1 seconds
+        # print means of random numbers for 0.1 seconds
         pipeline.start()
         sleep(.1)
         pipeline.stop()
