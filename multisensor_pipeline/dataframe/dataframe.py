@@ -1,4 +1,5 @@
-from typing import Any, Optional, TypeVar, Generic
+from typing import Optional, TypeVar, Generic
+import multiprocessing as mp
 import logging
 import io
 from time import time
@@ -66,6 +67,7 @@ class MSPDataFrame(Generic[T]):
         self._duration = duration
         self._topic = topic
         self._data = data
+        self._source_uuid = None
 
     @property
     def timestamp(self) -> float:
@@ -82,6 +84,14 @@ class MSPDataFrame(Generic[T]):
     @topic.setter
     def topic(self, topic: Topic):
         self._topic = topic
+
+    @property
+    def source_uuid(self) -> str:
+        return self._source_uuid
+
+    @source_uuid.setter
+    def source_uuid(self, source_uuid: str):
+        self._source_uuid = source_uuid
 
     @property
     def data(self) -> T:
@@ -117,7 +127,7 @@ class MSPDataFrame(Generic[T]):
             }
         if isinstance(obj, np.integer):
             return int(obj)
-        if isinstance(obj, np.floating):
+        if isinstance(obj, np.float):
             return float(obj)
         if isinstance(obj, np.ndarray):
             return {
@@ -166,3 +176,20 @@ class MSPDataFrame(Generic[T]):
     @staticmethod
     def get_msgpack_unpacker(filehandle) -> msgpack.Unpacker:
         return msgpack.Unpacker(file_like=filehandle, object_hook=MSPDataFrame.msgpack_decode, raw=False)
+
+
+class ParallelDataFrameQueue:
+
+    def __init__(self):
+        self.queue = mp.Queue()
+
+    def put(self, frame: MSPDataFrame) -> None:
+        try:
+            b = frame.serialize()
+        except TypeError as e:
+            return
+        self.queue.put(b)
+
+    def get(self) -> MSPDataFrame:
+        frame = MSPDataFrame.deserialize(self.queue.get())
+        return frame

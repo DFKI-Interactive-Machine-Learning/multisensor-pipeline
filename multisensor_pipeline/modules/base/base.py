@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 from threading import Thread
 from queue import Queue
-from multiprocessing.queues import Queue as MPQueue
-from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic, ParallelDataFrameQueue
 from multisensor_pipeline.dataframe.control import MSPControlMessage
 from multisensor_pipeline.modules.base.profiling import MSPModuleStats
+from multiprocessing.queues import Queue as MPQueue
 from typing import Union, Optional, List
 import logging
 import uuid
@@ -172,7 +172,6 @@ class BaseSource(BaseModule, ABC):
                     add_to_dict(self._sinks, topic, sink)
                     sink.add_source(self)
 
-
     def _notify(self, frame: Optional[MSPDataFrame]):
         """
         Notifies all observers that there's a new dataframe
@@ -184,7 +183,7 @@ class BaseSource(BaseModule, ABC):
             return
 
         assert isinstance(frame, MSPDataFrame), "You must use a MSPDataFrame instance to wrap your data."
-        frame.source_module = self
+        frame.source_uuid = self.uuid
 
         # TODO: check if the frame topic is actually an output_topic, send warning if not.
 
@@ -241,7 +240,7 @@ class BaseSink(BaseModule, ABC):
         Args:
            source: Set the max age before elements of the queue are dropped
         """
-        self._active_sources[source] = True
+        self._active_sources[source.uuid] = True
 
     def _handle_control_message(self, frame: MSPDataFrame):
         """
@@ -251,11 +250,14 @@ class BaseSink(BaseModule, ABC):
            frame: frame containing MSPControlMessage
         """
         if isinstance(frame, MSPControlMessage):
-            logger.debug(f"[CONTROL] {frame.source_module.uuid} -> {frame.message} -> {self.uuid}")
+            if frame.source_uuid is not None:
+                logger.debug(f"[CONTROL] {frame.source_uuid} -> {frame.message} -> {self.uuid}")
+            else:
+                logger.debug(f"[CONTROL] NONE -> {frame.message} -> {self.uuid}")
             if frame.message == MSPControlMessage.END_OF_STREAM:
-                if frame.source_module in self._active_sources:
+                if frame.source_uuid in self._active_sources:
                     # set source to inactive
-                    self._active_sources[frame.source_module] = False
+                    self._active_sources[frame.source_uuid] = False
                     # if no active source is left
                 if not any(self._active_sources.values()):
                     self.stop(blocking=False)

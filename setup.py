@@ -1,5 +1,20 @@
+import sys
 from distutils.core import setup
 from setuptools import find_packages
+
+install_requires = [
+        'decorator<5.0.0',  # For networkx
+        'networkx',
+        'numpy',
+        'Pillow',
+        'PyAudio',
+        'pynput',
+        'pyzmq',
+        'av',
+        'msgpack>1.0.0'
+    ]
+if sys.platform.startswith("win32"):
+    install_requires.append('windows-capture-devices')
 
 setup(
     name='multisensor-pipeline',
@@ -13,18 +28,7 @@ setup(
     url="https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline",
     description="The core library of the DFKI multisensor pipeline framework.",
     python_requires='>=3.6.0',
-    install_requires=[
-        'decorator<5.0.0',  # For networkx
-        'networkx',
-        'numpy',
-        'Pillow',
-        'PyAudio',
-        'pynput',
-        'pyzmq',
-        'av',
-        'msgpack>1.0.0',
-        'windows-capture-devices'
-    ],
+    install_requires=install_requires,
     keywords=[
         'multimodality', 'streaming', 'multisensor', 'sensors', 'multimodal interaction',
         'pipeline', 'stream processing', 'multiprocessing'

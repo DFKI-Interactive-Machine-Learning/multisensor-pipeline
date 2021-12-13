@@ -46,7 +46,7 @@ class MultiprocessModuleWrapper(BaseModule, ABC):
 
     @staticmethod
     @abstractmethod
-    def _process_worker(module_cls: type, module_args: dict, init_event, start_event, stop_event, queue: mp.queues.Queue):
+    def _process_worker(module_cls: type, module_args: dict, init_event, start_event, stop_event, queue):
         raise NotImplementedError()
 
 
@@ -59,7 +59,7 @@ class MultiprocessSourceWrapper(MultiprocessModuleWrapper, BaseSource):
                                 self._start_event, self._stop_event, self._queue_out))
 
     @staticmethod
-    def _process_worker(module_cls: type, module_args: dict, init_event, start_event, stop_event, queue_out: mp.queues.Queue):
+    def _process_worker(module_cls: type, module_args: dict, init_event, start_event, stop_event, queue_out):
         module = initialize_module_and_wait_for_start(module_cls, module_args, init_event, start_event)
         assert isinstance(module, BaseSource)
 
@@ -81,7 +81,8 @@ class MultiprocessSourceWrapper(MultiprocessModuleWrapper, BaseSource):
         """ Stops the module. """
         self._stop_process()
         super(MultiprocessModuleWrapper, self).stop(blocking=blocking)
-        self._queue_out.put(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM, source=self))
+        eof_msg = MSPControlMessage(message=MSPControlMessage.END_OF_STREAM)
+        self._queue_out.put(eof_msg)
 
 
 class MultiprocessSinkWrapper(MultiprocessModuleWrapper, BaseSink):
@@ -93,7 +94,7 @@ class MultiprocessSinkWrapper(MultiprocessModuleWrapper, BaseSink):
                                 self._start_event, self._stop_event, self._queue_in))
 
     @staticmethod
-    def _process_worker(module_cls: type, module_args: dict, init_event, start_event, stop_event, queue_in: mp.queues.Queue):
+    def _process_worker(module_cls: type, module_args: dict, init_event, start_event, stop_event, queue_in):
         module = initialize_module_and_wait_for_start(module_cls, module_args, init_event, start_event)
         assert isinstance(module, BaseSink)
 
@@ -108,7 +109,8 @@ class MultiprocessSinkWrapper(MultiprocessModuleWrapper, BaseSink):
         logger.debug("stopping: {}.{}".format(self.name, self._wrapped_module_cls.__name__))
         # ask module process to stop
         self._stop_event.set()
-        self._queue_in.put(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM, source=self))
+        eof_msg = MSPControlMessage(message=MSPControlMessage.END_OF_STREAM)
+        self._queue_in.put(eof_msg)
         self._process.join()
 
     def stop(self, blocking=False):
@@ -131,8 +133,7 @@ class MultiprocessProcessorWrapper(MultiprocessSinkWrapper, MultiprocessSourceWr
         return self._queue_out.get()
 
     @staticmethod
-    def _process_worker(module_cls: type, module_args: dict, init_event, start_event, stop_event,
-                        queue_in: mp.queues.Queue, queue_out: mp.queues.Queue):
+    def _process_worker(module_cls: type, module_args: dict, init_event, start_event, stop_event, queue_in, queue_out):
         module = initialize_module_and_wait_for_start(module_cls, module_args, init_event, start_event)
         assert isinstance(module, BaseProcessor)
 
