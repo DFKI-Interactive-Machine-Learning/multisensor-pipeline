@@ -18,14 +18,14 @@ class AudioFileSink(BaseSink):
         """
         Initialize the WaveFile Sink
         Args:
-           filename: path of the wav file
+           filename: path of the audio file
            channels: Number of channels of the file
            samplerate: The audio sampling rate
            mode: w for overriding existing files,
         """
         super(AudioFileSink, self).__init__()
         self._frames = []
-        self._wf = sf.SoundFile(filename, mode="w", samplerate=int(samplerate), channels=channels)
+        self._wf = sf.SoundFile(filename, mode=mode, samplerate=int(samplerate), channels=channels)
 
     def on_update(self, frame: MSPDataFrame):
         self._wf.write(frame.data)

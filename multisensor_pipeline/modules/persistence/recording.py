@@ -1,7 +1,7 @@
 from abc import ABC
-from typing import List
+from typing import List, Optional
 from multisensor_pipeline.modules.base import BaseSink
-from multisensor_pipeline.dataframe import MSPDataFrame
+from multisensor_pipeline.dataframe import MSPDataFrame, Topic
 from pathlib import Path
 
 
@@ -15,14 +15,14 @@ class RecordingSink(BaseSink, ABC):
         return self._target
 
     @property
-    def topics(self) -> List[str]:
+    def topics(self) -> Optional[List[Topic]]:
         return self._topics
 
     @property
     def override(self) -> bool:
         return self._override
 
-    def __init__(self, target, topics: List = None, override=False):
+    def __init__(self, target, topics: Optional[List[Topic]] = None, override=False):
         """
         initializes RecordingSink
         Args:
@@ -41,7 +41,7 @@ class RecordingSink(BaseSink, ABC):
         # set override flag
         self._override = override
 
-    def check_topic(self, topic):
+    def check_topic(self, topic: Topic):
         """Check whether the given topic shall be captured."""
         if self._topics is None:
             return True

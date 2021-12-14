@@ -61,7 +61,7 @@ class VideoTesting(unittest.TestCase):
 
         # Test
         pipeline.start()
-        sleep(1.)
+        sleep(1.5)
         pipeline.stop()
         pipeline.join()
 

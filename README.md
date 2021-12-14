@@ -1,4 +1,4 @@
-# Multisensor Pipeline (MSP)
+# Multisensor Pipeline (MSP) [![Python package](https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline/actions/workflows/python-package.yml/badge.svg)](https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline/actions/workflows/python-package.yml)
 
 The multisensor pipeline (`msp`) package enables stream and event processing with a small amount of dependencies. The main purpose of the `msp` pipeline is the development of research prototypes, but it can also be used for realizing small productive systems or demos that require acquisition of samples from multiple sensor or data streams (via *source* modules), processing of these samples (via *processor* modules), and a utilization of the output (via *sink* modules). Modules can be connected to a pipeline which is represented as a weakly connected directed graph. Sources and sinks are defined analogously to graph theory, processors are equivalent to internals (see this [Wikipedia article](https://en.wikipedia.org/wiki/Directed_graph#Indegree_and_outdegree)). A pipeline needs at least one source and one sink module. An `msp` pipeline can...
 

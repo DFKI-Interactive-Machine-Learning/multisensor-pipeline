@@ -98,36 +98,3 @@ class OneEuroFilter(object):
         cutoff = self.__mincutoff + self.__beta * math.fabs(edx)
         # ---- filter the given value
         return self.__x(x, timestamp, alpha=self.__alpha(cutoff))
-
-
-# ----------------------------------------------------------------------------
-
-if __name__ == "__main__":
-
-    import random
-
-    duration = 10.0  # seconds
-
-    config = {
-        'freq': 120,  # Hz
-        'mincutoff': 1.0,  # FIXME
-        'beta': 1.0,  # FIXME
-        'dcutoff': 1.0  # this one should be ok
-    }
-
-    print
-    "#SRC OneEuroFilter.py"
-    print
-    "#CFG %s" % config
-    print
-    "#LOG timestamp, signal, noisy, filtered"
-
-    f = OneEuroFilter(**config)
-    timestamp = 0.0  # seconds
-    while timestamp < duration:
-        signal = math.sin(timestamp)
-        noisy = signal + (random.random() - 0.5) / 5.0
-        filtered = f(noisy, timestamp)
-        print
-        "{0}, {1}, {2}, {3}".format(timestamp, signal, noisy, filtered)
-        timestamp += 1.0 / config["freq"]
