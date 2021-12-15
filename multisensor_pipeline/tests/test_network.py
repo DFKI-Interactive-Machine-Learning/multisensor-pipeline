@@ -32,7 +32,7 @@ class NetworkingTestCase(unittest.TestCase):
         pub_pipeline = GraphPipeline()
         zmq_pub = ZmqPublisher()
         sink1 = ListSink()
-        source = RandomArraySource(shape=1, sampling_rate=100)
+        source = RandomArraySource(shape=1, samplerate=100)
         pub_pipeline.add_source(source)
         pub_pipeline.add_sink(zmq_pub)
         pub_pipeline.add_sink(sink1)

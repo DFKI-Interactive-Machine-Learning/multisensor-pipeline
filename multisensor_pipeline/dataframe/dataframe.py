@@ -1,5 +1,4 @@
 from typing import Optional, TypeVar, Generic
-import multiprocessing as mp
 import logging
 import io
 from time import time
@@ -32,6 +31,10 @@ class Topic:
     @property
     def uuid(self):
         return f"{self.name}:{self.dtype if self.dtype is not None else None}"
+
+    @property
+    def is_control_topic(self):
+        return self.dtype == MSPControlMessage.ControlTopic.ControlType
 
     def __hash__(self):
         return hash(self.uuid)
@@ -176,3 +179,19 @@ class MSPDataFrame(Generic[T]):
     @staticmethod
     def get_msgpack_unpacker(filehandle) -> msgpack.Unpacker:
         return msgpack.Unpacker(file_like=filehandle, object_hook=MSPDataFrame.msgpack_decode, raw=False)
+
+
+class MSPControlMessage(MSPDataFrame):
+
+    class ControlTopic(Topic):
+        class ControlType:
+            pass
+        name = None
+        dtype = ControlType
+
+    END_OF_STREAM = "EOS"
+
+    def __init__(self, message):
+        topic = self.ControlTopic()
+        super(MSPControlMessage, self).__init__(topic=topic)
+        self._data = message

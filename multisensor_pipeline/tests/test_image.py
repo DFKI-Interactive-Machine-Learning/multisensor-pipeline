@@ -26,7 +26,7 @@ class ImageCroppingTest(unittest.TestCase):
     def test_simple_cropping(self):
         img_source = EmptyImageSource()
         pnt_source = RandomArraySource(
-            shape=(2,), min=0, max=255, sampling_rate=5, max_count=5
+            shape=(2,), min=0, max=255, samplerate=5, max_count=5
         )
         crop_processor = CropByPointerProcessor(
             crop_size=200,

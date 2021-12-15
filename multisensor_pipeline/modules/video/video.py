@@ -57,7 +57,7 @@ class PyAVSource(BaseDatasetSource, ABC):
         return [self._frame_topic]
 
 
-class VideoSource(PyAVSource, BaseDatasetSource):
+class VideoSource(PyAVSource):
 
     def __init__(self, file: str, playback_speed: float = 1.):
         super(VideoSource, self).__init__(file=file, playback_speed=playback_speed)

@@ -41,7 +41,7 @@ class MultiprocessingTestCase(unittest.TestCase):
         source = MultiprocessSourceWrapper(
             module_cls=RandomArraySource,
             shape=(5,),
-            sampling_rate=50,
+            samplerate=50,
         )
         sink = ListSink()
 
@@ -69,7 +69,7 @@ class MultiprocessingTestCase(unittest.TestCase):
         source = MultiprocessSourceWrapper(
             module_cls=RandomArraySource,
             shape=(5,),
-            sampling_rate=50,
+            samplerate=50,
         )
         sink = MultiprocessSinkWrapper(module_cls=ConsoleSink)
         queue = QueueSink()
@@ -104,7 +104,7 @@ class MultiprocessingTestCase(unittest.TestCase):
         source = MultiprocessSourceWrapper(
             module_cls=RandomArraySource,
             shape=(50,),
-            sampling_rate=50,
+            samplerate=50,
         )
         processor = MultiprocessProcessorWrapper(
             module_cls=ArrayManipulationProcessor,
@@ -137,7 +137,7 @@ class MultiprocessingTestCase(unittest.TestCase):
         source = MultiprocessSourceWrapper(
             module_cls=RandomArraySource,
             shape=(50,),
-            sampling_rate=50,
+            samplerate=50,
         )
         processor1 = PassthroughProcessor()
         processor2 = MultiprocessProcessorWrapper(

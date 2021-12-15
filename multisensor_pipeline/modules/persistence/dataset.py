@@ -50,9 +50,9 @@ class BaseDatasetSource(BaseSource, ABC):
         Args:
             frame:  Dataframe
         """
-        if isinstance(frame, MSPControlMessage):
-            return
         if self._playback_speed == float("inf"):
+            return
+        if frame.topic.is_control_topic:
             return
 
         if self._last_frame_timestamp is not None:

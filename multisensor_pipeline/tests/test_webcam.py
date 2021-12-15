@@ -17,7 +17,7 @@ class WebcamTests(unittest.TestCase):
 
     def simple_webcam(self, topic=None):
         # (1) define the modules
-        framerate = 30
+        framerate = 15
         webcam_id = WebcamSource.available_webcams()[0]
         source = WebcamSource(webcam_id=webcam_id, framerate=framerate)
         sink = ListSink()

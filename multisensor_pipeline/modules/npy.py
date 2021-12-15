@@ -11,8 +11,8 @@ class RandomArraySource(BaseFixedRateSource):
     def output_topics(self) -> List[Topic]:
         return [Topic(name="random", dtype=int if self._shape is None else np.ndarray)]
 
-    def __init__(self, shape=None, min: int = 0, max: int = 100, sampling_rate: float = 1., max_count=float("inf")):
-        super(RandomArraySource, self).__init__(sampling_rate)
+    def __init__(self, shape=None, min: int = 0, max: int = 100, samplerate: float = 1., max_count=float("inf")):
+        super(RandomArraySource, self).__init__(samplerate)
         self._shape = shape
         self._min = min
         self._max = max
