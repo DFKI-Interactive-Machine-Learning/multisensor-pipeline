@@ -22,7 +22,7 @@ class DownSamplingProcessorTest(unittest.TestCase):
             samplerate=num_samples,
             max_count=num_samples,
         )
-        processor = DownsamplingProcessor(target_topics=[source.output_topics[0]])
+        processor = DownsamplingProcessor(target_topics=[source.output_topics[0]], sampling_rate=num_samples)
         sink_0 = QueueSink()
         sink_1 = QueueSink()
 
@@ -49,7 +49,7 @@ class DownSamplingProcessorTest(unittest.TestCase):
     def test_down_sampling_processor_no_downsampling(self):
         pipeline = self._run_down_sampling_processor_no_downsampling_pipeline()
         for sink in pipeline.sink_nodes:
-            self.assertEqual(100, sink.queue.qsize())
+            self.assertAlmostEqual(100, sink.queue.qsize(), delta=1)
 
     def test_down_sampling_processor_no_downsampling_topic_filtered(self):
         pipeline = self._run_down_sampling_processor_no_downsampling_pipeline(topic=Topic(name="random", dtype=int))

@@ -29,8 +29,12 @@ class BaseFixedRateSource(BaseSource, ABC):
         self._sleep(frame)
 
     def _sleep(self, frame: MSPDataFrame):
+        if frame is None:
+            return
+
         if self._samplerate == float("inf"):
             return
+
         if frame.topic.is_control_topic:
             return
 

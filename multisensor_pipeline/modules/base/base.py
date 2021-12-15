@@ -178,7 +178,7 @@ class BaseSource(BaseModule, ABC):
         # TODO: check if the frame topic is actually an output_topic, send warning if not.
 
         for topic, sinks in self._sinks.items():
-            if frame.topic.dtype is MSPControlMessage.ControlTopic.dtype or frame.topic == topic:
+            if frame.topic.is_control_topic or frame.topic == topic:
                 for sink in sinks:
                     sink.put(frame)
 
