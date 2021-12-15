@@ -19,7 +19,7 @@ class DownSamplingProcessorTest(unittest.TestCase):
         # (1) define the modules
         source = RandomArraySource(
             shape=None,
-            sampling_rate=num_samples,
+            samplerate=num_samples,
             max_count=num_samples,
         )
         processor = DownsamplingProcessor(target_topics=[source.output_topics[0]])
@@ -64,7 +64,7 @@ class DownSamplingProcessorTest(unittest.TestCase):
         # (1) define the modules
         source = RandomArraySource(
             shape=None,
-            sampling_rate=100,
+            samplerate=100,
             max_count=100,
         )
         if topics:
@@ -112,7 +112,7 @@ class DownSamplingProcessorTest(unittest.TestCase):
         # (1) define the modules
         source = RandomArraySource(
             shape=(2,),
-            sampling_rate=100,
+            samplerate=100,
             max_count=10,
         )
         processor = OneEuroProcessor()
@@ -157,7 +157,7 @@ class DownSamplingProcessorTest(unittest.TestCase):
         # (1) define the modules
         source = RandomArraySource(
             shape=(2,),
-            sampling_rate=100,
+            samplerate=100,
             max_count=100,
         )
 

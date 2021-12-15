@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from threading import Thread
 from queue import Queue
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic
-from multisensor_pipeline.dataframe.control import MSPControlMessage
+from multisensor_pipeline.dataframe import MSPControlMessage
 from multisensor_pipeline.modules.base.profiling import MSPModuleStats
 from multiprocessing.queues import Queue as MPQueue
 from typing import Union, Optional, List
@@ -182,7 +182,7 @@ class BaseSource(BaseModule, ABC):
         if frame is None:
             return
 
-        assert isinstance(frame, MSPDataFrame), "You must use a MSPDataFrame instance to wrap your data."
+        # assert isinstance(frame, MSPDataFrame), "You must use a MSPDataFrame instance to wrap your data."
         frame.source_uuid = self.uuid
 
         # TODO: check if the frame topic is actually an output_topic, send warning if not.
@@ -245,12 +245,12 @@ class BaseSink(BaseModule, ABC):
         Args:
            frame: frame containing MSPControlMessage
         """
-        if isinstance(frame, MSPControlMessage):
+        if frame.topic.is_control_topic:
             if frame.source_uuid is not None:
-                logger.debug(f"[CONTROL] {frame.source_uuid} -> {frame.message} -> {self.uuid}")
+                logger.debug(f"[CONTROL] {frame.source_uuid} -> {frame.data} -> {self.uuid}")
             else:
-                logger.debug(f"[CONTROL] NONE -> {frame.message} -> {self.uuid}")
-            if frame.message == MSPControlMessage.END_OF_STREAM:
+                logger.debug(f"[CONTROL] NONE -> {frame.data} -> {self.uuid}")
+            if frame.data == MSPControlMessage.END_OF_STREAM:
                 if frame.source_uuid in self._active_sources:
                     # set source to inactive
                     self._active_sources[frame.source_uuid] = False
@@ -258,7 +258,7 @@ class BaseSink(BaseModule, ABC):
                 if not any(self._active_sources.values()):
                     self.stop(blocking=False)
             else:
-                logger.warning(f"unhandled control message: {frame.message}")
+                logger.warning(f"unhandled control message: {frame.data}")
             return True
         return False
 

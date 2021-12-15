@@ -38,7 +38,7 @@ class DefaultSerializationTest(unittest.TestCase):
         # --- perform a recording ---
         # create modules
         sampling_rate = 100
-        rec_source = RandomArraySource(shape=(5,), sampling_rate=sampling_rate)
+        rec_source = RandomArraySource(shape=(5,), samplerate=sampling_rate)
         rec_sink = DefaultRecordingSink(filename, override=True)
         rec_list = ListSink()
         # add to pipeline

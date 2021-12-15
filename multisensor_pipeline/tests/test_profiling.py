@@ -14,7 +14,7 @@ import numpy as np
 def _run_profiling(topics=None, target_sampling_rate=20, runtime=2):
     # (1) define the modules
     source = RandomArraySource(
-        sampling_rate=target_sampling_rate * 2,
+        samplerate=target_sampling_rate * 2,
         max_count=target_sampling_rate * 2 * runtime * 1.2,
     )
     processor = DownsamplingProcessor(sampling_rate=target_sampling_rate)
@@ -44,7 +44,7 @@ def _run_simple_profiling(topics=None, sampling_rate=25, runtime=2):
     # (1) define the modules
     source = RandomArraySource(
         shape=(2,),
-        sampling_rate=sampling_rate,
+        samplerate=sampling_rate,
         max_count=int(sampling_rate * runtime * 1.2),
     )
     sink = ListSink()
