@@ -2,7 +2,7 @@ from abc import ABC
 import logging
 from multisensor_pipeline.modules import BaseSource
 from multisensor_pipeline.dataframe import MSPDataFrame, MSPControlMessage
-from time import time, sleep
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -36,15 +36,15 @@ class BaseFixedRateSource(BaseSource, ABC):
 
         # ignore processing time for the first frame, as we cannot compute it
         if self._t_last is None:
-            sleep(self._sleep_time)
+            time.sleep(self._sleep_time)
         # this is any frame after the first one
         else:
-            t_now = time()
+            t_now = time.process_time()
             t_processing = t_now - self._t_last
 
              # Default case: processing time takes a small portion of the required sleep time -> compensate for this
             if t_processing < self._sleep_time:
-                sleep(self._sleep_time - t_processing)
+                time.sleep(self._sleep_time - t_processing)
             # In any other case, i.e., t_processing >= self._sleep_time, we don't sleep.
             # If the processing time is larger than the sleep time, the source will fail to deliver its samples on time
             elif t_processing > self._sleep_time:
@@ -52,7 +52,7 @@ class BaseFixedRateSource(BaseSource, ABC):
                                f"samplerate of {self._samplerate} Hz. Processing takes {t_processing} s.")
 
         # after this statement, the processing time for preparing the next frame begins
-        self._t_last = time()
+        self._t_last = time.process_time()
 
 
 if __name__ == '__main__':
@@ -86,7 +86,7 @@ if __name__ == '__main__':
         pipeline.connect(module=source, successor=sink)
 
         pipeline.start()
-        sleep(1.05)
+        time.sleep(1.00)
         pipeline.stop()
         pipeline.join()
 
