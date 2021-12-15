@@ -8,15 +8,9 @@ from multiprocessing.queues import Queue as MPQueue
 from typing import Union, Optional, List
 import logging
 import uuid
+from collections import defaultdict
 
 logger = logging.getLogger(__name__)
-
-
-def add_to_dict(orig_dict, key, value, default=[]):
-    if orig_dict.get(key, default) == default:
-        orig_dict[key] = [value]
-    else:
-        orig_dict[key].append(value)
 
 
 class BaseModule(object):
@@ -115,7 +109,7 @@ class BaseSource(BaseModule, ABC):
         Initializes the worker thread and a queue list for communication with observers that listen to that source.
         """
         super().__init__()
-        self._sinks = {}
+        self._sinks = defaultdict(list)
 
     def _worker(self):
         """ Source worker function: notify observer when source update function returns a DataFrame """
@@ -135,42 +129,38 @@ class BaseSource(BaseModule, ABC):
             topics:
             sink: A thread-safe Queue object or Sink [or any class that implements put(tuple)]
         """
+        # TODO: Check topic equal
+        connected = False
+        if isinstance(topics, Topic):
+            topics = [topics]
+
         if isinstance(sink, Queue) or isinstance(sink, MPQueue):
             if topics is None:
-                add_to_dict(self._sinks, None, sink)
+                self._sinks[Topic()].append(sink)
+                connected = True
             else:
                 for topic in topics:
-                    add_to_dict(self._sinks, topic, sink)
+                    self._sinks[topic].append(sink)
+                    connected = True
             return
 
         assert isinstance(sink, BaseSink) or isinstance(sink, BaseProcessor)
-        # if no topic filter is specified
+        # case 1: if no topic filter is specified
         if topics is None:
-            if self.output_topics is None or sink.input_topics is None:
-                add_to_dict(self._sinks, None, sink)
-                sink.add_source(self)
-            else:
-                for topic in self.output_topics:
-                    if topic in sink.input_topics:
-                        add_to_dict(self._sinks, topic, sink)
-                        sink.add_source(self)
+            for topic in self.output_topics:
+                if topic in sink.input_topics:
+                    self._sinks[topic].append(sink)
+                    sink.add_source(self)
+                    connected = True
+        # case 2: connection with specified topic
         else:
-            if isinstance(topics, Topic):
-                topics = [topics]
-            # case: connection with specified topic
             for topic in topics:
-                assert self.output_topics is not None, \
-                    "you can only specify a topic filter, if output topics are defined"
-                # input topics do not need to be defined
-                if sink.input_topics is not None:
-                    assert topic in self.output_topics and topic in sink.input_topics, \
-                        "all topics must be in the output and input topic list"
-                    add_to_dict(self._sinks, topic, sink)
+                if topic in self.output_topics and topic in sink.input_topics:
+                    self._sinks[topic].append(sink)
                     sink.add_source(self)
-                else:
-                    "sink does not specify incoming_topics -> therefore it accepts everything TODO: Confirm"
-                    add_to_dict(self._sinks, topic, sink)
-                    sink.add_source(self)
+                    connected = True
+        # TODO: Check if there is at least one connection established
+        assert connected
 
     def _notify(self, frame: Optional[MSPDataFrame]):
         """
@@ -188,7 +178,7 @@ class BaseSource(BaseModule, ABC):
         # TODO: check if the frame topic is actually an output_topic, send warning if not.
 
         for topic, sinks in self._sinks.items():
-            if topic is None or frame.topic.dtype is MSPControlMessage.ControlTopic.dtype or topic == frame.topic:
+            if frame.topic.dtype is MSPControlMessage.ControlTopic.dtype or frame.topic == topic:
                 for sink in sinks:
                     sink.put(frame)
 
@@ -205,10 +195,14 @@ class BaseSource(BaseModule, ABC):
         self._notify(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM))
         super(BaseSource, self).stop(blocking=blocking)
 
+    @staticmethod
+    def _generate_topic(name: str, dtype: type = None):
+        return Topic(name=name, dtype=dtype)
+
     @property
     def output_topics(self) -> Optional[List[Topic]]:
         """ Returns outgoing topics that are provided by the source module at hand. """
-        return None
+        return [Topic()]
 
 
 class BaseSink(BaseModule, ABC):
@@ -272,7 +266,7 @@ class BaseSink(BaseModule, ABC):
             if self._handle_control_message(frame):
                 continue
 
-            if self._profiling:
+            if self._profiling:  # TODO: check profiling
                 self._stats.add_frame(frame, MSPModuleStats.Direction.IN)
 
             self.on_update(frame)
@@ -306,9 +300,13 @@ class BaseSink(BaseModule, ABC):
             self._stats.add_queue_state(qsize=self._queue.qsize(), skipped_frames=skipped_frames)
 
     @property
+    def connected_sources(self):
+        return self._sources
+
+    @property
     def input_topics(self) -> List[Topic]:
         """ Returns topics which can be handled by the sink module at hand. """
-        return None
+        return [Topic()]
 
 
 class BaseProcessor(BaseSink, BaseSource, ABC):
