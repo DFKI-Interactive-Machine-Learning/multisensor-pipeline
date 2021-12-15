@@ -4,14 +4,14 @@ from setuptools import find_packages
 
 install_requires = [
         'decorator<5.0.0',  # For networkx
-        'networkx',
-        'numpy',
-        'Pillow',
-        'pynput',
-        'pyzmq',
-        'av',
-        'sounddevice',
-        'soundfile',
+        'networkx>=2.5',
+        'numpy>1.0.0',
+        'Pillow>=8.3.2',
+        'pynput>=1.7.3',
+        'pyzmq>=20.0.0',
+        'av>=8.0.1',
+        'sounddevice>=0.4.3',
+        'soundfile>=0.10.3',
         'msgpack>1.0.0'
     ]
 if sys.platform.startswith("win32"):

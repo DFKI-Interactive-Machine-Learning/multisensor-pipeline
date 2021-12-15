@@ -22,7 +22,7 @@ class DownSamplingProcessorTest(unittest.TestCase):
             sampling_rate=num_samples,
             max_count=num_samples,
         )
-        processor = DownsamplingProcessor(sampling_rate=num_samples * 2, target_topics=[source.output_topics[0]])
+        processor = DownsamplingProcessor(target_topics=[source.output_topics[0]])
         sink_0 = QueueSink()
         sink_1 = QueueSink()
 

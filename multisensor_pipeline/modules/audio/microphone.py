@@ -15,13 +15,8 @@ class MicrophoneSource(BaseSource):
 
     class InputDevice:
 
-        def __init__(self, device_info: dict, device_id: int):
+        def __init__(self, device_info: dict):
             self._device_info = device_info
-            self._device_id = device_id
-
-        @property
-        def device_id(self) -> int:
-            return self._device_id
 
         @property
         def name(self) -> str:
@@ -40,12 +35,12 @@ class MicrophoneSource(BaseSource):
             return self._device_info
 
         def __str__(self):
-            return f"[{self.device_id}] {self.name}; channels={self.channels}; rate={self.default_samplerate}"
+            return f"[{self.name}; channels={self.channels}; rate={self.default_samplerate}"
 
     @staticmethod
     def available_input_devices():
         devices = sd.query_devices()
-        return [MicrophoneSource.InputDevice(d, i) for i, d in enumerate(devices) if d["max_input_channels"] > 0]
+        return [MicrophoneSource.InputDevice(d) for d in devices if d["max_input_channels"] > 0]
 
     def __init__(self, device: Optional[InputDevice] = None,
                  channels: Optional[int] = None,
@@ -62,7 +57,7 @@ class MicrophoneSource(BaseSource):
         super(MicrophoneSource, self).__init__()
 
         if device is None:
-            device = MicrophoneSource.InputDevice(sd.query_devices(kind='input'), 0)
+            device = MicrophoneSource.InputDevice(sd.query_devices(kind='input'))
         self._device = device
         self._samplerate = self._device.default_samplerate if samplerate is None else samplerate
         self._channels = self._device.channels if channels is None else channels
