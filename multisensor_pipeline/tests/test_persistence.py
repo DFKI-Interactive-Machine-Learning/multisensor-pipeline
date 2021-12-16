@@ -2,13 +2,14 @@ import unittest
 import numpy as np
 from multisensor_pipeline.modules.persistence.recording import DefaultRecordingSink
 from multisensor_pipeline.modules.persistence.replay import DefaultReplaySource
-from multisensor_pipeline.modules import ListSink
+from multisensor_pipeline.modules import ListSink, BaseSink
 from multisensor_pipeline.pipeline.graph import GraphPipeline
 from multisensor_pipeline.modules.npy import RandomArraySource
-from time import sleep
+from time import sleep, perf_counter
 from PIL import Image
 from multisensor_pipeline.dataframe import MSPDataFrame, Topic
 import io
+import logging
 
 
 class DefaultSerializationTest(unittest.TestCase):
@@ -33,6 +34,18 @@ class DefaultSerializationTest(unittest.TestCase):
         self.assertTrue(imgs_are_equal)
 
     def test_record_and_replay(self):
+
+        class FrameTimeSink(BaseSink):
+
+            def __init__(self):
+                super(FrameTimeSink, self).__init__()
+                self.frames = []
+                self.incoming_timestamps = []
+
+            def on_update(self, frame: MSPDataFrame):
+                self.incoming_timestamps.append(perf_counter())
+                self.frames.append(frame)
+
         filename = "recording_test.msgpack"
 
         # --- perform a recording ---
@@ -59,33 +72,36 @@ class DefaultSerializationTest(unittest.TestCase):
         # create modules
         playback_speed = 1.
         replay_source = DefaultReplaySource(file_path=filename, playback_speed=playback_speed)
-        replay_list = ListSink()
+        replay_list = FrameTimeSink()
         replay_pipeline = GraphPipeline()
         replay_pipeline.add_source(replay_source)
         replay_pipeline.add_sink(replay_list)
         replay_pipeline.connect(replay_source, replay_list)
+
+        # replay!
+        t_start = perf_counter()
         replay_pipeline.start()
         # dataset sources stop automatically
         replay_pipeline.join()
+        replay_duration = perf_counter() - t_start
 
-        self.assertTrue([t.timestamp for t in rec_list.list] == [t.timestamp for t in replay_list.list])
-        content_check = all([(o1.data == o2.data).all() for o1, o2 in zip(rec_list.list, replay_list.list)])
+        self.assertTrue([t.timestamp for t in rec_list.list] == [t.timestamp for t in replay_list.frames])
+        content_check = all([(o1.data == o2.data).all() for o1, o2 in zip(rec_list.list, replay_list.frames)])
         self.assertTrue(content_check)
 
         # --- check playback timing ---
         rec_timestamps = [t.timestamp for t in rec_list.list]
         rec_time = rec_timestamps[-1] - rec_timestamps[0]
-        rec_frame_time = rec_time / (len(rec_timestamps) - 1)
+        rec_frame_time = rec_time / len(rec_timestamps)
         rec_fps = 1. / rec_frame_time
 
-        # playback_timestamps = [t.playback_timestamps for t in replay_list.list]
-        # playback_time = playback_timestamps[-1] - playback_timestamps[0]
-        # playback_frame_time = playback_time / (len(rec_timestamps) - 1)
-        # playback_fps = 1. / playback_frame_time
-        #
-        # mean_frame_time_diff = np.fabs(np.mean(np.diff(playback_timestamps)) - np.mean(np.diff(rec_timestamps)))
-        # logging.info(
-        #     f"Recording at {sampling_rate} Hz (actual: {rec_fps} Hz)\t"
-        #     f"Playback ({playback_speed}x) at {playback_fps} Hz"
-        # )
-        # self.assertLess(float(mean_frame_time_diff), .03)
+        playback_timestamps = replay_list.incoming_timestamps
+        playback_time = playback_timestamps[-1] - playback_timestamps[0]
+        playback_frame_time = playback_time / len(rec_timestamps)
+        playback_fps = 1. / playback_frame_time
+
+        logging.info(
+            f"Recording at {sampling_rate} Hz (actual: {rec_fps} Hz)\t"
+            f"Playback ({playback_speed}x) at {playback_fps} Hz"
+        )
+        self.assertAlmostEqual(rec_fps, playback_fps, delta=.02*rec_fps)

@@ -1,8 +1,9 @@
 from abc import ABC
-from multisensor_pipeline.dataframe import MSPControlMessage, MSPDataFrame
+from multisensor_pipeline.dataframe import MSPDataFrame
 from multisensor_pipeline.modules import BaseSource
 from typing import Optional
-from time import time, sleep
+import time
+import sched
 
 
 class BaseDatasetSource(BaseSource, ABC):
@@ -19,6 +20,8 @@ class BaseDatasetSource(BaseSource, ABC):
         self._playback_speed = playback_speed
         self._last_frame_timestamp = None
         self._last_playback_timestamp = None
+        if not self._playback_speed == float("inf"):
+            self._scheduler = sched.scheduler(time.perf_counter, time.sleep)
 
     @property
     def eof(self):
@@ -45,8 +48,8 @@ class BaseDatasetSource(BaseSource, ABC):
 
     def _sleep(self, frame: MSPDataFrame):
         """
-        Modifies the dataframe timestamp corresponding the playback speed. Sleeps if necessary to achieve correct
-        playback speed
+        Modifies the dataframe timestamp corresponding the playback speed.
+        Sleeps if necessary to achieve correct playback speed
         Args:
             frame:  Dataframe
         """
@@ -59,11 +62,11 @@ class BaseDatasetSource(BaseSource, ABC):
             original_delta = frame.timestamp - self._last_frame_timestamp
             target_delta = original_delta / self._playback_speed
 
-            actual_delta = time() - self._last_playback_timestamp
+            actual_delta = time.perf_counter() - self._last_playback_timestamp
             if actual_delta < target_delta:
-                sleep(target_delta - actual_delta)
+                time.sleep(target_delta - actual_delta)
 
         self._last_frame_timestamp = frame.timestamp
-        self._last_playback_timestamp = time()
+        self._last_playback_timestamp = time.perf_counter()
         # TODO: set replay timestamp -> was used to check timing in "test recording and replay"
 

@@ -1,8 +1,8 @@
 from .base import BaseProcessor, BaseSink, BaseSource
-from typing import Optional, List
+from typing import Optional
 from queue import Queue
 from time import sleep
-from ..dataframe import MSPDataFrame, Topic
+from ..dataframe import MSPDataFrame
 
 
 class PassthroughProcessor(BaseProcessor):

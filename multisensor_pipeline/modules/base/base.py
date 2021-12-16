@@ -176,7 +176,6 @@ class BaseSource(BaseModule, ABC):
         frame.source_uuid = self.uuid
 
         # TODO: check if the frame topic is actually an output_topic, send warning if not.
-
         for topic, sinks in self._sinks.items():
             if frame.topic.is_control_topic or frame.topic == topic:
                 for sink in sinks:
@@ -194,10 +193,6 @@ class BaseSource(BaseModule, ABC):
         """
         self._notify(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM))
         super(BaseSource, self).stop(blocking=blocking)
-
-    @staticmethod
-    def _generate_topic(name: str, dtype: type = None):
-        return Topic(name=name, dtype=dtype)
 
     @property
     def output_topics(self) -> Optional[List[Topic]]:
