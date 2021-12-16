@@ -194,10 +194,6 @@ class BaseSource(BaseModule, ABC):
         self._notify(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM))
         super(BaseSource, self).stop(blocking=blocking)
 
-    @staticmethod
-    def _generate_topic(name: str, dtype: type = None):
-        return Topic(name=name, dtype=dtype)
-
     @property
     def output_topics(self) -> Optional[List[Topic]]:
         """ Returns outgoing topics that are provided by the source module at hand. """

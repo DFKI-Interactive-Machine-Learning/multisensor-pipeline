@@ -1,3 +1,4 @@
+import time
 import unittest
 from time import sleep
 from datetime import datetime
@@ -180,8 +181,10 @@ class BaseTestCase(unittest.TestCase):
 
     def test_sleep_passthrough_processor(self):
         # define the modules
-        source = RandomArraySource(samplerate=10, max_count=10)
-        processor = SleepPassthroughProcessor(.5)
+        proc_rate = 10
+        n_samples = 20
+        source = RandomArraySource(samplerate=n_samples, max_count=n_samples)
+        processor = SleepPassthroughProcessor(sleep_time=1./proc_rate)
         sink = ListSink()
 
         # add module to a pipeline...
@@ -192,14 +195,15 @@ class BaseTestCase(unittest.TestCase):
         pipeline.connect(module=processor, successor=sink)
 
         # print result of the constraint checker for 0.1 seconds
-        start_time = datetime.now()
+        start_time = time.perf_counter()
         pipeline.start()
-        sleep(1)
+        sleep(1.)
         pipeline.stop()
         pipeline.join()
-        end_time = datetime.now()
-        self.assertEqual((end_time - start_time).seconds, 5)
-        self.assertEqual(len(sink), 10)
+        end_time = time.perf_counter()
+        # The passthrough processor ends, if all frames were processed. We want the pipeline to wait for this.
+        self.assertAlmostEqual(n_samples / proc_rate, end_time-start_time, delta=.5)
+        self.assertAlmostEqual(n_samples, len(sink), delta=1)  # delta=1, because wait in passthrough is not accurate
 
     def test_trash_sink(self):
         # define the modules
