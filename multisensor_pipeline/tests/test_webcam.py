@@ -3,7 +3,7 @@ from time import sleep
 from PIL.Image import Image
 from multisensor_pipeline import GraphPipeline
 from multisensor_pipeline.dataframe import Topic
-from multisensor_pipeline.modules import QueueSink, ListSink
+from multisensor_pipeline.modules import ListSink
 from multisensor_pipeline.modules.video import WebcamSource
 
 
@@ -39,6 +39,4 @@ class WebcamTests(unittest.TestCase):
         # for i, img_frame in enumerate(sink.list):
         #     img_frame.data.save(f"test{i}.jpg")
 
-        # Assert
-        self.assertAlmostEqual(len(sink), 2*framerate, delta=1)
-
+        self.assertTrue(2*framerate - 1 <= len(sink) <= 2*framerate + 3)

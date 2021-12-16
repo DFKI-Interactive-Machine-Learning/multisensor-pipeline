@@ -37,6 +37,8 @@ class PyAVSource(BaseDatasetSource, ABC):
             return None
         except av.error.BlockingIOError as e:
             return MSPControlMessage(message=MSPControlMessage.PASS)
+        except av.error.ValueError as e:
+            return MSPControlMessage(message=MSPControlMessage.PASS)
 
     def frame_gen(self):
         """
