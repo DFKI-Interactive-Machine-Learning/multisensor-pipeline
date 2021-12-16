@@ -1,7 +1,7 @@
 from typing import Optional, TypeVar, Generic
 import logging
 import io
-from time import time
+import time
 import msgpack
 import numpy as np
 from PIL import Image
@@ -66,7 +66,7 @@ class MSPDataFrame(Generic[T]):
 
     def __init__(self, topic: Topic, timestamp: float = None, duration: float = 0, data: Optional[T] = None):
         super(MSPDataFrame, self).__init__()
-        self._timestamp = time() if timestamp is None else timestamp
+        self._timestamp = time.perf_counter() if timestamp is None else timestamp
         self._duration = duration
         self._topic = topic
         self._data = data

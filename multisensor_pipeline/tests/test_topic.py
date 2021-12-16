@@ -2,7 +2,7 @@ import unittest
 from time import sleep
 from typing import Optional, List
 from multisensor_pipeline import BaseSource, BaseSink
-from multisensor_pipeline.modules.base.sampler import BaseFixedRateSource
+from multisensor_pipeline.modules.base.sampling import BaseDiscreteSamplingSource
 from multisensor_pipeline.dataframe import MSPDataFrame, Topic
 from multisensor_pipeline.pipeline.graph import GraphPipeline
 
@@ -13,7 +13,7 @@ PERIOD_TIME = 1. / FREQUENCY
 NUM_SAMPLES = FREQUENCY * SLEEPTIME
 
 
-class AnySource(BaseFixedRateSource):
+class AnySource(BaseDiscreteSamplingSource):
     """Source with standard topic"""
 
     def __init__(self):
@@ -30,7 +30,7 @@ class AnySource(BaseFixedRateSource):
         return len(self.list)
 
 
-class IntSource(BaseFixedRateSource):
+class IntSource(BaseDiscreteSamplingSource):
     """Source with specific topic"""
 
     def __init__(self):

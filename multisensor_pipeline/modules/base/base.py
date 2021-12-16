@@ -176,7 +176,6 @@ class BaseSource(BaseModule, ABC):
         frame.source_uuid = self.uuid
 
         # TODO: check if the frame topic is actually an output_topic, send warning if not.
-
         for topic, sinks in self._sinks.items():
             if frame.topic.is_control_topic or frame.topic == topic:
                 for sink in sinks:

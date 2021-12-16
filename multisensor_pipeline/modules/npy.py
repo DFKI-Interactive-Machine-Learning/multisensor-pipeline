@@ -1,11 +1,13 @@
+import time
+
 import numpy as np
 from multisensor_pipeline.modules import BaseProcessor
-from multisensor_pipeline.modules.base.sampler import BaseFixedRateSource
+from multisensor_pipeline.modules.base.sampling import BaseDiscreteSamplingSource
 from multisensor_pipeline.dataframe import MSPDataFrame, Topic
 from typing import Optional, List
 
 
-class RandomArraySource(BaseFixedRateSource):
+class RandomArraySource(BaseDiscreteSamplingSource):
 
     @property
     def output_topics(self) -> List[Topic]:
@@ -22,9 +24,11 @@ class RandomArraySource(BaseFixedRateSource):
     def on_update(self) -> Optional[MSPDataFrame]:
         if self.index < self.max_count:
             self.index += 1
-            return MSPDataFrame(topic=self.output_topics[0],
-                                data=np.random.randint(self._min, self._max, size=self._shape))
-        return
+            return MSPDataFrame(
+                topic=self.output_topics[0],
+                data=np.random.randint(self._min, self._max, size=self._shape)
+            )
+        return None
 
 
 class ArrayManipulationProcessor(BaseProcessor):
