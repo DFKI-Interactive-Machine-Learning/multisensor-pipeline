@@ -1,7 +1,6 @@
 from abc import ABC
 import logging
 from multisensor_pipeline.modules import BaseSource
-from multisensor_pipeline.dataframe import MSPDataFrame, MSPControlMessage
 import time
 import sched
 

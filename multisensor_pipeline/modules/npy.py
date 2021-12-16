@@ -1,5 +1,3 @@
-import time
-
 import numpy as np
 from multisensor_pipeline.modules import BaseProcessor
 from multisensor_pipeline.modules.base.sampling import BaseDiscreteSamplingSource
