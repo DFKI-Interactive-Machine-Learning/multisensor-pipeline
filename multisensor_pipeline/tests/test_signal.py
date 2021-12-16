@@ -54,7 +54,7 @@ class DownSamplingProcessorTest(unittest.TestCase):
     def test_down_sampling_processor_no_downsampling_topic_filtered(self):
         pipeline = self._run_down_sampling_processor_no_downsampling_pipeline(topic=Topic(name="random", dtype=int))
         for sink in pipeline.sink_nodes:
-            self.assertEqual(100, sink.queue.qsize())
+            self.assertAlmostEqual(100, sink.queue.qsize(), delta=1)
 
     @staticmethod
     def _run_down_sampling_processor_strong_pipeline(topics=None):

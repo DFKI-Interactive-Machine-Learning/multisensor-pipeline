@@ -251,6 +251,8 @@ class BaseSink(BaseModule, ABC):
                     # if no active source is left
                 if not any(self._active_sources.values()):
                     self.stop(blocking=False)
+            elif frame.data == MSPControlMessage.PASS:
+                pass
             else:
                 logger.warning(f"unhandled control message: {frame.data}")
             return True

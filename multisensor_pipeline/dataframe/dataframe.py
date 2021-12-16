@@ -190,6 +190,7 @@ class MSPControlMessage(MSPDataFrame):
         dtype = ControlType
 
     END_OF_STREAM = "EOS"
+    PASS = "PASS"
 
     def __init__(self, message):
         topic = self.ControlTopic()

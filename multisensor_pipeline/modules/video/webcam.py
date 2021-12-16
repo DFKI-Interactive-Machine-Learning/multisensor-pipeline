@@ -11,13 +11,20 @@ def _get_device_list_linux():
     vid_indices = sorted(vid_indices)
     return vid_indices
 
+def _get_device_list_mac():
+    import subprocess
+    cmd = "system_profiler SPCameraDataType | awk '/Unique ID:/ {print $3}'"
+    result = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True, check=True)
+    serial_number = str(result.stdout.strip()).split("\\n")
+    return list(range(len(serial_number)))
+
 
 if sys.platform.startswith("win32"):
     from windows_capture_devices import get_capture_devices
 elif sys.platform.startswith("linux"):
     get_capture_devices = _get_device_list_linux
 elif sys.platform.startswith("darwin"):
-    raise NotImplementedError()
+    get_capture_devices = _get_device_list_mac
 else:
     raise NotImplementedError(f"WebcamSource is currently not supported for the platform {sys.platform}")
 
@@ -39,7 +46,7 @@ def _get_av_file_from_webcam_id(webcam_id: str):
     elif sys.platform.startswith("linux"):
         return f"/dev/video{webcam_id}"
     elif sys.platform.startswith("darwin"):
-        return webcam_id
+        return f"{webcam_id}"
     else:
         raise NotImplementedError(f"WebcamSource is currently not supported for the platform {sys.platform}")
 

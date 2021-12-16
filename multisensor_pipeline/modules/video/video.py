@@ -3,7 +3,7 @@ from abc import ABC
 from typing import Optional, List
 import av
 from PIL import Image
-from multisensor_pipeline.dataframe import Topic, MSPDataFrame
+from multisensor_pipeline.dataframe import Topic, MSPDataFrame, MSPControlMessage
 from multisensor_pipeline.modules.persistence import BaseDatasetSource
 
 
@@ -30,23 +30,22 @@ class PyAVSource(BaseDatasetSource, ABC):
         )
 
     def on_update(self) -> Optional[MSPDataFrame]:
-        frame, frame_time = next(self.frame_gen())
-        if frame is None:
+        try:
+            frame, frame_time = next(self.frame_gen())
+            return MSPDataFrame(topic=self._frame_topic, data=frame, timestamp=frame_time)
+        except av.error.EOFError as e:
             return None
-        return MSPDataFrame(topic=self._frame_topic, data=frame, timestamp=frame_time)
+        except av.error.BlockingIOError as e:
+            return MSPControlMessage(message=MSPControlMessage.PASS)
 
     def frame_gen(self):
         """
         Generator for iterating over frames of the video file
         """
-        try:
-            for frame in self._container.decode(video=0):
-                img = frame.to_image()
-                yield img, frame.time
-        except av.error.EOFError as e:
-            yield None, 0
-        except av.error.BlockingIOError as e:
-            yield None, 0
+        for frame in self._container.decode(video=0):
+            img = frame.to_image()
+            yield img, frame.time
+
 
     def on_stop(self):
         """ Close the file/device handle. """
