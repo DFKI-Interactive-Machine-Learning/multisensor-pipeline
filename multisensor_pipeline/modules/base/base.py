@@ -129,7 +129,6 @@ class BaseSource(BaseModule, ABC):
             topics:
             sink: A thread-safe Queue object or Sink [or any class that implements put(tuple)]
         """
-        # TODO: Check topic equal
         connected = False
         if isinstance(topics, Topic):
             topics = [topics]
@@ -155,12 +154,12 @@ class BaseSource(BaseModule, ABC):
         # case 2: connection with specified topic
         else:
             for topic in topics:
-                if topic in self.output_topics and topic in sink.input_topics:
+                matches_output = any([t == topic for t in self.output_topics])
+                if matches_output and topic in sink.input_topics:
                     self._sinks[topic].append(sink)
                     sink.add_source(self)
                     connected = True
-        # TODO: Check if there is at least one connection established
-        assert connected
+        assert connected, f"No connection could be established between {self.name}:{sink.name} with topic(s) {topics}"
 
     def _notify(self, frame: Optional[MSPDataFrame]):
         """
@@ -175,7 +174,6 @@ class BaseSource(BaseModule, ABC):
         # assert isinstance(frame, MSPDataFrame), "You must use a MSPDataFrame instance to wrap your data."
         frame.source_uuid = self.uuid
 
-        # TODO: check if the frame topic is actually an output_topic, send warning if not.
         for topic, sinks in self._sinks.items():
             if frame.topic.is_control_topic or frame.topic == topic:
                 for sink in sinks:

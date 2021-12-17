@@ -1,9 +1,10 @@
-from typing import Optional, TypeVar, Generic
+from typing import Optional, TypeVar, Generic, Any
 import logging
 import io
 import time
 import msgpack
 import numpy as np
+
 from PIL import Image
 
 logger = logging.getLogger(__name__)
@@ -12,13 +13,15 @@ T = TypeVar('T')
 
 class Topic:
 
-    def __init__(self, name: Optional[str] = None, dtype: Optional[type] = None):
+    def __init__(self, dtype: type = Any, name: Optional[str] = None,):
         """
         :param name:
         :param dtype:
         """
         self._name = name
         self._dtype = dtype
+        if self.name is not None and dtype == Any:
+            raise AssertionError("If topic.name is set, dtype cannot be any")
 
     @property
     def name(self) -> str:
@@ -39,17 +42,23 @@ class Topic:
     def __hash__(self):
         return hash(self.uuid)
 
-    def __eq__(self, other):
-        if not isinstance(other, Topic):
-            return False
+    def __eq__(self, sink_topic):
+        """
+        Args:
+            sink_topic: Sink
+            TODO:
+        Returns:
+        """
+        if not isinstance(sink_topic, Topic):
+            return False    #TODO: can we replace isinstance?
 
-        if other.dtype is not None:
-            dtype_matches = other.dtype == self.dtype
-        else:
-            dtype_matches = True
+        if self.dtype is Any or sink_topic.dtype is Any:
+            return True
 
-        if other.name is not None:
-            name_matches = other.name == self.name
+        dtype_matches = sink_topic.dtype == self.dtype
+
+        if sink_topic.name is not None:
+            name_matches = sink_topic.name == self.name
         else:
             name_matches = True
 
