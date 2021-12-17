@@ -39,4 +39,5 @@ class WebcamTests(unittest.TestCase):
         # for i, img_frame in enumerate(sink.list):
         #     img_frame.data.save(f"test{i}.jpg")
 
-        self.assertTrue(2*framerate - 1 <= len(sink) <= 2*framerate + 3)
+        self.assertGreaterEqual(len(sink), 2*framerate - 1)
+        self.assertLessEqual(len(sink), 2*framerate + 3)

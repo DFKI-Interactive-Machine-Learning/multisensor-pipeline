@@ -1,9 +1,8 @@
 from typing import Optional
-
 from multisensor_pipeline.dataframe import MSPDataFrame, MSPControlMessage, Topic
-from time import time
 from datetime import datetime
 from collections import deque
+import time
 
 
 class MSPModuleStats:
@@ -82,7 +81,7 @@ class MSPModuleStats:
             raise NotImplementedError()
 
     def add_frame(self, frame: MSPDataFrame, direction: Direction):
-        time_received = time()
+        time_received = time.perf_counter()
         if isinstance(frame, MSPControlMessage):
             return
 
