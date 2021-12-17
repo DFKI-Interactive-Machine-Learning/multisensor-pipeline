@@ -48,9 +48,7 @@ class OneEuroProcessor(BaseProcessor):
     def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
         smoothed_point = self._filter(frame.data, frame.timestamp)
         if smoothed_point is not None:
-            frame.data = smoothed_point
-            frame.topic = Topic(name=f"{frame.topic.name}.smoothed", dtype=frame.topic.dtype)
-            return frame
+            return MSPDataFrame(topic=self.output_topics[0], data=smoothed_point)
 
     @property
     def input_topics(self) -> List[Topic]:
@@ -59,5 +57,4 @@ class OneEuroProcessor(BaseProcessor):
 
     @property
     def output_topics(self) -> Optional[List[Topic]]:
-        return [Topic(dtype=Tuple[float, float]),
-                Topic(dtype=np.ndarray)]
+        return [Topic(name="smoothed", dtype=Tuple[float, float])]

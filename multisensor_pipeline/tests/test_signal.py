@@ -1,7 +1,8 @@
 import unittest
 from time import sleep
+from typing import Tuple
 from multisensor_pipeline.dataframe import Topic
-from multisensor_pipeline.modules import QueueSink, ListSink
+from multisensor_pipeline.modules import ListSink
 from multisensor_pipeline.modules.npy import RandomArraySource
 from multisensor_pipeline.modules.signal.filtering import OneEuroProcessor
 from multisensor_pipeline.modules.signal.sampling import DownsamplingProcessor
@@ -23,15 +24,12 @@ class DownSamplingProcessorTest(unittest.TestCase):
             max_count=num_samples,
         )
         processor = DownsamplingProcessor(target_topics=[source.output_topics[0]], sampling_rate=num_samples)
-        sink_0 = QueueSink()
-        sink_1 = QueueSink()
+        sink_0 = ListSink()
+        sink_1 = ListSink()
 
         # (2) add module to a pipeline...
         pipeline = GraphPipeline()
-        pipeline.add_sink(sink_0)
-        pipeline.add_source(source)
-        pipeline.add_processor(processor)
-        pipeline.add_sink(sink_1)
+        pipeline.add([source, processor, sink_0, sink_1])
 
         # (3) ...and connect the modules
         pipeline.connect(source, sink_0)
@@ -40,21 +38,26 @@ class DownSamplingProcessorTest(unittest.TestCase):
 
         # Test
         pipeline.start()
-        sleep(1.5)
+        sleep(1.)
         pipeline.stop()
         pipeline.join()
 
         return pipeline
 
     def test_down_sampling_processor_no_downsampling(self):
-        pipeline = self._run_down_sampling_processor_no_downsampling_pipeline()
+        n_samples = 20
+        pipeline = self._run_down_sampling_processor_no_downsampling_pipeline(num_samples=n_samples)
         for sink in pipeline.sink_nodes:
-            self.assertAlmostEqual(100, sink.queue.qsize(), delta=1)
+            self.assertAlmostEqual(n_samples, len(sink), delta=1)
 
     def test_down_sampling_processor_no_downsampling_topic_filtered(self):
-        pipeline = self._run_down_sampling_processor_no_downsampling_pipeline(topic=Topic(name="random", dtype=int))
+        n_samples = 20
+        pipeline = self._run_down_sampling_processor_no_downsampling_pipeline(
+            num_samples=n_samples,
+            topic=Topic(name="random", dtype=int)
+        )
         for sink in pipeline.sink_nodes:
-            self.assertAlmostEqual(100, sink.queue.qsize(), delta=1)
+            self.assertAlmostEqual(n_samples, len(sink), delta=1)
 
     @staticmethod
     def _run_down_sampling_processor_strong_pipeline(topics=None):
@@ -68,7 +71,7 @@ class DownSamplingProcessorTest(unittest.TestCase):
             max_count=100,
         )
         if topics:
-            processor = DownsamplingProcessor(sampling_rate=1, target_topics=[Topic(name="random")])
+            processor = DownsamplingProcessor(sampling_rate=1, target_topics=[Topic(dtype=int, name="random")])
         else:
             processor = DownsamplingProcessor(sampling_rate=1)
         sink = ListSink()
@@ -147,7 +150,7 @@ class DownSamplingProcessorTest(unittest.TestCase):
     def test_one_euro_filtered(self):
         pipeline = self._run_one_euro_filter_pipeline(
             topics=[Topic(name="random", dtype=np.ndarray),
-                    Topic(name="random.smoothed", dtype=np.ndarray)]
+                    Topic(dtype=Tuple[float, float])]
         )
         for sink in pipeline.sink_nodes:
             self.assertEqual(10, len(sink))
@@ -164,7 +167,7 @@ class DownSamplingProcessorTest(unittest.TestCase):
         sink = ListSink()
 
         # (2) add module to a pipeline...
-        pipeline = GraphPipeline(profiling=True)
+        pipeline = GraphPipeline()
         pipeline.add_source(source)
         pipeline.add_sink(sink)
 

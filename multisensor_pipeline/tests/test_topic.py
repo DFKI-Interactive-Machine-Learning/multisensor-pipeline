@@ -127,11 +127,6 @@ class TopicTest(unittest.TestCase):
         # name makes a difference, if defined for both
         self.assertNotEqual(t_int_n, t_int_n_rand)
 
-        # you cannot define a name only, a name always refines a given dtype
-        with self.assertRaises(AssertionError):
-            Topic(name="int")
-        pass
-
     def test_any_any_topic(self):
         source = AnySource()
         sink = AnySink()

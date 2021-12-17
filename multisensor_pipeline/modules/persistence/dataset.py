@@ -68,5 +68,3 @@ class BaseDatasetSource(BaseSource, ABC):
 
         self._last_frame_timestamp = frame.timestamp
         self._last_playback_timestamp = time.perf_counter()
-        # TODO: set replay timestamp -> was used to check timing in "test recording and replay"
-

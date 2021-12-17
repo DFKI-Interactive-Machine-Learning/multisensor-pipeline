@@ -211,7 +211,6 @@ class BaseSink(BaseModule, ABC):
         super().__init__()
         self._queue = Queue()
         self._active_sources = {}
-        self._sources = {}
         self._dropout = dropout  # in seconds
         if dropout and isinstance(dropout, bool):
             self._dropout = 5
@@ -290,10 +289,6 @@ class BaseSink(BaseModule, ABC):
         self._queue.put(frame)
         if self._profiling:
             self._stats.add_queue_state(qsize=self._queue.qsize(), skipped_frames=skipped_frames)
-
-    @property
-    def connected_sources(self):
-        return self._sources
 
     @property
     def input_topics(self) -> List[Topic]:

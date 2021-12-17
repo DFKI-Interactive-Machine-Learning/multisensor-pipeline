@@ -21,7 +21,7 @@ class Topic:
         self._name = name
         self._dtype = dtype
         if self.name is not None and dtype == Any:
-            raise AssertionError("If topic.name is set, dtype cannot be any")
+            logger.warning("If dtype is Any, topic.name has no effect.")
 
     @property
     def name(self) -> str:

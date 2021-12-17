@@ -51,7 +51,7 @@ class AudioTest(unittest.TestCase):
         pipeline.stop()
         pipeline.join()
 
-    def _est_mic_simple(self):
+    def test_mic_simple(self):
         sink = self._run_simple_mic_pipeline()
         # import soundfile as sf
         # with sf.SoundFile("test.flac", mode="w", samplerate=44100, channels=1) as sfile:
@@ -59,11 +59,11 @@ class AudioTest(unittest.TestCase):
         #         sfile.write(frame.data)
         self.assertGreater(len(sink), 1)
 
-    def _test_mic_simple_topic_filtered(self):
+    def test_mic_simple_topic_filtered(self):
         sink = self._run_simple_mic_pipeline(topic=Topic(name="audio", dtype=np.ndarray))
         self.assertGreater(len(sink), 1)
 
-    def _test_mic_to_wave_pipeline(self):
+    def test_mic_to_wave_pipeline(self):
         filename = 'test_mic_to_wave_pipeline_01.wav'
         self._run_mic_to_wave_pipeline(filename=filename)
         wav_file = pathlib.Path(filename)
@@ -72,7 +72,7 @@ class AudioTest(unittest.TestCase):
         # Cleanup
         os.remove(filename)
 
-    def _test_mic_to_wave_pipeline_topic_filtered(self):
+    def test_mic_to_wave_pipeline_topic_filtered(self):
         filename = 'test_mic_to_wave_pipeline_02.wav'
         self._run_mic_to_wave_pipeline(topic=Topic(name="audio", dtype=np.ndarray), filename=filename)
         wav_file = pathlib.Path(filename)

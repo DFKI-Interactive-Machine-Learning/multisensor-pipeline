@@ -115,11 +115,11 @@ class SleepTest(unittest.TestCase):
         for rate, sleeptime, measured_sleeptime in measurements:
             self.assertAlmostEqual(rate, 1./measured_sleeptime, delta=0.05 * rate)
 
-    def test_system_sleep_accuracy(self):
+    def _test_system_sleep_accuracy(self):
         self._test_sleep_accuracy(time.sleep, self._samplerates)
 
-    def test_exact_sleep_accuracy(self):
+    def _test_exact_sleep_accuracy(self):
         self._test_sleep_accuracy(SleepTest._exact_sleep, self._samplerates)
 
-    def test_hybrid_sleep_accuracy(self):
+    def _test_hybrid_sleep_accuracy(self):
         self._test_sleep_accuracy(SleepTest._hybrid_sleep, self._samplerates)

@@ -92,7 +92,7 @@ class DownsamplingProcessor(BaseProcessor):
         @param sampling_rate: the desired sampling rate [Hz]
         """
         super(DownsamplingProcessor, self).__init__()
-        self._target_topics = [t.name for t in target_topics] if target_topics is not None else None
+        self._target_topics = target_topics if target_topics is not None else [Topic()]
         self._sampling_rate = sampling_rate
         self._period_time = 1. / sampling_rate
 
@@ -106,7 +106,7 @@ class DownsamplingProcessor(BaseProcessor):
         return self._sample_hist[uuid]
 
     def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
-        if self._target_topics is None or frame.topic.name in self._target_topics:
+        if self._target_topics is None or frame.topic in self._target_topics:
             hist = self._get_history(frame.topic.uuid)
             hist.add(frame)
             _frame = hist.get_dataframe()
@@ -118,15 +118,8 @@ class DownsamplingProcessor(BaseProcessor):
 
     @property
     def input_topics(self) -> List[Topic]:
-        if self._target_topics:
-            return [Topic(name=name) for name in self._target_topics]
-        else:
-            return [Topic()]
+        return self._target_topics
 
     @property
     def output_topics(self) -> Optional[List[Topic]]:
-        # Check what happens if no topic names are defined
-        if self._target_topics:
-            return [Topic(name=f"{name}.{self._sampling_rate}Hz") for name in self._target_topics]
-        else:
-            return [Topic()]
+        return [Topic(name=f"{t.name}.{self._sampling_rate}Hz", dtype=t.dtype) for t in self._target_topics]
