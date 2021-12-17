@@ -1,6 +1,5 @@
 import os
 import unittest
-import wave
 from time import sleep
 import pathlib
 
@@ -14,7 +13,6 @@ from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 
 class AudioTest(unittest.TestCase):
-    _filename = 'test_mic_to_wave_pipeline.wav'
 
     @staticmethod
     def _run_simple_mic_pipeline(topic=None):
@@ -53,7 +51,7 @@ class AudioTest(unittest.TestCase):
         pipeline.stop()
         pipeline.join()
 
-    def test_mic_simple(self):
+    def _est_mic_simple(self):
         sink = self._run_simple_mic_pipeline()
         # import soundfile as sf
         # with sf.SoundFile("test.flac", mode="w", samplerate=44100, channels=1) as sfile:
@@ -61,20 +59,24 @@ class AudioTest(unittest.TestCase):
         #         sfile.write(frame.data)
         self.assertGreater(len(sink), 1)
 
-    def test_mic_simple_topic_filtered(self):
+    def _test_mic_simple_topic_filtered(self):
         sink = self._run_simple_mic_pipeline(topic=Topic(name="audio", dtype=np.ndarray))
         self.assertGreater(len(sink), 1)
 
-    def test_mic_to_wave_pipeline(self):
-        self._run_mic_to_wave_pipeline(filename=self._filename)
-        wav_file = pathlib.Path(self._filename)
-        self.assertTrue(wav_file.exists())
-        self.assertTrue(wav_file.is_file())
-
-    def test_mic_to_wave_pipeline_topic_filtered(self):
-        self._run_mic_to_wave_pipeline(topic=Topic(name="audio", dtype=np.ndarray), filename=self._filename)
-        wav_file = pathlib.Path(self._filename)
+    def _test_mic_to_wave_pipeline(self):
+        filename = 'test_mic_to_wave_pipeline_01.wav'
+        self._run_mic_to_wave_pipeline(filename=filename)
+        wav_file = pathlib.Path(filename)
         self.assertTrue(wav_file.exists())
         self.assertTrue(wav_file.is_file())
         # Cleanup
-        os.remove(self._filename)
+        os.remove(filename)
+
+    def _test_mic_to_wave_pipeline_topic_filtered(self):
+        filename = 'test_mic_to_wave_pipeline_02.wav'
+        self._run_mic_to_wave_pipeline(topic=Topic(name="audio", dtype=np.ndarray), filename=filename)
+        wav_file = pathlib.Path(filename)
+        self.assertTrue(wav_file.exists())
+        self.assertTrue(wav_file.is_file())
+        # Cleanup
+        os.remove(filename)

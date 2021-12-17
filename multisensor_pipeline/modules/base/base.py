@@ -233,12 +233,9 @@ class BaseSink(BaseModule, ABC):
            frame: frame containing MSPControlMessage
         """
         if frame.topic.is_control_topic:
-            if frame.source_uuid is not None:
-                logger.debug(f"[CONTROL] {frame.source_uuid} -> {frame.data} -> {self.uuid}")
-            else:
-                logger.debug(f"[CONTROL] NONE -> {frame.data} -> {self.uuid}")
             if frame.data == MSPControlMessage.END_OF_STREAM:
                 if frame.source_uuid in self._active_sources:
+                    logger.debug(f"[CONTROL] {frame.source_uuid} -> {frame.data} -> {self.uuid}")
                     # set source to inactive
                     self._active_sources[frame.source_uuid] = False
                     # if no active source is left
@@ -247,7 +244,7 @@ class BaseSink(BaseModule, ABC):
             elif frame.data == MSPControlMessage.PASS:
                 pass
             else:
-                logger.warning(f"unhandled control message: {frame.data}")
+                logger.warning(f"[UNHANDLED CONTROL] {frame.source_uuid} -> {frame.data} -> {self.uuid}")
             return True
         return False
 

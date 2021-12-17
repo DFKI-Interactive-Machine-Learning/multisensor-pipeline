@@ -136,28 +136,28 @@ class TopicTest(unittest.TestCase):
         source = AnySource()
         sink = AnySink()
         run_pipeline(source, sink)
-        self.assertAlmostEqual(NUM_SAMPLES, source.len, delta=0)
+        self.assertAlmostEqual(NUM_SAMPLES, source.len, delta=1)
         self.assertAlmostEqual(NUM_SAMPLES, sink.len, delta=1)
 
     def test_any_any_topic_filtered_with_any(self):
         source = AnySource()
         sink = AnySink()
         run_pipeline(source, sink, Topic())
-        self.assertAlmostEqual(NUM_SAMPLES, source.len, delta=0)
+        self.assertAlmostEqual(NUM_SAMPLES, source.len, delta=1)
         self.assertAlmostEqual(NUM_SAMPLES, sink.len, delta=1)
 
     def test_any_any_topic_filtered_with_specific(self):
         source = AnySource()
         sink = AnySink()
         run_pipeline(source, sink, Topic(dtype=bool))
-        self.assertAlmostEqual(NUM_SAMPLES, source.len, delta=0)
+        self.assertAlmostEqual(NUM_SAMPLES, source.len, delta=1)
         self.assertEqual(0, sink.len)
 
     def test_any_specific_topic(self):
         source = AnySource()
         sink = IntSink()
         run_pipeline(source, sink)
-        self.assertAlmostEqual(NUM_SAMPLES, source.len, delta=0)
+        self.assertAlmostEqual(NUM_SAMPLES, source.len, delta=1)
         self.assertAlmostEqual(NUM_SAMPLES, sink.len, delta=1)
 
     def test_any_specific_topic_filtered_with_specific_correct(self):
@@ -175,7 +175,7 @@ class TopicTest(unittest.TestCase):
         source = IntSource()
         sink = AnySink()
         run_pipeline(source, sink)
-        self.assertAlmostEqual(NUM_SAMPLES, source.len, delta=0)
+        self.assertAlmostEqual(NUM_SAMPLES, source.len, delta=1)
         self.assertAlmostEqual(NUM_SAMPLES, sink.len, delta=1)
 
     def test_specific_any_topic_filtered_with_specific_correct(self):
@@ -206,5 +206,5 @@ class TopicTest(unittest.TestCase):
         source = IntSource()
         sink = IntSink()
         run_pipeline(source, sink, Topic(dtype=int))
-        self.assertAlmostEqual(NUM_SAMPLES, source.len, delta=0)
+        self.assertAlmostEqual(NUM_SAMPLES, source.len, delta=1)
         self.assertAlmostEqual(NUM_SAMPLES, sink.len, delta=1)

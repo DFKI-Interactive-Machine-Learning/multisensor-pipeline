@@ -30,7 +30,7 @@ class CropByPointerProcessor(BaseProcessor):
                 return None
 
             return MSPDataFrame(
-                topic=Topic(f"{self._latest_image_name}.cropped", dtype=Image.Image),
+                topic=Topic(dtype=Image.Image, name=f"{self._latest_image_name}.cropped"),
                 timestamp=frame.timestamp,
                 data=img_patch
             )

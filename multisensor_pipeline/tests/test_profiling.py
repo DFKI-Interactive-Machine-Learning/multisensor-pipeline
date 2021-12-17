@@ -27,8 +27,8 @@ def _run_profiling(topics=None, target_sampling_rate=20, runtime=2):
     pipeline.add_sink(sink)
 
     # (3) ...and connect the modules
-    pipeline.connect(source_0, sink, topics=topics[0] if topics is not None else None)
-    pipeline.connect(source_1, processor, topics=topics[1] if topics is not None else None)
+    pipeline.connect(source, sink, topics=topics[0] if topics is not None else None)
+    pipeline.connect(source, processor, topics=topics[1] if topics is not None else None)
     pipeline.connect(processor, sink, topics=topics[2] if topics is not None else None)
 
     # Test
@@ -113,14 +113,14 @@ class ProfilingTest(unittest.TestCase):
             self.assertAlmostEqual(frequency, stats._sma, delta=1)
 
     def test_profiling(self):
-        topic_0 = Topic(name="random", dtype=np.ndarray)
+        topic_0 = Topic(name="random", dtype=int)
         topic_1 = Topic(name="random", dtype=int)
         topic_2 = Topic(name="random.10Hz", dtype=int)
         pipeline = _run_profiling()
         self.verify_profiling(pipeline, [topic_0, topic_1, topic_2])
 
     def test_profiling_filtered(self):
-        topic_0 = Topic(name="random", dtype=np.ndarray)
+        topic_0 = Topic(name="random", dtype=int)
         topic_1 = Topic(name="random", dtype=int)
         topic_2 = Topic(name="random.10Hz", dtype=int)
         pipeline = _run_profiling([topic_0, topic_1, topic_2])

@@ -1,3 +1,4 @@
+import os
 import unittest
 import numpy as np
 from multisensor_pipeline.modules.persistence.recording import DefaultRecordingSink
@@ -13,6 +14,9 @@ import logging
 
 
 class DefaultSerializationTest(unittest.TestCase):
+
+    def setUp(self) -> None:
+        self.filename = "recording_test.msgpack"
 
     def test_image_serialization(self):
         # create random image
@@ -46,13 +50,12 @@ class DefaultSerializationTest(unittest.TestCase):
                 self.incoming_timestamps.append(perf_counter())
                 self.frames.append(frame)
 
-        filename = "recording_test.msgpack"
 
         # --- perform a recording ---
         # create modules
         sampling_rate = 100
         rec_source = RandomArraySource(shape=(5,), samplerate=sampling_rate)
-        rec_sink = DefaultRecordingSink(filename, override=True)
+        rec_sink = DefaultRecordingSink(self.filename, override=True)
         rec_list = ListSink()
         # add to pipeline
         rec_pipeline = GraphPipeline()
@@ -71,7 +74,7 @@ class DefaultSerializationTest(unittest.TestCase):
         # --- load the recording ---
         # create modules
         playback_speed = 1.
-        replay_source = DefaultReplaySource(file_path=filename, playback_speed=playback_speed)
+        replay_source = DefaultReplaySource(file_path=self.filename, playback_speed=playback_speed)
         replay_list = FrameTimeSink()
         replay_pipeline = GraphPipeline()
         replay_pipeline.add_source(replay_source)
@@ -105,3 +108,11 @@ class DefaultSerializationTest(unittest.TestCase):
             f"Playback ({playback_speed}x) at {playback_fps} Hz"
         )
         self.assertAlmostEqual(rec_fps, playback_fps, delta=.02*rec_fps)
+
+    # Cleanup
+    def tearDown(self) -> None:
+        if os.path.exists(self.filename):
+            os.remove(self.filename)
+
+
+

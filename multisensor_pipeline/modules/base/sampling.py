@@ -26,6 +26,7 @@ class BaseDiscreteSamplingSource(BaseSource, ABC):
 
     def _worker(self):
         t = time.perf_counter()
+        self._notify(self.on_update())
         while self._active:
             t_next = t + self._period_time
             _ = self._scheduler.enterabs(
