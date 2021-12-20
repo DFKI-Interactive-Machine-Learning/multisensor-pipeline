@@ -6,6 +6,8 @@ import logging
 from typing import Optional, List
 from random import randint
 import numpy as np
+from sounddevice import rec
+
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic
 from multisensor_pipeline.modules.base.base import BaseSource, BaseProcessor, BaseSink
 from multisensor_pipeline.modules.npy import RandomArraySource, ArrayManipulationProcessor
@@ -14,6 +16,29 @@ from multisensor_pipeline.modules import QueueSink, ConsoleSink, SleepTrashSink,
 from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 logging.basicConfig(level=logging.DEBUG)
+
+
+class TimestampSource(BaseSource):
+    def on_update(self) -> Optional[MSPDataFrame]:
+        sleep(0.1)
+        return MSPDataFrame(data=time.perf_counter(), topic=Topic(name="time", dtype=float))
+
+    @property
+    def output_topics(self) -> Optional[List[Topic]]:
+        return [Topic(name="time", dtype=float)]
+
+
+class DelayMeasurementSink(BaseSink):
+    def __init__(self):
+        super(DelayMeasurementSink, self).__init__()
+        self.time_diffs = []
+
+    def on_update(self, frame: MSPDataFrame):
+        self.time_diffs.append(time.perf_counter() - frame.data)
+
+    @property
+    def input_topics(self) -> Optional[List[Topic]]:
+        return [Topic(name="time", dtype=float)]
 
 
 class RandomIntSource(BaseSource):
@@ -247,3 +272,46 @@ class BaseTestCase(unittest.TestCase):
         self.assertEqual(len(list_sink), 10)
         self.assertEqual(sleep_trash_sink.counter, 10)
         self.assertEqual((end_time - start_time).seconds, 5)
+
+    def _run_latency_pipeline(self, n=10):
+        source = TimestampSource()
+        sink = DelayMeasurementSink()
+
+        pipeline = GraphPipeline()
+        pipeline.add([source, sink])
+        last_module = source
+        for i in range(n):
+            p = PassthroughProcessor()
+            pipeline.add_processor(p)
+            pipeline.connect(module=last_module, successor=p)
+            last_module = p
+
+        pipeline.connect(module=last_module, successor=sink)
+
+        with pipeline:
+            sleep(1.)
+
+        diffs = np.array(sink.time_diffs)
+        return diffs.mean(), diffs.std(), diffs.min(), diffs.max()
+
+    def test_latency(self):
+        import sys
+        recursion_limit = sys.getrecursionlimit()
+        sys.setrecursionlimit(5000)
+        print(f"max recursion depth is {recursion_limit} (will be temporarily set to 5000)")
+        m = {}
+        try:
+            for n in [1, 100, 1000]:
+                mean, sd, min, max = self._run_latency_pipeline(n=n)
+                print(f"Latency with {n} processors: m={mean:.3f}s (sd={sd:.3f}) range=[{min:.3f}s, {max:.3f}s]")
+                m[n] = (mean, sd, min, max)
+        finally:
+            sys.setrecursionlimit(recursion_limit)
+            print(f"max recursion depth was reset to {recursion_limit}")
+            self.assertEqual(recursion_limit, sys.getrecursionlimit())
+
+        for n, (mean, sd, min, max) in m.items():
+            delay_per_processor = mean / float(n)
+            self.assertLess(delay_per_processor, .001)
+
+
