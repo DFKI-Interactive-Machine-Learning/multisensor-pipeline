@@ -50,7 +50,6 @@ class DefaultSerializationTest(unittest.TestCase):
                 self.incoming_timestamps.append(perf_counter())
                 self.frames.append(frame)
 
-
         # --- perform a recording ---
         # create modules
         sampling_rate = 100
@@ -73,7 +72,7 @@ class DefaultSerializationTest(unittest.TestCase):
 
         # --- load the recording ---
         # create modules
-        playback_speed = 1.
+        playback_speed = .5  # float("inf")
         replay_source = DefaultReplaySource(file_path=self.filename, playback_speed=playback_speed)
         replay_list = FrameTimeSink()
         replay_pipeline = GraphPipeline()
@@ -107,7 +106,7 @@ class DefaultSerializationTest(unittest.TestCase):
             f"Recording at {sampling_rate} Hz (actual: {rec_fps} Hz)\t"
             f"Playback ({playback_speed}x) at {playback_fps} Hz"
         )
-        self.assertAlmostEqual(rec_fps, playback_fps, delta=.02*rec_fps)
+        self.assertAlmostEqual(rec_fps * playback_speed, playback_fps, delta=.05*rec_fps)
 
     # Cleanup
     def tearDown(self) -> None:

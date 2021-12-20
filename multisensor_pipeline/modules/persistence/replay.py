@@ -1,5 +1,3 @@
-import msgpack
-
 from multisensor_pipeline.dataframe import MSPDataFrame
 from multisensor_pipeline.modules.persistence.dataset import BaseDatasetSource
 from typing import Optional
