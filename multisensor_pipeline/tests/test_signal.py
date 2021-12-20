@@ -23,7 +23,7 @@ class DownSamplingProcessorTest(unittest.TestCase):
             samplerate=num_samples,
             max_count=num_samples,
         )
-        processor = DownsamplingProcessor(target_topics=[source.output_topics[0]], sampling_rate=num_samples)
+        processor = DownsamplingProcessor(target_topics=[source.output_topics[0]], samplerate=num_samples)
         sink_0 = ListSink()
         sink_1 = ListSink()
 
@@ -71,9 +71,9 @@ class DownSamplingProcessorTest(unittest.TestCase):
             max_count=100,
         )
         if topics:
-            processor = DownsamplingProcessor(sampling_rate=1, target_topics=[Topic(dtype=int, name="random")])
+            processor = DownsamplingProcessor(samplerate=1, target_topics=[Topic(dtype=int, name="random")])
         else:
-            processor = DownsamplingProcessor(sampling_rate=1)
+            processor = DownsamplingProcessor(samplerate=1)
         sink = ListSink()
 
         # (2) add module to a pipeline...

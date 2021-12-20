@@ -84,17 +84,17 @@ class DownsamplingProcessor(BaseProcessor):
         def period_time_in(self):
             return (self.dataframes[-1].timestamp - self.dataframes[0].timestamp) / len(self.dataframes)
 
-    def __init__(self, target_topics: Optional[List[Topic]] = None, sampling_rate: int = 5):
+    def __init__(self, target_topics: Optional[List[Topic]] = None, samplerate: int = 5):
         """
         Downsamples a signal to a given sampling_rate [Hz], if the original rate is higher.
         Otherwise, the sampling rate stays the same (no upsampling).
         @param target_topics: the dtype to be resampled; if None, all incoming dtypes are resampled
-        @param sampling_rate: the desired sampling rate [Hz]
+        @param samplerate: the desired sampling rate [Hz]
         """
         super(DownsamplingProcessor, self).__init__()
         self._target_topics = target_topics if target_topics is not None else [Topic()]
-        self._sampling_rate = sampling_rate
-        self._period_time = 1. / sampling_rate
+        self._sampling_rate = samplerate
+        self._period_time = 1. / samplerate
 
         self._sample_hist = dict()
         self._last_sent = dict()

@@ -11,13 +11,13 @@ from multisensor_pipeline.modules.signal import DownsamplingProcessor
 import numpy as np
 
 
-def _run_profiling(topics=None, target_sampling_rate=20, runtime=2):
+def _run_profiling(topics=None, samplerate=20, runtime=2):
     # (1) define the modules
     source = RandomArraySource(
-        samplerate=target_sampling_rate * 2,
-        max_count=target_sampling_rate * 2 * runtime * 1.2,
+        samplerate=samplerate * 2,
+        max_count=samplerate * 2 * runtime,
     )
-    processor = DownsamplingProcessor(sampling_rate=target_sampling_rate)
+    processor = DownsamplingProcessor(samplerate=samplerate)
     sink = ListSink()
 
     # (2) add module to a pipeline...
@@ -40,12 +40,12 @@ def _run_profiling(topics=None, target_sampling_rate=20, runtime=2):
     return pipeline
 
 
-def _run_simple_profiling(topics=None, sampling_rate=25, runtime=2):
+def _run_simple_profiling(topics=None, samplerate=25, runtime=2):
     # (1) define the modules
     source = RandomArraySource(
         shape=(2,),
-        samplerate=sampling_rate,
-        max_count=int(sampling_rate * runtime * 1.2),
+        samplerate=samplerate,
+        max_count=int(samplerate * runtime * 1.2),
     )
     sink = ListSink()
 
@@ -67,6 +67,9 @@ def _run_simple_profiling(topics=None, sampling_rate=25, runtime=2):
 
 
 class ProfilingTest(unittest.TestCase):
+
+    _test_frequency = 20
+
     def test_frequency_stats(self):
         frequency = 10
         msp_stats = MSPModuleStats()
@@ -86,8 +89,8 @@ class ProfilingTest(unittest.TestCase):
 
     def test_simple_profiling(self):
         topic = Topic(name="random", dtype=np.ndarray)
-        frequency = 25
-        pipeline = _run_simple_profiling(sampling_rate=frequency)
+        frequency = self._test_frequency
+        pipeline = _run_simple_profiling(samplerate=frequency)
         for sink in pipeline.sink_nodes:
             stats = sink.stats.get_stats(direction=1, topic=topic)
             self.assertAlmostEqual(frequency, stats._cma, delta=1)
@@ -100,8 +103,8 @@ class ProfilingTest(unittest.TestCase):
 
     def test_simple_profiling_filtered(self):
         topic = Topic(name="random", dtype=np.ndarray)
-        frequency = 25
-        pipeline = _run_simple_profiling(topics=[topic], sampling_rate=frequency)
+        frequency = self._test_frequency
+        pipeline = _run_simple_profiling(topics=[topic], samplerate=frequency)
         for sink in pipeline.sink_nodes:
             stats = sink.stats.get_stats(direction=1, topic=topic)
             self.assertAlmostEqual(frequency, stats._cma, delta=1)
@@ -115,33 +118,36 @@ class ProfilingTest(unittest.TestCase):
     def test_profiling(self):
         topic_0 = Topic(name="random", dtype=int)
         topic_1 = Topic(name="random", dtype=int)
-        topic_2 = Topic(name="random.10Hz", dtype=int)
-        pipeline = _run_profiling()
+        topic_2 = Topic(name=f"random.{self._test_frequency}Hz", dtype=int)
+        pipeline = _run_profiling(samplerate=self._test_frequency)
         self.verify_profiling(pipeline, [topic_0, topic_1, topic_2])
 
     def test_profiling_filtered(self):
         topic_0 = Topic(name="random", dtype=int)
         topic_1 = Topic(name="random", dtype=int)
-        topic_2 = Topic(name="random.10Hz", dtype=int)
-        pipeline = _run_profiling([topic_0, topic_1, topic_2])
+        topic_2 = Topic(name=f"random.{self._test_frequency}Hz", dtype=int)
+        pipeline = _run_profiling(topics=[topic_0, topic_1, topic_2], samplerate=self._test_frequency)
         self.verify_profiling(pipeline, [topic_0, topic_1, topic_2])
 
-    def verify_profiling(self, pipeline, topics:List[Topic]):
+    def verify_profiling(self, pipeline, topics: List[Topic], delta=1):
         sink = pipeline.sink_nodes[0]
-        stats = sink.stats.get_stats(direction=1, topic=topics[0])
-        self.assertAlmostEqual(10, stats._cma, delta=1)
-        self.assertAlmostEqual(10, stats._sma, delta=1)
-        stats = sink.stats.get_stats(direction=1, topic=topics[2])
-        self.assertAlmostEqual(10, stats._cma, delta=1)
-        self.assertAlmostEqual(10, stats._sma, delta=1)
+        stats = sink.stats.get_stats(direction=1, topic=topics[0])  # IN
+        self.assertAlmostEqual(2 * self._test_frequency, stats._cma, delta=delta)
+        self.assertAlmostEqual(2 * self._test_frequency, stats._sma, delta=delta)
+        stats = sink.stats.get_stats(direction=1, topic=topics[2])  # IN
+        self.assertAlmostEqual(self._test_frequency, stats._cma, delta=delta)
+        self.assertAlmostEqual(self._test_frequency, stats._sma, delta=delta)
 
-        source_0 = pipeline.source_nodes[0]
-        source_1 = pipeline.source_nodes[1]
+        source = pipeline.source_nodes[0]
+        stats = source.stats.get_stats(direction=0, topic=topics[0])  # OUT
+        self.assertAlmostEqual(2 * self._test_frequency, stats._cma, delta=delta)
+        self.assertAlmostEqual(2 * self._test_frequency, stats._sma, delta=delta)
 
-        stats = source_0.stats.get_stats(direction=0, topic=topics[0])
-        self.assertAlmostEqual(10, stats._cma, delta=1)
-        self.assertAlmostEqual(10, stats._sma, delta=1)
+        processor = pipeline.processor_nodes[0]
+        stats = processor.stats.get_stats(direction=0, topic=topics[1])  # OUT
+        self.assertAlmostEqual(self._test_frequency, stats._cma, delta=delta)
+        self.assertAlmostEqual(self._test_frequency, stats._sma, delta=delta)
 
-        stats = source_1.stats.get_stats(direction=0, topic=topics[1])
-        self.assertAlmostEqual(50, stats._cma, delta=10)
-        self.assertAlmostEqual(50, stats._sma, delta=10)
+        stats = processor.stats.get_stats(direction=1, topic=topics[1])  # IN
+        self.assertAlmostEqual(2 * self._test_frequency, stats._cma, delta=delta)
+        self.assertAlmostEqual(2 * self._test_frequency, stats._sma, delta=delta)

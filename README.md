@@ -158,14 +158,19 @@ Please cite the following paper when using the multisensor-pipeline in your proj
 
 ```
 @inproceedings{barz_multisensor-pipeline_2021,
-	address = {Montréal, QC, Canada},
-	series = {{ICMI} ’21 {Companion}},
-	title = {Multisensor-{Pipeline}: {A} {Lightweight}, {Flexible}, and {Extensible} {Framework} for {Building} {Multimodal}-{Multisensor} {Interfaces}},
-	doi = {10.1145/3461615.3485432},
-	booktitle = {Companion {Publication} of the 2021 {International} {Conference} on {Multimodal} {Interaction}},
-	publisher = {ACM},
-	author = {Barz, Michael and Bhatti, Omair Shahzad and Lüers, Bengt and Prange, Alexander and Sonntag, Daniel},
-	year = {2021},
-	pages = {6},
+    author = {Barz, Michael and Bhatti, Omair Shahzad and L\"{u}ers, Bengt and Prange, Alexander and Sonntag, Daniel},
+    title = {Multisensor-Pipeline: A Lightweight, Flexible, and Extensible Framework for Building Multimodal-Multisensor Interfaces},
+    year = {2021},
+    isbn = {9781450384711},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    url = {https://doi.org/10.1145/3461615.3485432},
+    doi = {10.1145/3461615.3485432},
+    booktitle = {Companion Publication of the 2021 International Conference on Multimodal Interaction},
+    pages = {13–18},
+    numpages = {6},
+    keywords = {open source framework, stream processing, eye tracking, computer vision, prototyping, multimodal-multisensor interfaces},
+    location = {Montreal, QC, Canada},
+    series = {ICMI '21 Companion}
 }
 ```
