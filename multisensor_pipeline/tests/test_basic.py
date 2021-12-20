@@ -273,6 +273,25 @@ class BaseTestCase(unittest.TestCase):
         self.assertEqual(sleep_trash_sink.counter, 10)
         self.assertEqual((end_time - start_time).seconds, 5)
 
+    def test_dropout_simple(self):
+        samplerate = 100
+        max_age = .05
+        simulated_processing_time = .1
+        runtime = .5
+
+        source = RandomArraySource(samplerate=samplerate, max_count=samplerate)
+        processor = SleepPassthroughProcessor(sleep_time=simulated_processing_time, dropout=max_age)
+        sink = ListSink()
+        pipeline = GraphPipeline()
+        pipeline.add([source, processor, sink])
+        pipeline.connect(source, processor)
+        pipeline.connect(processor, sink)
+
+        with pipeline:
+            sleep(runtime)
+
+        self.assertLess(len(sink), runtime * samplerate)
+
     def _run_latency_pipeline(self, n=10):
         source = TimestampSource()
         sink = DelayMeasurementSink()
