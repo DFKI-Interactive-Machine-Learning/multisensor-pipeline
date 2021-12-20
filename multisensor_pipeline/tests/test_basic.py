@@ -173,10 +173,8 @@ class BaseTestCase(unittest.TestCase):
         pipeline.connect(module=processor, successor=sink)
 
         # print result of the constraint checker for 0.1 seconds
-        pipeline.start()
-        sleep(.5)
-        pipeline.stop()
-        pipeline.join()
+        with pipeline:
+            sleep(.5)
         self.assertEqual(len(sink), 10)
 
     def test_sleep_passthrough_processor(self):
