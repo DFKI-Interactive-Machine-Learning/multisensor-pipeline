@@ -3,6 +3,7 @@ from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic
 from typing import Optional, List
 import logging
 import numpy as np
+from copy import copy
 
 logger = logging.getLogger(__name__)
 
@@ -113,8 +114,9 @@ class DownsamplingProcessor(BaseProcessor):
             if _frame is not None:
                 _topic = Topic(name=f"{frame.topic.name}.{self._sampling_rate}Hz",
                                dtype=frame.topic.dtype)
-                _frame.topic = _topic
-                return _frame
+                new_frame = copy(_frame)
+                new_frame.topic = _topic
+                return new_frame
 
     @property
     def input_topics(self) -> List[Topic]:
