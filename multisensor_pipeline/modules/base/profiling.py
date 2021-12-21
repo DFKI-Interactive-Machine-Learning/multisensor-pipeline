@@ -47,23 +47,12 @@ class MSPModuleStats:
         def cma(self):
             return self._cma
 
-    # class FrequencyStats(MovingAverageStats):
-    #     """
-    #         Implementation of FrequencyStats
-    #     """
-    #
-    #     _last_sample = None  # timestamp of last frame (time of being received)
-    #
-    #     def update(self, sample: float):
-    #         if self._last_sample is not None:
-    #             rate = 1. / (sample - self._last_sample)
-    #             super(MSPModuleStats.FrequencyStats, self).update(rate)
-    #         self._last_sample = sample
-
-    class RobustFrequencyStats(MovingAverageStats):
+    class RobustSamplerateStats(object):
 
         def __init__(self, max_measurement_interval: float = 1. / 10):
-            super(MSPModuleStats.RobustFrequencyStats, self).__init__()
+            super(MSPModuleStats.RobustSamplerateStats, self).__init__()
+            self._num_samples = 0
+            self._samplerate = None
             self._t_start = None
             self._t_last_update = None
             self._measurement_interval = max_measurement_interval
@@ -77,9 +66,12 @@ class MSPModuleStats:
             time_since_last_update = timestamp - self._t_last_update
             if time_since_last_update >= self._measurement_interval:
                 measurement_time = timestamp - self._t_start
-                self._cma = float(self._num_samples - 1.) / measurement_time
-                self._sma = self._cma
+                self._samplerate = float(self._num_samples - 1.) / measurement_time
                 self._t_last_update = timestamp
+
+        @property
+        def samplerate(self):
+            return self._samplerate
 
     class Direction:
         OUT = 0
@@ -118,7 +110,7 @@ class MSPModuleStats:
         # per direction, topic -> update stats
         stats = self.get_stats(direction)
         if frame.topic.uuid not in stats:
-            stats[frame.topic.uuid] = self.RobustFrequencyStats()
+            stats[frame.topic.uuid] = self.RobustSamplerateStats()
         stats[frame.topic.uuid].update(time_received)
 
     def add_queue_state(self, qsize: int, skipped_frames: int):

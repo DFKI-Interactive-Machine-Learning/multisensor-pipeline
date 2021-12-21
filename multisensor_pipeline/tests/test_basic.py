@@ -6,7 +6,6 @@ import logging
 from typing import Optional, List
 from random import randint
 import numpy as np
-from sounddevice import rec
 
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic
 from multisensor_pipeline.modules.base.base import BaseSource, BaseProcessor, BaseSink
