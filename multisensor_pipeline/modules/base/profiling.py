@@ -52,7 +52,7 @@ class MSPModuleStats:
         def __init__(self, max_measurement_interval: float = 1. / 10):
             super(MSPModuleStats.RobustSamplerateStats, self).__init__()
             self._num_samples = 0
-            self._samplerate = None
+            self._samplerate = 0.
             self._t_start = None
             self._t_last_update = None
             self._measurement_interval = max_measurement_interval
@@ -87,7 +87,7 @@ class MSPModuleStats:
         self._in_stats = {}
         self._out_stats = {}
         self._queue_size = self.MovingAverageStats()
-        self._skipped_frames = self.MovingAverageStats()
+        self._skipped_frames = self.RobustSamplerateStats()
 
     def get_stats(self, direction: Direction, topic: Optional[Topic] = None):
         if direction == self.Direction.IN:
@@ -114,8 +114,18 @@ class MSPModuleStats:
         stats[frame.topic.uuid].update(time_received)
 
     def add_queue_state(self, qsize: int, skipped_frames: int):
+        time_received = time.perf_counter()
         self._queue_size.update(qsize)
-        self._skipped_frames.update(skipped_frames)
+        for i in range(skipped_frames):
+            self._skipped_frames.update(time_received)
+
+    @property
+    def frame_skip_rate(self):
+        return self._skipped_frames.samplerate
+
+    @property
+    def average_queue_size(self):
+        return self._queue_size.cma
 
     def finalize(self):
         self._stop_time = datetime.now()

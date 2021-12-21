@@ -281,7 +281,7 @@ class BaseTestCase(unittest.TestCase):
         source = RandomArraySource(samplerate=samplerate, max_count=samplerate)
         processor = SleepPassthroughProcessor(sleep_time=simulated_processing_time, dropout=max_age)
         sink = ListSink()
-        pipeline = GraphPipeline()
+        pipeline = GraphPipeline(profiling=True)
         pipeline.add([source, processor, sink])
         pipeline.connect(source, processor)
         pipeline.connect(processor, sink)
@@ -290,6 +290,9 @@ class BaseTestCase(unittest.TestCase):
             sleep(runtime)
 
         self.assertLess(len(sink), runtime * samplerate)
+        self.assertGreater(processor.stats.average_queue_size, 0)
+        self.assertAlmostEqual(processor.stats.frame_skip_rate, samplerate - 1./simulated_processing_time, delta=1)
+        self.assertEqual(sink.stats.frame_skip_rate, 0.)
 
     def _run_latency_pipeline(self, n=10):
         source = TimestampSource()
