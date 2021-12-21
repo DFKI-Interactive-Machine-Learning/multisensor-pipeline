@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 from multisensor_pipeline.dataframe import MSPDataFrame, MSPControlMessage, Topic
 from datetime import datetime
@@ -25,7 +26,7 @@ class MSPModuleStats:
             # see https://en.wikipedia.org/wiki/Moving_average
             self._samples.append(rate)
             if self._num_samples >= self._k - 1:
-                return  self._sma + (rate - self._samples.popleft()) / self._k
+                return self._sma + (rate - self._samples.popleft()) / self._k
             else:
                 return self._cma
 
@@ -38,18 +39,47 @@ class MSPModuleStats:
             self._sma = self._next_sma(sample)
             self._num_samples += 1
 
-    class FrequencyStats(MovingAverageStats):
-        """
-            Implementation of FrequencyStats
-        """
+        @property
+        def sma(self):
+            return self._sma
 
-        _last_sample = None  # timestamp of last frame (time of being received)
+        @property
+        def cma(self):
+            return self._cma
 
-        def update(self, sample: float):
-            if self._last_sample is not None:
-                rate = 1. / (sample - self._last_sample)
-                super(MSPModuleStats.FrequencyStats, self).update(rate)
-            self._last_sample = sample
+    # class FrequencyStats(MovingAverageStats):
+    #     """
+    #         Implementation of FrequencyStats
+    #     """
+    #
+    #     _last_sample = None  # timestamp of last frame (time of being received)
+    #
+    #     def update(self, sample: float):
+    #         if self._last_sample is not None:
+    #             rate = 1. / (sample - self._last_sample)
+    #             super(MSPModuleStats.FrequencyStats, self).update(rate)
+    #         self._last_sample = sample
+
+    class RobustFrequencyStats(MovingAverageStats):
+
+        def __init__(self, max_measurement_interval: float = 1. / 10):
+            super(MSPModuleStats.RobustFrequencyStats, self).__init__()
+            self._t_start = None
+            self._t_last_update = None
+            self._measurement_interval = max_measurement_interval
+
+        def update(self, timestamp: float):
+            if self._t_start is None:
+                self._t_start = timestamp
+                self._t_last_update = timestamp
+            self._num_samples += 1
+
+            time_since_last_update = timestamp - self._t_last_update
+            if time_since_last_update >= self._measurement_interval:
+                measurement_time = timestamp - self._t_start
+                self._cma = float(self._num_samples - 1.) / measurement_time
+                self._sma = self._cma
+                self._t_last_update = timestamp
 
     class Direction:
         OUT = 0
@@ -82,13 +112,13 @@ class MSPModuleStats:
 
     def add_frame(self, frame: MSPDataFrame, direction: Direction):
         time_received = time.perf_counter()
-        if isinstance(frame, MSPControlMessage):
+        if frame.topic.is_control_topic:
             return
 
         # per direction, topic -> update stats
         stats = self.get_stats(direction)
         if frame.topic.uuid not in stats:
-            stats[frame.topic.uuid] = self.FrequencyStats()
+            stats[frame.topic.uuid] = self.RobustFrequencyStats()
         stats[frame.topic.uuid].update(time_received)
 
     def add_queue_state(self, qsize: int, skipped_frames: int):

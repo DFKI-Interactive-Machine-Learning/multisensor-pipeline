@@ -1,3 +1,4 @@
+import time
 import unittest
 from random import randint
 from time import sleep
@@ -71,49 +72,67 @@ class ProfilingTest(unittest.TestCase):
     _test_frequency = 20
 
     def test_frequency_stats(self):
-        frequency = 10
+        frequency = self._test_frequency
         msp_stats = MSPModuleStats()
         frames: List = []
         topic = Topic(name="random", dtype=Tuple[int, int])
-        for _ in range(20):
+        for _ in range(2 * frequency):
             frames.append(MSPDataFrame(topic=topic, data=randint(0, 20)))
 
+        t_start = time.perf_counter()
         for frame in frames:
             msp_stats.add_frame(frame, direction=MSPModuleStats.Direction.IN)
-            sleep(1. / frequency)
+            sleep(1. / frequency)  # works for low samplerates only, because sleep is not accurate for many systems
+        t_dur = time.perf_counter() - t_start
+        actual_rate = (2. * frequency) / t_dur
 
         stats = msp_stats.get_stats(direction=MSPModuleStats.Direction.IN)
 
-        self.assertAlmostEqual(frequency, stats[topic.uuid]._cma, delta=1)
-        self.assertAlmostEqual(frequency, stats[topic.uuid]._sma, delta=1)
+        print(f"actual rate = {actual_rate:.3f} Hz \t"
+              f"measured = {stats[topic.uuid].cma:.3f} Hz")
+
+        self.assertAlmostEqual(actual_rate, stats[topic.uuid].cma, delta=1)
+        self.assertAlmostEqual(actual_rate, stats[topic.uuid].sma, delta=1)
 
     def test_simple_profiling(self):
         topic = Topic(name="random", dtype=np.ndarray)
         frequency = self._test_frequency
         pipeline = _run_simple_profiling(samplerate=frequency)
         for sink in pipeline.sink_nodes:
-            stats = sink.stats.get_stats(direction=1, topic=topic)
-            self.assertAlmostEqual(frequency, stats._cma, delta=1)
-            self.assertAlmostEqual(frequency, stats._sma, delta=1)
+            stats = sink.stats.get_stats(direction=MSPModuleStats.Direction.IN, topic=topic)
+            print(f"Ingoing samples\t"
+                  f"actual rate = {frequency:.3f} Hz \t"
+                  f"measured = {stats.cma:.3f} Hz")
+            self.assertAlmostEqual(frequency, stats.cma, delta=1)
+            self.assertAlmostEqual(frequency, stats.sma, delta=1)
 
         for source in pipeline.source_nodes:
-            stats = source.stats.get_stats(direction=0, topic=topic)
-            self.assertAlmostEqual(frequency, stats._cma, delta=1)
-            self.assertAlmostEqual(frequency, stats._sma, delta=1)
+            stats = source.stats.get_stats(direction=MSPModuleStats.Direction.OUT, topic=topic)
+            print(f"Outgoing samples\t"
+                  f"actual rate = {frequency:.3f} Hz \t"
+                  f"measured = {stats.cma:.3f} Hz")
+            self.assertAlmostEqual(frequency, stats.cma, delta=1)
+            self.assertAlmostEqual(frequency, stats.sma, delta=1)
 
     def test_simple_profiling_filtered(self):
         topic = Topic(name="random", dtype=np.ndarray)
         frequency = self._test_frequency
         pipeline = _run_simple_profiling(topics=[topic], samplerate=frequency)
         for sink in pipeline.sink_nodes:
-            stats = sink.stats.get_stats(direction=1, topic=topic)
-            self.assertAlmostEqual(frequency, stats._cma, delta=1)
-            self.assertAlmostEqual(frequency, stats._sma, delta=1)
+            stats = sink.stats.get_stats(direction=MSPModuleStats.Direction.IN, topic=topic)
+            print(f"Ingoing samples\t"
+                  f"actual rate = {frequency:.3f} Hz \t"
+                  f"measured = {stats._cma:.3f} Hz")
+            self.assertAlmostEqual(frequency, stats.cma, delta=1)
+            self.assertAlmostEqual(frequency, stats.sma, delta=1)
 
         for source in pipeline.source_nodes:
-            stats = source.stats.get_stats(direction=0, topic=topic)
-            self.assertAlmostEqual(frequency, stats._cma, delta=1)
-            self.assertAlmostEqual(frequency, stats._sma, delta=1)
+            stats = source.stats.get_stats(direction=MSPModuleStats.Direction.OUT, topic=topic)
+            print(f"Outgoing samples\t"
+                  f"actual rate = {frequency:.3f} Hz \t"
+                  f"measured = {stats.cma:.3f} Hz")
+            self.assertAlmostEqual(frequency, stats.cma, delta=1)
+            self.assertAlmostEqual(frequency, stats.sma, delta=1)
 
     def test_profiling(self):
         topic_0 = Topic(name="random", dtype=int)
@@ -129,25 +148,45 @@ class ProfilingTest(unittest.TestCase):
         pipeline = _run_profiling(topics=[topic_0, topic_1, topic_2], samplerate=self._test_frequency)
         self.verify_profiling(pipeline, [topic_0, topic_1, topic_2])
 
-    def verify_profiling(self, pipeline, topics: List[Topic], delta=1):
+    def verify_profiling(self, pipeline, topics: List[Topic], delta=3):
         sink = pipeline.sink_nodes[0]
-        stats = sink.stats.get_stats(direction=1, topic=topics[0])  # IN
-        self.assertAlmostEqual(2 * self._test_frequency, stats._cma, delta=delta)
-        self.assertAlmostEqual(2 * self._test_frequency, stats._sma, delta=delta)
-        stats = sink.stats.get_stats(direction=1, topic=topics[2])  # IN
-        self.assertAlmostEqual(self._test_frequency, stats._cma, delta=delta)
-        self.assertAlmostEqual(self._test_frequency, stats._sma, delta=delta)
+        stats = sink.stats.get_stats(direction=MSPModuleStats.Direction.IN, topic=topics[0])
+        print(f"Ingoing samples (sink)\t"
+              f"actual rate = {self._test_frequency:.3f} Hz \t"
+              f"measured = {stats.cma:.3f} Hz \t"
+              f"({topics[0].name})")
+        self.assertAlmostEqual(2 * self._test_frequency, stats.cma, delta=delta)
+        self.assertAlmostEqual(2 * self._test_frequency, stats.sma, delta=delta)
+        stats = sink.stats.get_stats(direction=MSPModuleStats.Direction.IN, topic=topics[2])
+        print(f"Ingoing samples (sink)\t"
+              f"actual rate = {self._test_frequency:.3f} Hz \t"
+              f"measured = {stats.cma:.3f} Hz \t"
+              f"({topics[2].name})")
+        self.assertAlmostEqual(self._test_frequency, stats.cma, delta=delta)
+        self.assertAlmostEqual(self._test_frequency, stats.sma, delta=delta)
 
         source = pipeline.source_nodes[0]
-        stats = source.stats.get_stats(direction=0, topic=topics[0])  # OUT
-        self.assertAlmostEqual(2 * self._test_frequency, stats._cma, delta=delta)
-        self.assertAlmostEqual(2 * self._test_frequency, stats._sma, delta=delta)
+        stats = source.stats.get_stats(direction=MSPModuleStats.Direction.OUT, topic=topics[0])
+        print(f"Outgoing samples (source)\t"
+              f"actual rate = {self._test_frequency:.3f} Hz \t"
+              f"measured = {stats.cma:.3f} Hz \t"
+              f"({topics[0].name})")
+        self.assertAlmostEqual(2 * self._test_frequency, stats.cma, delta=delta)
+        self.assertAlmostEqual(2 * self._test_frequency, stats.sma, delta=delta)
 
         processor = pipeline.processor_nodes[0]
-        stats = processor.stats.get_stats(direction=0, topic=topics[1])  # OUT
-        self.assertAlmostEqual(self._test_frequency, stats._cma, delta=delta)
-        self.assertAlmostEqual(self._test_frequency, stats._sma, delta=delta)
+        stats = processor.stats.get_stats(direction=MSPModuleStats.Direction.OUT, topic=topics[2])
+        print(f"Outgoing samples (processor)\t"
+              f"actual rate = {self._test_frequency:.3f} Hz \t"
+              f"measured = {stats.cma:.3f} Hz \t"
+              f"({topics[2].name})")
+        self.assertAlmostEqual(self._test_frequency, stats.cma, delta=delta)
+        self.assertAlmostEqual(self._test_frequency, stats.sma, delta=delta)
 
-        stats = processor.stats.get_stats(direction=1, topic=topics[1])  # IN
-        self.assertAlmostEqual(2 * self._test_frequency, stats._cma, delta=delta)
-        self.assertAlmostEqual(2 * self._test_frequency, stats._sma, delta=delta)
+        stats = processor.stats.get_stats(direction=MSPModuleStats.Direction.IN, topic=topics[1])
+        print(f"Incoming samples (processor)\t"
+              f"actual rate = {self._test_frequency:.3f} Hz \t"
+              f"measured = {stats.cma:.3f} Hz \t"
+              f"({topics[1].name})")
+        self.assertAlmostEqual(2 * self._test_frequency, stats.cma, delta=delta)
+        self.assertAlmostEqual(2 * self._test_frequency, stats.sma, delta=delta)
