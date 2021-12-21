@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class NetworkingTestCase(unittest.TestCase):
     def test_zmq_pub_sub(self):
-        wait_time = .5
+        wait_time = 2.
 
         logger.info(
             "initialize pipelines: [mic -> pub] ->TCP-> [sub -> final_sink]."
@@ -32,7 +32,7 @@ class NetworkingTestCase(unittest.TestCase):
         pub_pipeline = GraphPipeline()
         zmq_pub = ZmqPublisher()
         sink1 = ListSink()
-        source = RandomArraySource(shape=1, sampling_rate=100)
+        source = RandomArraySource(shape=1, samplerate=100)
         pub_pipeline.add_source(source)
         pub_pipeline.add_sink(zmq_pub)
         pub_pipeline.add_sink(sink1)
@@ -53,12 +53,12 @@ class NetworkingTestCase(unittest.TestCase):
         sub_pipeline.join()
 
         sink1_values = {
-            (frame.timestamp, frame['value'].flatten().tolist()[0])
+            (frame.timestamp, frame.data.flatten().tolist()[0])
             for frame in sink1.list
         }
 
         sink2_values = {
-            (frame.timestamp, frame['value'].flatten().tolist()[0])
+            (frame.timestamp, frame.data.flatten().tolist()[0])
             for frame in sink2.list
         }
 

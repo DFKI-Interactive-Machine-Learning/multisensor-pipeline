@@ -1,13 +1,14 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from threading import Thread
 from queue import Queue
-from multiprocessing.queues import Queue as MPQueue
 from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic
-from multisensor_pipeline.dataframe.control import MSPControlMessage
+from multisensor_pipeline.dataframe import MSPControlMessage
 from multisensor_pipeline.modules.base.profiling import MSPModuleStats
-from typing import Union, Optional
+from multiprocessing.queues import Queue as MPQueue
+from typing import Union, Optional, List
 import logging
 import uuid
+from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 
@@ -38,17 +39,16 @@ class BaseModule(object):
         self.on_start()
         self._thread.start()
 
-    def _generate_topic(self, name: str, dtype: type = None):
-        return Topic(name=name, dtype=dtype, source_module=self.__class__, source_uuid=self.uuid)
-
     def on_start(self):
         """ Custom initialization """
         pass
 
+    @abstractmethod
     def _worker(self):
         """ Main worker function (async) """
         raise NotImplementedError()
 
+    @abstractmethod
     def on_update(self):
         """ Custom update routine. """
         raise NotImplementedError()
@@ -88,6 +88,18 @@ class BaseModule(object):
         """ Returns real-time profiling information. """
         return self._stats
 
+    @property
+    def profiling(self) -> bool:
+        """ Profiling actvice/deactive """
+        return self._profiling
+
+    @profiling.setter
+    def profiling(self, value):
+        self._profiling = value
+
+    def __hash__(self):
+        return hash(self.uuid)
+
 
 class BaseSource(BaseModule, ABC):
     """ Base class for data sources. """
@@ -97,32 +109,57 @@ class BaseSource(BaseModule, ABC):
         Initializes the worker thread and a queue list for communication with observers that listen to that source.
         """
         super().__init__()
-        self._sinks = []
+        self._sinks = defaultdict(list)
 
     def _worker(self):
         """ Source worker function: notify observer when source update function returns a DataFrame """
         while self._active:
             self._notify(self.on_update())
 
+    @abstractmethod
     def on_update(self) -> Optional[MSPDataFrame]:
         """ Custom update routine. """
         raise NotImplementedError()
 
-    def add_observer(self, sink):
+    def add_observer(self, sink, topics: Optional[Union[Topic, List[Topic]]] = None):
         """
         Register a Sink or Queue as an observer.
 
         Args:
+            topics:
             sink: A thread-safe Queue object or Sink [or any class that implements put(tuple)]
         """
+        connected = False
+        if isinstance(topics, Topic):
+            topics = [topics]
+
         if isinstance(sink, Queue) or isinstance(sink, MPQueue):
-            self._sinks.append(sink)
+            if topics is None:
+                self._sinks[Topic()].append(sink)
+                connected = True
+            else:
+                for topic in topics:
+                    self._sinks[topic].append(sink)
+                    connected = True
             return
 
         assert isinstance(sink, BaseSink) or isinstance(sink, BaseProcessor)
-        sink.add_source(self)
-        self._sinks.append(sink)
-        # TODO: check if types match -> raise error or warning
+        # case 1: if no topic filter is specified
+        if topics is None:
+            for topic in self.output_topics:
+                if topic in sink.input_topics:
+                    self._sinks[topic].append(sink)
+                    sink.add_source(self)
+                    connected = True
+        # case 2: connection with specified topic
+        else:
+            for topic in topics:
+                matches_output = any([t == topic for t in self.output_topics])
+                if matches_output and topic in sink.input_topics:
+                    self._sinks[topic].append(sink)
+                    sink.add_source(self)
+                    connected = True
+        assert connected, f"No connection could be established between {self.name}:{sink.name} with topic(s) {topics}"
 
     def _notify(self, frame: Optional[MSPDataFrame]):
         """
@@ -134,10 +171,13 @@ class BaseSource(BaseModule, ABC):
         if frame is None:
             return
 
-        assert isinstance(frame, MSPDataFrame), "You must use a MSPDataFrame instance to wrap your data."
+        # assert isinstance(frame, MSPDataFrame), "You must use a MSPDataFrame instance to wrap your data."
+        frame.source_uuid = self.uuid
 
-        for sink in self._sinks:
-            sink.put(frame)
+        for topic, sinks in self._sinks.items():
+            if frame.topic.is_control_topic or frame.topic == topic:
+                for sink in sinks:
+                    sink.put(frame)
 
         if self._profiling:
             self._stats.add_frame(frame, MSPModuleStats.Direction.OUT)
@@ -149,8 +189,13 @@ class BaseSource(BaseModule, ABC):
         Args:
             blocking:
         """
-        self._notify(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM, source=self))
+        self._notify(MSPControlMessage(message=MSPControlMessage.END_OF_STREAM))
         super(BaseSource, self).stop(blocking=blocking)
+
+    @property
+    def output_topics(self) -> Optional[List[Topic]]:
+        """ Returns outgoing topics that are provided by the source module at hand. """
+        return [Topic()]
 
 
 class BaseSink(BaseModule, ABC):
@@ -186,17 +231,19 @@ class BaseSink(BaseModule, ABC):
         Args:
            frame: frame containing MSPControlMessage
         """
-        if isinstance(frame, MSPControlMessage):
-            logger.debug(f"[CONTROL] {frame.topic.source_uuid} -> {frame.message} -> {self.uuid}")
-            if frame.message == MSPControlMessage.END_OF_STREAM:
-                if frame.topic.source_uuid in self._active_sources:
+        if frame.topic.is_control_topic:
+            if frame.data == MSPControlMessage.END_OF_STREAM:
+                if frame.source_uuid in self._active_sources:
+                    logger.debug(f"[CONTROL] {frame.source_uuid} -> {frame.data} -> {self.uuid}")
                     # set source to inactive
-                    self._active_sources[frame.topic.source_uuid] = False
+                    self._active_sources[frame.source_uuid] = False
                     # if no active source is left
                 if not any(self._active_sources.values()):
                     self.stop(blocking=False)
+            elif frame.data == MSPControlMessage.PASS:
+                pass
             else:
-                logger.warning(f"unhandled control message: {frame.message}")
+                logger.warning(f"[UNHANDLED CONTROL] {frame.source_uuid} -> {frame.data} -> {self.uuid}")
             return True
         return False
 
@@ -210,16 +257,18 @@ class BaseSink(BaseModule, ABC):
             if self._handle_control_message(frame):
                 continue
 
-            if self._profiling:
+            if self._profiling:  # TODO: check profiling
                 self._stats.add_frame(frame, MSPModuleStats.Direction.IN)
 
             self.on_update(frame)
 
+    @abstractmethod
     def on_update(self, frame: MSPDataFrame):
         """ Custom update routine. """
         raise NotImplementedError()
 
     def _perform_sample_dropout(self, frame_time) -> int:
+        # TODO: do this per topic (single queue)
         if not self._dropout:
             return 0
 
@@ -235,10 +284,16 @@ class BaseSink(BaseModule, ABC):
         return num_skipped
 
     def put(self, frame: MSPDataFrame):
+        # TODO: create a queue per topic and perform explicit sample synchronization
         skipped_frames = self._perform_sample_dropout(frame.timestamp)
         self._queue.put(frame)
         if self._profiling:
             self._stats.add_queue_state(qsize=self._queue.qsize(), skipped_frames=skipped_frames)
+
+    @property
+    def input_topics(self) -> List[Topic]:
+        """ Returns topics which can be handled by the sink module at hand. """
+        return [Topic()]
 
 
 class BaseProcessor(BaseSink, BaseSource, ABC):

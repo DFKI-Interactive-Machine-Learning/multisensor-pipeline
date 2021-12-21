@@ -1,3 +1,3 @@
 from .dataset import BaseDatasetSource
-from .recording import RecordingSink, JsonRecordingSink
-from .replay import JsonReplaySource
+from .recording import RecordingSink, DefaultRecordingSink
+from .replay import DefaultReplaySource

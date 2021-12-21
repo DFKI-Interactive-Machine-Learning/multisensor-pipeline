@@ -1,144 +1,158 @@
+import unittest
 from time import sleep
-
-import pytest
-
-from multisensor_pipeline.tests.environment_properties import \
-    is_running_on_windows
-
-
-@pytest.mark.skipif(
-    # TODO Deactivating a test just like that is not a proper fix.
-    # TODO Add an equivalent test that works under Windows.
-    # TODO Keep this one for macOS and Linux.
-    is_running_on_windows(),
-    reason="Does not run on Windows.",
-)
-@pytest.mark.timeout(0.320 * 10)  # Kill runs taking 10x longer than local
-def test_simple_mouse_not_windows(xvfb):
-    __test_simple_mouse()
+import pynput
+from pynput.keyboard import Controller, Key
+from multisensor_pipeline.modules import QueueSink, ListSink
+from multisensor_pipeline.modules.keyboard import KeyboardSource
+from multisensor_pipeline.modules.mouse import Mouse
+from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 
-@pytest.mark.skipif(
-    is_running_on_windows(),
-    reason="Does run only on Windows.",
-)
-@pytest.mark.timeout(0.320 * 10)  # Kill runs taking 10x longer than local
-def test_simple_mouse_windows():
-    __test_simple_mouse()
+class KeyboardTests(unittest.TestCase):
+
+    def test_keyboard_simple(self):
+        # Mock
+        # (1) define the modules
+        source = KeyboardSource(press=True, release=True)
+        sink = QueueSink()
+
+        # (2) add module to a pipeline...
+        pipeline = GraphPipeline()
+        pipeline.add_source(source)
+        pipeline.add_sink(sink)
+
+        # (3) ...and connect the modules
+        pipeline.connect(source, sink)
+
+        # Test
+        pipeline.start()
+        sleep(.3)
+        pipeline.stop()
+
+    def test_keyboard_simulated(self):
+        # Mock
+        # (1) define the modules
+        keyboard = Controller()
+        source = KeyboardSource(press=True, release=True)
+        sink = ListSink()
+
+        # (2) add module to a pipeline...
+        pipeline = GraphPipeline()
+        pipeline.add_source(source)
+        pipeline.add_sink(sink)
+
+        # (3) ...and connect the modules
+        pipeline.connect(source, sink)
+
+        # Test
+        pipeline.start()
+        keyboard.press(Key.ctrl)
+        keyboard.release(Key.ctrl)
+        sleep(.3)
+        pipeline.stop()
+
+        # Assert
+        expected_events = 2
+        self.assertEqual(len(sink), expected_events, "number of keyboard interactions are not correctly recognized or "
+                                                     "permission to simulate a keyboard is not given ")
+
+    def test_keyboard_topic(self):
+        # Mock
+        # (1) define the modules
+        keyboard = Controller()
+        source = KeyboardSource(press=True, release=True)
+        sink = ListSink()
+
+        # (2) add module to a pipeline...
+        pipeline = GraphPipeline()
+        pipeline.add_source(source)
+        pipeline.add_sink(sink)
+
+        # (3) ...and connect the modules
+        pipeline.connect(source, sink, topics=source.output_topics[0])
+
+        # Test
+        pipeline.start()
+        keyboard.press(Key.ctrl)
+        keyboard.release(Key.ctrl)
+        sleep(.3)
+        pipeline.stop()
+
+        # Assert
+        expected_events = 1
+        self.assertEqual(len(sink), expected_events, "number of keyboard interactions are not correctly recognized or "
+                                                     "permission to simulate a keyboard is not given ")
 
 
-def __test_simple_mouse():
-    from multisensor_pipeline.modules import QueueSink
-    from multisensor_pipeline.modules.mouse import Mouse
-    from multisensor_pipeline.pipeline.graph import GraphPipeline
+class MouseTests(unittest.TestCase):
 
-    # (1) define the modules
-    source = Mouse(move=True, scroll=True, click=True)
-    sink: QueueSink = QueueSink()
+    def test_mouse_simple(self):
+        # (1) define the modules
+        source = Mouse(move=True, scroll=True, click=True)
+        sink: QueueSink = QueueSink()
 
-    # (2) add module to a pipeline...
-    pipeline = GraphPipeline()
-    pipeline.add_source(source)
-    pipeline.add_sink(sink)
+        # (2) add module to a pipeline...
+        pipeline = GraphPipeline()
+        pipeline.add_source(source)
+        pipeline.add_sink(sink)
 
-    # (3) ...and connect the modules
-    pipeline.connect(source, sink)
+        # (3) ...and connect the modules
+        pipeline.connect(source, sink)
 
-    # Test
-    pipeline.start()
-    sleep(.3)
-    pipeline.stop()
+        # Test
+        pipeline.start()
+        sleep(.3)
+        pipeline.stop()
 
-    # Assert
-    # If we ever get here, we consider this test successful.
-    assert True
+    def test_simulated_mouse(self):
+        # (1) define the modules
+        source = Mouse(move=True, scroll=True, click=True)
+        sink = ListSink()
 
+        # (2) add module to a pipeline...
+        pipeline = GraphPipeline()
+        pipeline.add_source(source)
+        pipeline.add_sink(sink)
 
-@pytest.mark.skipif(
-    # TODO Deactivating a test just like that is not a proper fix.
-    # TODO Add an equivalent test that works under Windows.
-    # TODO Keep this one for macOS and Linux.
-    is_running_on_windows(),
-    reason="Does not run on Windows.",
-)
-@pytest.mark.timeout(0.420 * 10)  # Kill runs taking 10x longer than local
-def test_simple_keyboard_not_windows(xvfb):
-    __test_simple_keyboard()
+        # (3) ...and connect the modules
+        pipeline.connect(source, sink)
 
+        controller = pynput.mouse.Controller()
+        # Test
+        pipeline.start()
+        controller.release(pynput.mouse.Button.middle)
+        sleep(.3)
+        pipeline.stop()
 
-@pytest.mark.skipif(
-    is_running_on_windows(),
-    reason="Does run only on Windows.",
-)
-@pytest.mark.timeout(0.420 * 10)  # Kill runs taking 10x longer than local
-def test_simple_keyboard_windows():
-    __test_simple_keyboard()
-
-
-def __test_simple_keyboard():
-    from multisensor_pipeline.modules import QueueSink
-    from multisensor_pipeline.modules.keyboard import Keyboard
-    from multisensor_pipeline.pipeline.graph import GraphPipeline
-
-    # Mock
-    # (1) define the modules
-    source = Keyboard(press=True, release=True)
-    sink = QueueSink()
-
-    # (2) add module to a pipeline...
-    pipeline = GraphPipeline()
-    pipeline.add_source(source)
-    pipeline.add_sink(sink)
-
-    # (3) ...and connect the modules
-    pipeline.connect(source, sink)
-
-    # Test
-    pipeline.start()
-    sleep(.3)
-    pipeline.stop()
-
-    # Assert
-    # If we ever get here, we consider this test successful.
-    assert True
+        expected_events = 1
+        release_count = 0
+        for elements in sink.list:
+            if elements.topic == source.output_topics[1]:
+                release_count += 1
+        self.assertEqual(release_count, expected_events, "number of mouse interactions are not correctly recognized "
+                                                         "or permission to simulate a keyboard is not given")
 
 
-# TODO Deactivating a test just like that is not a proper fix.
-# TODO Make the code under test work as intended.
-# TODO *Only then* reactivate this test.
-def _test_simulated_keyboard_input(xvfb):
-    from multisensor_pipeline.modules import ListSink
-    from multisensor_pipeline.modules.keyboard import Keyboard
-    from multisensor_pipeline.pipeline.graph import GraphPipeline
+    def test_simulated_mouse_topic(self):
+        # (1) define the modules
+        source = Mouse(move=True, scroll=True, click=True)
+        sink = ListSink()
 
-    from pynput.keyboard import Controller, Key
+        # (2) add module to a pipeline...
+        pipeline = GraphPipeline()
+        pipeline.add_source(source)
+        pipeline.add_sink(sink)
 
-    # Mock
-    # (1) define the modules
-    keyboard = Controller()
-    source = Keyboard(press=True, release=True)
-    sink = ListSink()
+        # (3) ...and connect the modules
+        pipeline.connect(source, sink, topics=source.output_topics[1])
 
-    # (2) add module to a pipeline...
-    pipeline = GraphPipeline()
-    pipeline.add_source(source)
-    pipeline.add_sink(sink)
+        controller = pynput.mouse.Controller()
+        # Test
+        pipeline.start()
+        controller.release(pynput.mouse.Button.middle)
+        sleep(.3)
+        pipeline.stop()
 
-    # (3) ...and connect the modules
-    pipeline.connect(source, sink)
-
-    # Test
-    pipeline.start()
-    keyboard.press(Key.ctrl)
-    keyboard.release(Key.ctrl)
-    sleep(.3)
-    pipeline.stop()
-
-    # Assert
-    expected_events = 2
-    if "darwin" in keyboard.__str__():
-        # There seems te be a bug in pynput keyboard controller for macOS:
-        # Keypress is recognized as press and release
-        expected_events *= 2
-    assert len(sink.list) == expected_events, \
-        "number of keyboard interactions are not correctly recognized or permission to simulate a keyboard is not given"
+        expected_events = 1
+        self.assertEqual(len(sink), expected_events, "number of mouse interactions are not correctly recognized or "
+                                                     "permission to simulate a keyboard is not given")

@@ -1,13 +1,13 @@
 import unittest
-from typing import Optional
+from typing import Optional, List
 from PIL import Image
 from time import sleep
 
-from multisensor_pipeline.dataframe.dataframe import MSPDataFrame
+from multisensor_pipeline.dataframe.dataframe import MSPDataFrame, Topic
 from multisensor_pipeline.modules.base.base import BaseSource
 from multisensor_pipeline.modules.image.pillow import CropByPointerProcessor
 from multisensor_pipeline.modules.npy import RandomArraySource
-from multisensor_pipeline.modules import TrashSink
+from multisensor_pipeline.modules import TrashSink, ListSink
 from multisensor_pipeline.pipeline.graph import GraphPipeline
 
 
@@ -15,35 +15,34 @@ class EmptyImageSource(BaseSource):
 
     def on_update(self) -> Optional[MSPDataFrame]:
         image = Image.new(mode="RGBA", size=(1000, 1000), color=(0, 0, 0, 254))
-        return MSPDataFrame(
-            self._generate_topic(name="empty_image", dtype=Image.Image),
-            image=image
-        )
+        return MSPDataFrame(self.output_topics[0], data=image)
+
+    @property
+    def output_topics(self) -> Optional[List[Topic]]:
+        return [Topic(name="empty_image", dtype=Image.Image)]
 
 
 class ImageCroppingTest(unittest.TestCase):
     def test_simple_cropping(self):
         img_source = EmptyImageSource()
         pnt_source = RandomArraySource(
-            shape=(2,), min=0, max=255, sampling_rate=5
+            shape=(2,), min=0, max=255, samplerate=5, max_count=5
         )
         crop_processor = CropByPointerProcessor(
-            image_topic_name="empty_image",
-            image_key="image",
-            pointer_topic_names=["random"],
-            point_key="value",
+            crop_size=200,
+            pointer_topic_name="random"
         )
-        sink = TrashSink()
 
-        p = GraphPipeline()
-        p.add([img_source, pnt_source, crop_processor, sink])
-        p.connect(img_source, crop_processor)
-        p.connect(pnt_source, crop_processor)
-        p.connect(crop_processor, sink)
-        p.start()
+        sink = ListSink()
+
+        pipeline = GraphPipeline()
+        pipeline.add([img_source, pnt_source, crop_processor, sink])
+        pipeline.connect(img_source, crop_processor)
+        pipeline.connect(pnt_source, crop_processor)
+        pipeline.connect(crop_processor, sink)
+        pipeline.start()
         sleep(1)
-        p.stop()
-        p.join()
+        pipeline.stop()
+        pipeline.join()
 
-        # If we ever get here, we consider this test successful.
-        assert True
+        self.assertIn(len(sink), [4, 5])  # first image may be sent before crop pointer is sent -> 4 crops are generated

@@ -21,19 +21,6 @@ class SleepPassthroughProcessor(BaseProcessor):
         return frame
 
 
-class AttributeExtractionProcessor(BaseProcessor):
-
-    def __init__(self, target_topic_name=None, key="timestamp"):
-        super(AttributeExtractionProcessor, self).__init__()
-        self._topic_name = target_topic_name
-        self._key = key
-
-    def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
-        if (self._topic_name is None or frame.topic.name == self._topic_name) and self._key in frame:
-            _topic = self._generate_topic(name=f"{frame.topic.name}.{self._key}")
-            return MSPDataFrame(topic=_topic, timestamp=frame['key'])
-
-
 class ListSink(BaseSink):
 
     def __init__(self):
@@ -76,13 +63,20 @@ class ConsoleSink(BaseSink):
 
     def on_update(self, frame: MSPDataFrame):
         if frame is not None:
-            print(f"{frame.topic}:\t{frame}")
+            print(f"{frame.timestamp}\t{frame.topic}\t{frame.data}")
 
 
 class TrashSink(BaseSink):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._counter = 0
 
     def on_update(self, frame: MSPDataFrame):
-        pass
+        self._counter += 1
+
+    @property
+    def counter(self) -> int:
+        return self._counter
 
 
 class SleepTrashSink(TrashSink):
@@ -93,3 +87,8 @@ class SleepTrashSink(TrashSink):
 
     def on_update(self, frame: MSPDataFrame):
         sleep(self._sleep_time)
+        self._counter += 1
+
+    @property
+    def counter(self) -> int:
+        return self._counter

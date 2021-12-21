@@ -1,74 +1,80 @@
 import unittest
 from time import sleep
-
-from multisensor_pipeline.modules import QueueSink
+from typing import Tuple
+from multisensor_pipeline.dataframe import Topic
+from multisensor_pipeline.modules import ListSink
 from multisensor_pipeline.modules.npy import RandomArraySource
 from multisensor_pipeline.modules.signal.filtering import OneEuroProcessor
 from multisensor_pipeline.modules.signal.sampling import DownsamplingProcessor
 from multisensor_pipeline.pipeline.graph import GraphPipeline
-from multisensor_pipeline.tests.environment_properties import \
-    is_running_in_ci, is_running_on_macos
+import numpy as np
 
 
-class DownsamplingProcessorTest(unittest.TestCase):
-    def test_down_sampling_processor_no_downsampling(self):
+class DownSamplingProcessorTest(unittest.TestCase):
+
+    @staticmethod
+    def _run_down_sampling_processor_no_downsampling_pipeline(num_samples=100, topic=None):
         # Mock a setup like so:
         # sink_0 <- source -> processor -> sink_1
-        num_samples = 100
 
         # (1) define the modules
         source = RandomArraySource(
             shape=None,
-            sampling_rate=num_samples,
+            samplerate=num_samples,
             max_count=num_samples,
         )
-        processor = DownsamplingProcessor(sampling_rate=num_samples * 2)
-        sink_0 = QueueSink()
-        sink_1 = QueueSink()
+        processor = DownsamplingProcessor(target_topics=[source.output_topics[0]], samplerate=num_samples)
+        sink_0 = ListSink()
+        sink_1 = ListSink()
 
         # (2) add module to a pipeline...
         pipeline = GraphPipeline()
-        pipeline.add_sink(sink_0)
-        pipeline.add_source(source)
-        pipeline.add_processor(processor)
-        pipeline.add_sink(sink_1)
+        pipeline.add([source, processor, sink_0, sink_1])
 
         # (3) ...and connect the modules
         pipeline.connect(source, sink_0)
-        pipeline.connect(source, processor)
+        pipeline.connect(source, processor, topics=topic)
         pipeline.connect(processor, sink_1)
 
         # Test
         pipeline.start()
-        sleep(5)
+        sleep(1.)
         pipeline.stop()
         pipeline.join()
 
-        sleep(0.1)  # To make this work under macOS in the cloud
+        return pipeline
 
-        # Assert
-        # TODO Loosening a test just like that is not a proper fix.
-        # TODO Make the code under test work as intended.
-        # TODO *Only then* tighten these conditions again for all environments.
-        if is_running_in_ci() and is_running_on_macos():
-            assert 37 <= sink_0.queue.qsize() <= num_samples
-            assert 37 <= sink_1.queue.qsize() <= num_samples
-        else:
-            self.assertEqual(num_samples, sink_0.queue.qsize())
-            self.assertEqual(num_samples, sink_1.queue.qsize())
+    def test_down_sampling_processor_no_downsampling(self):
+        n_samples = 20
+        pipeline = self._run_down_sampling_processor_no_downsampling_pipeline(num_samples=n_samples)
+        for sink in pipeline.sink_nodes:
+            self.assertAlmostEqual(n_samples, len(sink), delta=1)
 
-    def test_down_sampling_processor_strong(self):
+    def test_down_sampling_processor_no_downsampling_topic_filtered(self):
+        n_samples = 20
+        pipeline = self._run_down_sampling_processor_no_downsampling_pipeline(
+            num_samples=n_samples,
+            topic=Topic(name="random", dtype=int)
+        )
+        for sink in pipeline.sink_nodes:
+            self.assertAlmostEqual(n_samples, len(sink), delta=1)
+
+    @staticmethod
+    def _run_down_sampling_processor_strong_pipeline(topics=None):
         # Mock a setup like so:
         # source -> processor -> sink
 
         # (1) define the modules
         source = RandomArraySource(
             shape=None,
-            sampling_rate=100,
+            samplerate=100,
             max_count=100,
         )
-        processor = DownsamplingProcessor(sampling_rate=1)
-        sink = QueueSink()
+        if topics:
+            processor = DownsamplingProcessor(samplerate=1, target_topics=[Topic(dtype=int, name="random")])
+        else:
+            processor = DownsamplingProcessor(samplerate=1)
+        sink = ListSink()
 
         # (2) add module to a pipeline...
         pipeline = GraphPipeline()
@@ -77,42 +83,44 @@ class DownsamplingProcessorTest(unittest.TestCase):
         pipeline.add_sink(sink)
 
         # (3) ...and connect the modules
-        pipeline.connect(source, processor)
-        pipeline.connect(processor, sink)
-
-        number_of_seconds_to_run_the_pipeline = 2
+        pipeline.connect(source, processor, topics=topics[0] if topics is not None else None)
+        pipeline.connect(processor, sink, topics=topics[1] if topics is not None else None)
 
         # Test
         pipeline.start()
-        sleep(number_of_seconds_to_run_the_pipeline)
+        sleep(2)
         pipeline.stop()
         pipeline.join()
 
-        # Assert
-        # There should be at most one frame for each second
-        if is_running_in_ci() and is_running_on_macos():
-            assert sink.queue.qsize() <= \
-                number_of_seconds_to_run_the_pipeline + 1
-        else:
-            assert sink.queue.qsize() <= \
-                number_of_seconds_to_run_the_pipeline
+        return sink
 
-    def test_one_euro_filter(self):
+    def test_down_sampling_processor_strong(self):
+        sink = self._run_down_sampling_processor_strong_pipeline()
+        # There should be at most one frame for each second
+        self.assertAlmostEqual(len(sink), 2, delta=1)
+
+    def test_down_sampling_processor_strong_filtered(self):
+        sink = self._run_down_sampling_processor_strong_pipeline(
+            topics=[Topic(name="random", dtype=int),
+                    Topic(name="random.1Hz", dtype=int)]
+        )
+        # There should be at most one frame for each second
+        self.assertAlmostEqual(len(sink), 2, delta=1)
+
+    @staticmethod
+    def _run_one_euro_filter_pipeline(topics=None):
         # Mock a setup like so:
         # sink_0 <- source -> processor -> sink_1
 
         # (1) define the modules
         source = RandomArraySource(
             shape=(2,),
-            sampling_rate=100,
+            samplerate=100,
             max_count=10,
         )
-        processor = OneEuroProcessor(
-            signal_topic_name="random",
-            signal_key="value",
-        )
-        sink_1 = QueueSink()
-        sink_0 = QueueSink()
+        processor = OneEuroProcessor()
+        sink_1 = ListSink()
+        sink_0 = ListSink()
 
         # (2) add module to a pipeline...
         pipeline = GraphPipeline()
@@ -122,18 +130,61 @@ class DownsamplingProcessorTest(unittest.TestCase):
         pipeline.add_sink(sink_0)
 
         # (3) ...and connect the modules
-        pipeline.connect(source, sink_0)
-        pipeline.connect(source, processor)
-        pipeline.connect(processor, sink_1)
+        pipeline.connect(source, sink_0, topics=topics[0] if topics is not None else None)
+        pipeline.connect(source, processor, topics=topics[0] if topics is not None else None)
+        pipeline.connect(processor, sink_1, topics=topics[1] if topics is not None else None)
 
         # Test
         pipeline.start()
-        sleep(5)
+        sleep(.5)
         pipeline.stop()
         pipeline.join()
 
-        sleep(0.1)  # To make this work under macOS in the cloud
+        return pipeline
 
-        # Assert
-        self.assertEqual(sink_0.queue.qsize(), 10)
-        self.assertEqual(sink_1.queue.qsize(), 10)
+    def test_one_euro(self):
+        pipeline = self._run_one_euro_filter_pipeline()
+        for sink in pipeline.sink_nodes:
+            self.assertEqual(10, len(sink))
+
+    def test_one_euro_filtered(self):
+        pipeline = self._run_one_euro_filter_pipeline(
+            topics=[Topic(name="random", dtype=np.ndarray),
+                    Topic(dtype=Tuple[float, float])]
+        )
+        for sink in pipeline.sink_nodes:
+            self.assertEqual(10, len(sink))
+
+    @staticmethod
+    def _run_random_array(topics=None):
+        # (1) define the modules
+        source = RandomArraySource(
+            shape=(2,),
+            samplerate=100,
+            max_count=100,
+        )
+
+        sink = ListSink()
+
+        # (2) add module to a pipeline...
+        pipeline = GraphPipeline()
+        pipeline.add_source(source)
+        pipeline.add_sink(sink)
+
+        # (3) ...and connect the modules
+        pipeline.connect(source, sink, topics=topics[0] if topics is not None else None)
+
+        # Test
+        pipeline.start()
+        sleep(1.15)
+        pipeline.stop()
+        pipeline.join()
+
+        return pipeline
+
+    def test_random_array_source(self):
+        pipeline = self._run_random_array()
+        for sink in pipeline.sink_nodes:
+            self.assertEqual(100, len(sink))
+
+

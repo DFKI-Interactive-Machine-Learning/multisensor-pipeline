@@ -1,8 +1,9 @@
 from multisensor_pipeline import BaseProcessor
-from multisensor_pipeline.dataframe import MSPDataFrame
+from multisensor_pipeline.dataframe import MSPDataFrame, Topic
 from multisensor_pipeline.modules.signal.one_euro_filter import OneEuroFilter
-from typing import Optional
+from typing import Optional, List, Tuple
 import logging
+import numpy as np
 
 
 logger = logging.getLogger(__name__)
@@ -25,11 +26,9 @@ class OneEuroProcessor(BaseProcessor):
     if slow speed jitter is a problem, decrease fcmin.
     """
 
-    def __init__(self, signal_topic_name, signal_key, freq=30, fcmin=1.5, beta=.001, dcutoff=1):
+    def __init__(self, freq=30, fcmin=1.5, beta=.001, dcutoff=1):
         super(OneEuroProcessor, self).__init__()
 
-        self._signal_topic_name = signal_topic_name
-        self._signal_key = signal_key
         config = {
             'freq': freq,  # Hz
             'mincutoff': fcmin,
@@ -47,9 +46,15 @@ class OneEuroProcessor(BaseProcessor):
         return self._filter_x(point[0], timestamp), self._filter_y(point[1], timestamp)
 
     def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
-        if frame.topic.name == self._signal_topic_name:
-            smoothed_point = self._filter(frame[self._signal_key], frame.timestamp)
-            if smoothed_point is not None:
-                frame[self._signal_key] = smoothed_point
-                frame.topic = self._generate_topic(f"{frame.topic.name}.smoothed", frame.topic.dtype)
-                return frame
+        smoothed_point = self._filter(frame.data, frame.timestamp)
+        if smoothed_point is not None:
+            return MSPDataFrame(topic=self.output_topics[0], data=smoothed_point)
+
+    @property
+    def input_topics(self) -> List[Topic]:
+        return [Topic(dtype=Tuple[float, float]),
+                Topic(dtype=np.ndarray)]
+
+    @property
+    def output_topics(self) -> Optional[List[Topic]]:
+        return [Topic(name="smoothed", dtype=Tuple[float, float])]

@@ -35,7 +35,7 @@ wheels/
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
+# Unit tests_ci / coverage reports
 htmlcov/
 .tox/
 .coverage
@@ -138,10 +138,10 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 
-# Files created by running the test suite
+# Files created by running the tests_ci suite
 /data/json_test.json
 /data/output_av.mp4
-/multisensor_pipeline/tests/test_mic_to_wave_pipeline.wav
+/multisensor_pipeline/tests_ci/test_mic_to_wave_pipeline.wav
 
 # Conda virtual environment
 /.condaenv

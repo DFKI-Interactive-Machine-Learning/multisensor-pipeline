@@ -1,25 +1,27 @@
-from typing import Any
+from typing import Optional, TypeVar, Generic, Any
 import logging
-from time import time
-import json
+import io
+import time
+import msgpack
 import numpy as np
 
+from PIL import Image
+
 logger = logging.getLogger(__name__)
+T = TypeVar('T')
 
 
 class Topic:
 
-    def __init__(self, name: str, source_uuid: str, dtype: type = None, source_module: type = None):
+    def __init__(self, dtype: type = Any, name: Optional[str] = None,):
         """
-
         :param name:
         :param dtype:
-        :param source_module:
         """
         self._name = name
         self._dtype = dtype
-        self._source = source_module
-        self._uuid = source_uuid
+        if self.name is not None and dtype == Any:
+            logger.warning("If dtype is Any, topic.name has no effect.")
 
     @property
     def name(self) -> str:
@@ -30,115 +32,176 @@ class Topic:
         return self._dtype
 
     @property
-    def source_module(self) -> type:
-        return self._source
-
-    @property
-    def source_uuid(self) -> str:
-        return self._uuid
-
-    @property
     def uuid(self):
-        return f"{self.source_uuid}:{self.name}:{self.dtype.__name__}"
+        return f"{self.name}:{self.dtype if self.dtype is not None else None}"
 
-    def __eq__(self, other):
-        if not isinstance(other, Topic):
-            return False
-        return self.dtype == other.dtype and self.name == other.name and self.source_uuid == other.source_uuid
+    @property
+    def is_control_topic(self):
+        return self.dtype == MSPControlMessage.ControlTopic.ControlType
+
+    def __hash__(self):
+        return hash(self.uuid)
+
+    def __eq__(self, sink_topic):
+        """
+        Args:
+            sink_topic: Sink
+            TODO:
+        Returns:
+        """
+        if not isinstance(sink_topic, Topic):
+            return False    #TODO: can we replace isinstance?
+
+        if self.dtype is Any or sink_topic.dtype is Any:
+            return True
+
+        dtype_matches = sink_topic.dtype == self.dtype
+
+        if sink_topic.name is not None:
+            name_matches = sink_topic.name == self.name
+        else:
+            name_matches = True
+
+        return dtype_matches and name_matches
 
     def __str__(self):
-        return f"{self.source_module.__name__}:{self.name}:{self.dtype.__name__}"
+        return f"{self.dtype if self.dtype is not None else None}:{self.name}"
 
     def __repr__(self):
-        return f"Topic(name={self.name}, dtype={self.dtype}, source_module={self.source_module})"
+        return f"Topic(dtype={self.dtype if self.dtype is not None else None}, name={self.name})"
 
 
-class MSPDataFrame(dict):
-    class JsonEncoder(json.JSONEncoder):
+class MSPDataFrame(Generic[T]):
 
-        def default(self, obj: Any) -> Any:
-            if isinstance(obj, np.integer):
-                return int(obj)
-            elif isinstance(obj, np.floating):
-                return float(obj)
-            elif isinstance(obj, np.ndarray):
-                return {
-                    "_kind_": "ndarray",
-                    "_value_": obj.tolist()
-                }
-            if isinstance(obj, Topic):
-                assert isinstance(obj, Topic)
-                return {
-                    "_kind_": "topic",
-                    "_value_": {
-                        "name": obj.name,
-                        "dtype": str(obj.dtype),
-                        "source_module": str(obj.source_module),
-                        "source_uuid": obj.source_uuid
-                    }
-                }
-            return super(MSPDataFrame.JsonEncoder, self).default(obj)
-
-    class JsonDecoder(json.JSONDecoder):
-
-        def __init__(self, *args, **kwargs):
-            json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
-
-        def object_hook(self, obj):
-            if '_kind_' in obj:
-                kind = obj['_kind_']
-                if kind == 'ndarray':
-                    return np.array(obj['_value_'])
-                elif kind == 'topic':
-                    return Topic(**obj['_value_'])
-                    # TODO: decode class types (#22)
-            return obj
-
-    def __init__(self, topic: Topic, timestamp: float = None, **kwargs):
+    def __init__(self, topic: Topic, timestamp: float = None, duration: float = 0, data: Optional[T] = None):
         super(MSPDataFrame, self).__init__()
-        if timestamp is None:
-            self['timestamp'] = time()
-        else:
-            self['timestamp'] = timestamp
-        self['topic'] = topic
-
-        if kwargs is not None:
-            self.update(kwargs)
+        self._timestamp = time.perf_counter() if timestamp is None else timestamp
+        self._duration = duration
+        self._topic = topic
+        self._data = data
+        self._source_uuid = None
 
     @property
     def timestamp(self) -> float:
-        return self['timestamp']
+        return self._timestamp
 
     @timestamp.setter
-    def timestamp(self, value: float):
-        self['timestamp'] = value
+    def timestamp(self, timestamp: float):
+        self._timestamp = timestamp
 
     @property
     def topic(self) -> Topic:
-        return self['topic']
+        return self._topic
 
     @topic.setter
-    def topic(self, value: Topic):
-        self['topic'] = value
+    def topic(self, topic: Topic):
+        self._topic = topic
 
+    @property
+    def source_uuid(self) -> str:
+        return self._source_uuid
 
-class MSPEventFrame(MSPDataFrame):
+    @source_uuid.setter
+    def source_uuid(self, source_uuid: str):
+        self._source_uuid = source_uuid
 
-    def __init__(self, value=None, duration: float = 0, **kwargs):
-        super(MSPEventFrame, self).__init__(value=value, duration=duration, **kwargs)
+    @property
+    def data(self) -> T:
+        return self._data
+
+    @data.setter
+    def data(self, data: T):
+        self._data = data
 
     @property
     def duration(self) -> float:
-        return self['duration']
+        return self._duration
 
     @duration.setter
-    def duration(self, value: float):
-        self['duration'] = value
+    def duration(self, duration: float):
+        self._duration = duration
 
-    @property
-    def value(self) -> str:
-        return self['value']
+    @staticmethod
+    def msgpack_encode(obj):
+        if isinstance(obj, MSPDataFrame):
+            return {
+                "__dataframe__": True,
+                "topic": obj.topic,
+                "timestamp": obj.timestamp,
+                "duration": obj.duration,
+                "data": obj.data
+            }
+        if isinstance(obj, Topic):
+            return {
+                "__topic__": True,
+                "name": obj.name,
+                "dtype": str(obj.dtype) if obj.dtype is not None else None  # TODO: how to encode a type?
+            }
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.float):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return {
+                "__ndarray__": True,
+                "data": obj.tolist(),
+                "shape": obj.shape,
+                "dtype": obj.dtype.name
+            }
+        if isinstance(obj, Image.Image):
+            buffer = io.BytesIO()
+            obj.save(buffer, format="jpeg", quality=90)
+            return {
+                "__jpeg__": True,
+                "bytes": buffer.getvalue()
+            }
+        return obj
 
-    @value.setter
-    def value(self, value: str):
-        self['value'] = value
+    def serialize(self) -> bytes:
+        return msgpack.packb(self, default=MSPDataFrame.msgpack_encode)
+
+    @staticmethod
+    def deserialize(frame: bytes):
+        return msgpack.unpackb(frame, object_hook=MSPDataFrame.msgpack_decode, raw=False)
+
+    @staticmethod
+    def msgpack_decode(obj):
+        if '__dataframe__' in obj:
+            obj = MSPDataFrame(
+                topic=obj["topic"],
+                timestamp=obj["timestamp"],
+                duration=obj["duration"],
+                data=obj["data"]
+            )
+        elif '__topic__' in obj:
+            obj = Topic(name=obj["name"], dtype=obj["dtype"])
+        elif '__ndarray__' in obj:
+            obj = np.array(
+                object=obj["data"],
+                # shape=obj["shape"],
+                dtype=obj["dtype"]
+            )
+        elif '__jpeg__' in obj:
+            obj = Image.open(io.BytesIO(obj["bytes"]))
+        return obj
+
+    @staticmethod
+    def get_msgpack_unpacker(filehandle) -> msgpack.Unpacker:
+        return msgpack.Unpacker(file_like=filehandle, object_hook=MSPDataFrame.msgpack_decode, raw=False)
+
+
+class MSPControlMessage(MSPDataFrame):
+
+    class ControlTopic(Topic):
+        class ControlType:
+            pass
+        name = None
+        dtype = ControlType
+
+    END_OF_STREAM = "EOS"
+    PASS = "PASS"
+
+    def __init__(self, message):
+        topic = self.ControlTopic()
+        super(MSPControlMessage, self).__init__(topic=topic)
+        self._data = message
