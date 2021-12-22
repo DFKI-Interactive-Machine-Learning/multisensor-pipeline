@@ -1,0 +1,11 @@
+/* Indentation. */
+div.doc-contents:not(.first) {
+  padding-left: 25px;
+  border-left: 4px solid rgba(230, 230, 230);
+  margin-bottom: 80px;
+}
+
+/* Every code element in 2nd columns breaks different*/
+table td:nth-child(2) code{
+    word-break: break-word !important;
+}

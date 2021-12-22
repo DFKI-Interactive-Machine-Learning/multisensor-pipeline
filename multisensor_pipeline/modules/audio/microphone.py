@@ -47,7 +47,7 @@ class MicrophoneSource(BaseSource):
                  samplerate: Optional[float] = None,
                  blocksize: Optional[int] = 1024):
         """
-        Initialize the Source
+        Initialize the MicrophoneSource
         Args:
            device: Device id of the microphone
            channels: Number of channels of the device
@@ -88,14 +88,17 @@ class MicrophoneSource(BaseSource):
 
     @property
     def device(self) -> InputDevice:
+        """ the connected Microphone device"""
         return self._device
 
     @property
     def channels(self) -> int:
+        """ number of channels of the microphone device"""
         return self._channels
 
     @property
     def samplerate(self) -> float:
+        """ sample rate of the microphone device"""
         return self._samplerate
 
     @property

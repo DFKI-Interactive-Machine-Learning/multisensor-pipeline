@@ -16,14 +16,15 @@ nav:
   - Installation: 'installation.md'
   - Modules:
       - Base:
-        - Base Module: 'Documentation/modules/base/base_module.md'
-        - Base Source: 'Documentation/modules/base/base_source.md'
-        - Base Sink: 'Documentation/modules/base/base_sink.md'
-        - Base Processor: 'Documentation/modules/base/base_processor.md'
+        - BaseModule: 'Documentation/modules/base/base_module.md'
+        - BaseSource: 'Documentation/modules/base/base_source.md'
+        - BaseSink: 'Documentation/modules/base/base_sink.md'
+        - BaseProcessor: 'Documentation/modules/base/base_processor.md'
         - Profiling: 'Documentation/modules/base/profiling.md'
+        - BaseDiscreteSamplingSource: 'Documentation/modules/base/base_discrete_sampling_source.md'
       - Audio:
-        - Microphone: 'Documentation/modules/audio/microphone.md'
-        - WaveFile: 'Documentation/modules/audio/audiofile.md'
+        - MicrophoneSource: 'Documentation/modules/audio/microphone.md'
+        - AudioFileSink: 'Documentation/modules/audio/audiofile.md'
       - Image:
           - PillowImage: 'Documentation/modules/image/pillow.md'
           - Utils: 'Documentation/modules/image/utils.md'
@@ -48,6 +49,11 @@ nav:
 markdown_extensions:
   - toc:
       slugify: !!python/name:pymdownx.slugs.uslugify
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
 
 plugins:
 - mkdocstrings:
@@ -61,6 +67,12 @@ plugins:
           show_source: true
           show_root_heading: true
           show_root_full_path: false
+          show_object_full_path: false
+          show_root_members_full_path: false
+          members_order: source
+          show_signature_annotations: false
+          show_bases: true
+          #show_if_no_docstring: true
     watch:
       - ./multisensor_pipeline
 - search:
@@ -69,3 +81,6 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline
+
+extra_css:
+  - stylesheets/extra.css

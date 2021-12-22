@@ -48,6 +48,9 @@ class MSPModuleStats:
             return self._cma
 
     class RobustSamplerateStats(object):
+        """
+          Calculates the sample rate of a signal
+        """
 
         def __init__(self, max_measurement_interval: float = 1. / 10):
             super(MSPModuleStats.RobustSamplerateStats, self).__init__()
@@ -90,6 +93,15 @@ class MSPModuleStats:
         self._skipped_frames = self.RobustSamplerateStats()
 
     def get_stats(self, direction: Direction, topic: Optional[Topic] = None):
+        """
+        Return profiling information about a module
+        Args:
+            direction: ingoing or outgoing connections
+            topic: filter on specifit topic if None: all topics are returned
+
+        Returns:
+
+        """
         if direction == self.Direction.IN:
             if topic:
                 return self._in_stats[topic.uuid]
@@ -103,6 +115,12 @@ class MSPModuleStats:
             raise NotImplementedError()
 
     def add_frame(self, frame: MSPDataFrame, direction: Direction):
+        """
+        Whenever dataframe are sent or received the stats are updated
+        Args:
+            frame: the datframe sent/received
+            direction: the direction of the datframe
+        """
         time_received = time.perf_counter()
         if frame.topic.is_control_topic:
             return
@@ -121,10 +139,12 @@ class MSPModuleStats:
 
     @property
     def frame_skip_rate(self):
+        """ The average number of dropped frames in the queue"""
         return self._skipped_frames.samplerate
 
     @property
     def average_queue_size(self):
+        """ The average queue size of the module"""
         return self._queue_size.cma
 
     def finalize(self):

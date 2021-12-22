@@ -14,7 +14,8 @@ class AudioFileSink(BaseSink):
     """
     AudioFileSink writes audio files. It supports formats that are supported by libsndfile.
     """
-    def __init__(self, filename: str, channels: int = 2, samplerate: float = 44100., mode="w"):
+
+    def __init__(self, filename: str, channels: int = 2, samplerate: float = 44100., mode: str = "w"):
         """
         Initialize the WaveFile Sink
         Args:
@@ -39,4 +40,3 @@ class AudioFileSink(BaseSink):
     @property
     def input_topics(self) -> List[Topic]:
         return [Topic(name="audio", dtype=np.ndarray)]
-

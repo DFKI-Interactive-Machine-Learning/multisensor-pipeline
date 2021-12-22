@@ -15,12 +15,12 @@ logger = logging.getLogger(__name__)
 
 class BaseModule(object):
     """
-    Base Class for all Modules
+    This is the base class for all Modules
     """
 
-    def __init__(self, profiling=False):
+    def __init__(self, profiling: bool = False):
         """
-        Initialize the BaseModule
+        Initializes the BaseModule
         Args:
            profiling: Option to enable profiling
         """
@@ -31,21 +31,19 @@ class BaseModule(object):
         self._active = False
 
     def start(self):
-        """
-        Starts the module.
-        """
+        """Starts the module."""
         logger.debug("starting: {}".format(self.uuid))
         self._active = True
         self.on_start()
         self._thread.start()
 
     def on_start(self):
-        """ Custom initialization """
+        """Custom initialization"""
         pass
 
     @abstractmethod
     def _worker(self):
-        """ Main worker function (async) """
+        """Main worker function (async)"""
         raise NotImplementedError()
 
     @abstractmethod
@@ -53,8 +51,11 @@ class BaseModule(object):
         """ Custom update routine. """
         raise NotImplementedError()
 
-    def stop(self, blocking=True):
-        """ Stops the module. """
+    def stop(self, blocking: bool = True):
+        """ Stops the module.
+        Args:
+            blocking: Set if stop should be blocking
+        """
         logger.debug("stopping: {}".format(self.uuid))
         self._active = False
         if blocking:
@@ -69,17 +70,17 @@ class BaseModule(object):
         self._thread.join()
 
     @property
-    def active(self):
+    def active(self) -> bool:
         """ Returns if the module is activ """
         return self._active
 
     @property
-    def name(self):
+    def name(self) -> str:
         """ Returns the name of the actual subclass """
         return self.__class__.__name__
 
     @property
-    def uuid(self):
+    def uuid(self) -> str:
         """ Returns the uuuid of the module """
         return f"{self.name}:{self._uuid.int}"
 
@@ -94,7 +95,7 @@ class BaseModule(object):
         return self._profiling
 
     @profiling.setter
-    def profiling(self, value):
+    def profiling(self, value: bool):
         self._profiling = value
 
     def __hash__(self):
@@ -109,7 +110,7 @@ class BaseSource(BaseModule, ABC):
         Initializes the worker thread and a queue list for communication with observers that listen to that source.
         """
         super().__init__()
-        self._sinks = defaultdict(list)
+        self._sinks: defaultdict = defaultdict(list)
 
     def _worker(self):
         """ Source worker function: notify observer when source update function returns a DataFrame """
@@ -121,15 +122,16 @@ class BaseSource(BaseModule, ABC):
         """ Custom update routine. """
         raise NotImplementedError()
 
-    def add_observer(self, sink, topics: Optional[Union[Topic, List[Topic]]] = None):
+    def add_observer(self, sink: 'BaseSink', topics: Optional[Union[Topic, List[Topic]]] = None):
         """
         Register a Sink or Queue as an observer.
 
         Args:
-            topics:
+            topics: Optional topic or list of topics to filter connections from source to sink
             sink: A thread-safe Queue object or Sink [or any class that implements put(tuple)]
         """
         connected = False
+
         if isinstance(topics, Topic):
             topics = [topics]
 
@@ -193,7 +195,7 @@ class BaseSource(BaseModule, ABC):
         super(BaseSource, self).stop(blocking=blocking)
 
     @property
-    def output_topics(self) -> Optional[List[Topic]]:
+    def output_topics(self) -> List[Topic]:
         """ Returns outgoing topics that are provided by the source module at hand. """
         return [Topic()]
 
@@ -268,6 +270,14 @@ class BaseSink(BaseModule, ABC):
         raise NotImplementedError()
 
     def _perform_sample_dropout(self, frame_time) -> int:
+        """
+        Drops frames from the queue if dropout is set
+        Args:
+            frame_time: timestamp of the current incoming dataframe
+
+        Returns:
+        Number of skipped dataframes
+        """
         # TODO: do this per topic (single queue)
         if not self._dropout:
             return 0
@@ -284,6 +294,12 @@ class BaseSink(BaseModule, ABC):
         return num_skipped
 
     def put(self, frame: MSPDataFrame):
+        """
+        Adds the dataframe to the queue
+        Args:
+            frame: dataframe orginating from connected sources
+
+        """
         # TODO: create a queue per topic and perform explicit sample synchronization
         skipped_frames = self._perform_sample_dropout(frame.timestamp)
         self._queue.put(frame)

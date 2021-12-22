@@ -8,9 +8,11 @@ logger = logging.getLogger(__name__)
 
 
 class BaseDiscreteSamplingSource(BaseSource, ABC):
+    """ Base source module with a fixed samplerate"""
 
     def __init__(self, samplerate: float = 1.):
         """
+        Initialization of the source with a fixed samplerate
         Args:
             samplerate: set the intended samplerate in Hertz [Hz]
         """
@@ -21,7 +23,8 @@ class BaseDiscreteSamplingSource(BaseSource, ABC):
         self._scheduler = sched.scheduler(time.perf_counter, time.sleep)
 
     @property
-    def samplerate(self):
+    def samplerate(self) -> float:
+        """ samplerate of the source module """
         return self._samplerate
 
     def _worker(self):
