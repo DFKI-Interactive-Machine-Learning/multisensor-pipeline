@@ -1,1 +1,1 @@
-::: multisensor_pipeline.modules.persistence.JsonReplaySource
+::: multisensor_pipeline.modules.persistence.DefaultReplaySource

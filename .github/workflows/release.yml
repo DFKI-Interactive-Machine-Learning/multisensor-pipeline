@@ -32,7 +32,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Build the package
       run: |
-        python setup.py sdist bdist_wheel
+        python setup.py bdist_wheel
     - name: Get python package version
       id: get_version
       uses: battila7/get-version-action@v2

@@ -1,1 +1,1 @@
-::: multisensor_pipeline.modules.audio.Microphone
+::: multisensor_pipeline.modules.audio.MicrophoneSource

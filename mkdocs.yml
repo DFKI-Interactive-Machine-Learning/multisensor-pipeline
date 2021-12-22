@@ -3,7 +3,7 @@ site_url: https://dfki-interactive-machine-learning.github.io/multisensor-pipeli
 repo_url: https://github.com/DFKI-Interactive-Machine-Learning/multisensor-pipeline
 
 theme:
-  name: 'readthedocs'
+  name: material
   features:
     - navigation.top
     - search.suggest
@@ -23,7 +23,7 @@ nav:
         - Profiling: 'Documentation/modules/base/profiling.md'
       - Audio:
         - Microphone: 'Documentation/modules/audio/microphone.md'
-        - WaveFile: 'Documentation/modules/audio/wave.md'
+        - WaveFile: 'Documentation/modules/audio/audiofile.md'
       - Image:
           - PillowImage: 'Documentation/modules/image/pillow.md'
           - Utils: 'Documentation/modules/image/utils.md'

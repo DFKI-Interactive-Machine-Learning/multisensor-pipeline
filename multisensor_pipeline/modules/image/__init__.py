@@ -1,2 +1,2 @@
 from .pillow import CropByPointerProcessor
-from .utils import roi_rect
+from .utils import roi_rect, crop

@@ -1,1 +1,1 @@
-::: multisensor_pipeline.modules.video.WebCamSource
+::: multisensor_pipeline.modules.video.WebcamSource
