@@ -10,12 +10,11 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class CropByPointerProcessor(BaseProcessor):
 
-    def __init__(self, crop_size: int = 200, pointer_topic_name: Optional[str] = None):
+    def __init__(self, crop_size: int = 200):
         super(CropByPointerProcessor, self).__init__()
         self._crop_size = crop_size
         self._latest_image = None
         self._latest_image_name = None
-        self._pointer_topic_name = pointer_topic_name
 
     def on_update(self, frame: MSPDataFrame) -> Optional[MSPDataFrame]:
         # store the latest image
@@ -41,5 +40,4 @@ class CropByPointerProcessor(BaseProcessor):
 
     @property
     def input_topics(self) -> List[Topic]:
-        return [Topic(dtype=Image.Image), Topic(name=self._pointer_topic_name, dtype=Tuple[int, int]),
-                Topic(name=self._pointer_topic_name, dtype=np.ndarray)]
+        return [Topic(dtype=Image.Image), Topic(dtype=Tuple[int, int]), Topic(dtype=np.ndarray)]
