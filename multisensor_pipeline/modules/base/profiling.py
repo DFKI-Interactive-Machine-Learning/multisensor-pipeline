@@ -81,6 +81,9 @@ class MSPModuleStats:
 
         @property
         def samplerate(self):
+            # if no samples arrived for some time, set moving average to zero
+            if time.perf_counter() - self._t_last_update > 2 * self._window_size:
+                self._moving_average = 0.
             return self._moving_average
 
         @property
