@@ -49,14 +49,20 @@ class MSPModuleStats:
 
     class RobustSamplerateStats(object):
 
-        def __init__(self, min_measurement_interval: float = .5):
+        def __init__(self, window_size: float = .8, adaptive: bool = True):
             super(MSPModuleStats.RobustSamplerateStats, self).__init__()
             self._total_samples = 0
             self._new_samples = 0
             self._moving_average = 0
             self._t_start = None
             self._t_last_update = None
-            self._window_size = min_measurement_interval
+            self._window_size = window_size
+            self._adaptive = adaptive
+
+        def _update_measurement_interval(self, num_samples: int = 20, min_window: float = .5, max_window: float = 5.):
+            if self._adaptive:
+                w = self._moving_average / num_samples
+                self._window_size = min(max(w, min_window), max_window)
 
         def update(self, timestamp: float):
             if self._t_start is None:
@@ -71,6 +77,7 @@ class MSPModuleStats:
                 self._moving_average = (self._new_samples - 1.) / time_since_last_update
                 self._new_samples = 1
                 self._t_last_update = timestamp
+                self._update_measurement_interval()
 
         @property
         def samplerate(self):
