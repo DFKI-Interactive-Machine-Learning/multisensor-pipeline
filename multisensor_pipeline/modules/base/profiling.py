@@ -61,7 +61,7 @@ class MSPModuleStats:
 
         def _update_measurement_interval(self, num_samples: int = 100, min_window: float = .5, max_window: float = 5.):
             if self._adaptive:
-                w = self._moving_average * num_samples
+                w = num_samples / self._moving_average
                 self._window_size = min(max(w, min_window), max_window)
 
         def update(self, timestamp: float):
