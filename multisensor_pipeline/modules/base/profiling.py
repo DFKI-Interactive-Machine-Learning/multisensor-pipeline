@@ -49,29 +49,40 @@ class MSPModuleStats:
 
     class RobustSamplerateStats(object):
 
-        def __init__(self, max_measurement_interval: float = 1. / 10):
+        def __init__(self, min_measurement_interval: float = .5):
             super(MSPModuleStats.RobustSamplerateStats, self).__init__()
-            self._num_samples = 0
-            self._samplerate = 0.
+            self._total_samples = 0
+            self._new_samples = 0
+            self._moving_average = 0
             self._t_start = None
             self._t_last_update = None
-            self._measurement_interval = max_measurement_interval
+            self._window_size = min_measurement_interval
 
         def update(self, timestamp: float):
             if self._t_start is None:
                 self._t_start = timestamp
                 self._t_last_update = timestamp
-            self._num_samples += 1
+
+            self._new_samples += 1
 
             time_since_last_update = timestamp - self._t_last_update
-            if time_since_last_update >= self._measurement_interval:
-                measurement_time = timestamp - self._t_start
-                self._samplerate = float(self._num_samples - 1.) / measurement_time
+            if time_since_last_update >= self._window_size:
+                self._total_samples += self._new_samples
+                self._moving_average = (self._new_samples - 1.) / time_since_last_update
+                self._new_samples = 1
                 self._t_last_update = timestamp
 
         @property
         def samplerate(self):
-            return self._samplerate
+            return self._moving_average
+
+        @property
+        def cumulative_samplerate(self):
+            if self._t_start == self._t_last_update:
+                return 0.
+            else:
+                t = self._t_last_update - self._t_start
+                return self._total_samples / t
 
     class Direction:
         OUT = 0

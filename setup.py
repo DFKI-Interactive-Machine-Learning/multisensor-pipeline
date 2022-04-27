@@ -17,7 +17,7 @@ install_requires = [
 
 setup(
     name='multisensor-pipeline',
-    version='2.1.0',
+    version='2.1.1',
     author='Michael Barz',
     author_email='michael.barz@dfki.de',
     license='CC BY-NC-SA 4.0',

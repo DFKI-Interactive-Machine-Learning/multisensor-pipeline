@@ -85,7 +85,7 @@ class ProfilingTest(unittest.TestCase):
             msp_stats.add_frame(frame, direction=MSPModuleStats.Direction.IN)
             sleep(1. / frequency)  # works for low samplerates only, because sleep is not accurate for many systems
         t_dur = time.perf_counter() - t_start
-        actual_rate = (2. * frequency) / t_dur
+        actual_rate = len(frames) / t_dur
 
         stats = msp_stats.get_stats(direction=MSPModuleStats.Direction.IN)
 
