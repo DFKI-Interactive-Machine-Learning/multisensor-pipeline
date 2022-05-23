@@ -31,7 +31,7 @@ from time import sleep
 import numpy as np
 
 # define the modules
-source = RandomArraySource(shape=(50,), sampling_rate=60)
+source = RandomArraySource(shape=(50,), samplerate=60)
 processor = ArrayManipulationProcessor(numpy_operation=np.mean)
 sink = ConsoleSink()
 
