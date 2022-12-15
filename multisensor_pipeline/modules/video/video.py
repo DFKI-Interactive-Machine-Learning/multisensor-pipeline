@@ -33,7 +33,7 @@ class PyAVSource(BaseDatasetSource, ABC):
         try:
             frame, frame_time = next(self.frame_gen())
             return MSPDataFrame(topic=self._frame_topic, data=frame, timestamp=frame_time)
-        except av.error.EOFError as e:
+        except (av.error.EOFError, StopIteration) as e:
             return None
         except av.error.BlockingIOError as e:
             return MSPControlMessage(message=MSPControlMessage.PASS)
